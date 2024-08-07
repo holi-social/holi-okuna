@@ -57,6 +57,11 @@ class TestFeedPosts(TestCase):
             "categoryId": str(make_feed_post_category().id),
             "topicIds": [str(make_topic().id) for _ in range(6)],
             "image": SimpleUploadedFile(name="image_1.jpg", content=simple_jpeg_bytes),
+            "location": "Munich, Germany",
+            "geolocation": {
+                "latitude": 48.1371079,
+                "longitude": 11.5753822,
+            },
         }
 
         cls.registered_users_only_feed_post_input_data = {
@@ -66,6 +71,11 @@ class TestFeedPosts(TestCase):
             "categoryId": str(make_feed_post_category().id),
             "topicIds": [str(make_topic().id) for _ in range(3)],
             "image": SimpleUploadedFile(name="image_2.jpg", content=simple_jpeg_bytes),
+            "location": "Munich, Germany",
+            "geolocation": {
+                "latitude": 48.1371079,
+                "longitude": 11.5753822,
+            },
         }
 
         cls.another_public_feed_post_input_data = {
@@ -75,6 +85,11 @@ class TestFeedPosts(TestCase):
             "categoryId": str(make_feed_post_category().id),
             "topicIds": [str(make_topic().id) for _ in range(6)],
             "image": SimpleUploadedFile(name="image_3.jpg", content=simple_jpeg_bytes),
+            "location": "Munich, Germany",
+            "geolocation": {
+                "latitude": 48.1371079,
+                "longitude": 11.5753822,
+            },
         }
 
         cls.another_registered_users_only_feed_post_input_data = {
@@ -84,6 +99,11 @@ class TestFeedPosts(TestCase):
             "categoryId": str(make_feed_post_category().id),
             "topicIds": [str(make_topic().id) for _ in range(3)],
             "image": SimpleUploadedFile(name="image_4.jpg", content=simple_jpeg_bytes),
+            "location": "Munich, Germany",
+            "geolocation": {
+                "latitude": 48.1371079,
+                "longitude": 11.5753822,
+            },
         }
 
         cls.feed_post_with_mentions_input_data = {
@@ -93,6 +113,11 @@ class TestFeedPosts(TestCase):
             "categoryId": str(make_feed_post_category().id),
             "topicIds": [str(make_topic().id) for _ in range(6)],
             "image": SimpleUploadedFile(name="image_1.jpg", content=simple_jpeg_bytes),
+            "location": "Munich, Germany",
+            "geolocation": {
+                "latitude": 48.1371079,
+                "longitude": 11.5753822,
+            },
         }
 
         cls.another_feed_post_with_mentions_input_data = {
@@ -102,6 +127,11 @@ class TestFeedPosts(TestCase):
             "categoryId": str(make_feed_post_category().id),
             "topicIds": [str(make_topic().id) for _ in range(6)],
             "image": SimpleUploadedFile(name="image_1.jpg", content=simple_jpeg_bytes),
+            "location": "Munich, Germany",
+            "geolocation": {
+                "latitude": 48.1371079,
+                "longitude": 11.5753822,
+            },
         }
 
         cls.public_space_post = {
@@ -135,6 +165,9 @@ class TestFeedPosts(TestCase):
         assert len(data["topics"]) == len(self.public_feed_post_input_data["topicIds"])
         assert data["creator"]["id"] == str(self.user.pk)
         assert data["image"]
+        assert data["location"] == self.public_feed_post_input_data["location"]
+        assert data["geolocation"]["latitude"] == self.public_feed_post_input_data["geolocation"]["latitude"]
+        assert data["geolocation"]["longitude"] == self.public_feed_post_input_data["geolocation"]["longitude"]
 
     def test_can_query_my_posts_if_anonymous_user(self):
         first_mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
@@ -250,6 +283,10 @@ class TestFeedPosts(TestCase):
         assert data["creator"]["id"] == str(self.user.pk)
         assert data["image"]
 
+        assert data["location"] == self.public_feed_post_input_data["location"]
+        assert data["geolocation"]["latitude"] == self.public_feed_post_input_data["geolocation"]["latitude"]
+        assert data["geolocation"]["longitude"] == self.public_feed_post_input_data["geolocation"]["longitude"]
+
     def test_can_query_registered_only_users_feed_post_if_authenticated_user(self):
         mutation_response = create_feed_post(user=self.user, input=self.registered_users_only_feed_post_input_data)
         assert mutation_response.errors is None
@@ -267,6 +304,15 @@ class TestFeedPosts(TestCase):
         assert len(data["topics"]) == len(self.registered_users_only_feed_post_input_data["topicIds"])
         assert data["creator"]["id"] == str(self.user.pk)
         assert data["image"]
+        assert data["location"] == self.registered_users_only_feed_post_input_data["location"]
+        assert (
+            data["geolocation"]["latitude"]
+            == self.registered_users_only_feed_post_input_data["geolocation"]["latitude"]
+        )
+        assert (
+            data["geolocation"]["longitude"]
+            == self.registered_users_only_feed_post_input_data["geolocation"]["longitude"]
+        )
 
     def test_can_query_public_feed_post_if_authenticated_user(self):
         mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
@@ -285,6 +331,9 @@ class TestFeedPosts(TestCase):
         assert len(data["topics"]) == len(self.public_feed_post_input_data["topicIds"])
         assert data["creator"]["id"] == str(self.user.pk)
         assert data["image"]
+        assert data["location"] == self.public_feed_post_input_data["location"]
+        assert data["geolocation"]["latitude"] == self.public_feed_post_input_data["geolocation"]["latitude"]
+        assert data["geolocation"]["longitude"] == self.public_feed_post_input_data["geolocation"]["longitude"]
 
     def test_can_not_update_feed_post_if_anonymous_user(self):
         mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
@@ -335,6 +384,15 @@ class TestFeedPosts(TestCase):
         assert len(data["topics"]) == len(self.registered_users_only_feed_post_input_data["topicIds"])
         assert data["creator"]["id"] == str(self.user.pk)
         assert data["image"]
+        assert data["location"] == self.registered_users_only_feed_post_input_data["location"]
+        assert (
+            data["geolocation"]["latitude"]
+            == self.registered_users_only_feed_post_input_data["geolocation"]["latitude"]
+        )
+        assert (
+            data["geolocation"]["longitude"]
+            == self.registered_users_only_feed_post_input_data["geolocation"]["longitude"]
+        )
 
     def test_can_query_only_public_feed_posts_if_anonymous_user(self):
         # user creates 2 public feed posts and 2 registered users only feed post

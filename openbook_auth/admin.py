@@ -34,7 +34,9 @@ class UserAdmin(admin.ModelAdmin):
         "get_location",
         "date_joined",
         "identity",
+        "role",
         "is_deleted",
+        "is_verified",
     )
     list_filter = (("date_joined", DateRangeQuickSelectListFilterBuilder(title="Date joined")),)
     search_fields = ("username", "email", "identity", "profile__name", "profile__last_name")
@@ -58,6 +60,7 @@ class UserAdmin(admin.ModelAdmin):
                 try:
                     publish_user_name_updated_event(user)
                 except Exception as e:
+                    logger.warning("Failed to resend event for user %s: %s", user.id, e)
                     logger.warning(traceback.format_exc())
 
     actions = [resend_user_name_updated_event]

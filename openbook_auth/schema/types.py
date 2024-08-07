@@ -7,7 +7,7 @@ import strawberry_django
 
 from strawberry.file_uploads import Upload
 
-from openbook_auth.models import User as UserModel
+from openbook_auth.models import User as UserModel, UserRole
 from openbook_auth.models import UserConnectionStatus
 from openbook_common.schema.types import GeoJSONInput
 from openbook_communities.enums import UpdateConnectionAction
@@ -122,6 +122,8 @@ class AuthenticatedUser(User):
     tracking_consent_analytics: Optional[bool]
     tracking_consent_personalization: Optional[bool]
     is_employee: bool
+    is_verified: bool
+    role: Optional[UserRole]
 
 
 @strawberry.input

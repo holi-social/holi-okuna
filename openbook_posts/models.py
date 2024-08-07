@@ -64,11 +64,6 @@ from openbook_common.utils.model_loaders import (
     get_user_notifications_subscription_model,
 )
 from openbook_moderation.models import ModeratedObject
-from openbook_notifications.helpers import (
-    send_community_new_post_push_notification,
-    send_post_user_mention_push_notification,
-    send_user_new_post_push_notification,
-)
 from openbook_posts.checkers import (
     check_can_add_media,
     check_can_be_published,
@@ -873,7 +868,6 @@ class Post(CommentNotificationMixin, ModelWithUUID):
                     owner_id=subscription.subscriber.pk,
                     community_notifications_subscription_id=subscription.pk,
                 )
-                send_community_new_post_push_notification(community_notifications_subscription=subscription)
         else:
             UserNewPostNotification = get_user_new_post_notification_model()
             user_subscriptions = Post.get_user_notification_target_subscriptions(post=self)
@@ -883,7 +877,6 @@ class Post(CommentNotificationMixin, ModelWithUUID):
                     owner_id=subscription.subscriber.pk,
                     user_notifications_subscription_id=subscription.pk,
                 )
-                send_user_new_post_push_notification(user_notifications_subscription=subscription, post=self)
 
     def _process_post_links(self):
         # always clear, re-add if text contains links. If the text is edited and a link is dropped, this should behave
@@ -1134,5 +1127,4 @@ class PostUserMention(ModelWithUUID):
             PostUserMentionNotification.create_post_user_mention_notification(
                 post_user_mention_id=post_user_mention.pk, owner_id=user.pk
             )
-            send_post_user_mention_push_notification(post_user_mention=post_user_mention)
         return post_user_mention

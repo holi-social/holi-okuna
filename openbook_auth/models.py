@@ -21,7 +21,7 @@ from django.db.models import Q, F, Count, QuerySet
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.template.loader import render_to_string
-from django.utils import timezone, translation
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFill, ResizeToFit
@@ -99,10 +99,6 @@ from openbook_hashtags.queries import (
     make_search_hashtag_query_for_user_with_id,
     make_get_hashtag_with_name_for_user_with_id_query,
 )
-from openbook_notifications import helpers
-from openbook_notifications.helpers import (
-    get_notification_language_code_for_target_user,
-)
 from openbook_notifications.toggles import notifications_toggle, mute_notifications
 from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
 from openbook_posts.query_collections import get_posts_for_user_collection
@@ -140,6 +136,17 @@ class UserConnectionStatus(Enum):
     CONNECTED = "CONNECTED"
     REQUESTED = "REQUESTED"  # requested by currently authenticated user
     PENDING_CONFIRMATION = "PENDING_CONFIRMATION"  # pending confirmation by currently authenticated user
+
+
+@strawberry.enum
+class UserRole(models.TextChoices):
+    INTERNAL = ("INTERNAL",)
+    REGULAR = ("REGULAR",)
+    MODERATOR = ("MODERATOR",)
+    REDACTOR = ("REDACTOR",)
+    JOURNALIST = ("JOURNALIST",)
+    FOUNDER = ("FOUNDER",)
+    COMMUNITY_MANAGER = ("COMMUNITY_MANAGER",)
 
 
 class UserWithProfileManager(UserManager):
@@ -279,6 +286,14 @@ class User(ModelWithUUID, AbstractUser):
     JWT_TOKEN_TYPE_PASSWORD_RESET = "PR"
 
     last_seen_notification_timestamp = models.DateTimeField(null=True, blank=True)
+
+    is_verified = models.BooleanField(
+        default=False,
+        help_text="Indicates whether the user's account has been verified.",
+        verbose_name="Account Verified",
+    )
+
+    role = models.CharField(max_length=50, choices=UserRole.choices, blank=False, null=True, default=UserRole.REGULAR)
 
     @property
     def uuid(self):
@@ -1571,49 +1586,6 @@ class User(ModelWithUUID, AbstractUser):
                     post_comment=post_comment
                 )
             )
-
-            if post_notification_target_has_comment_reply_notifications_enabled:
-                target_user_language_code = get_notification_language_code_for_target_user(
-                    post_notification_target_user
-                )
-
-                with translation.override(target_user_language_code):
-                    if post_notification_target_user_is_post_comment_creator:
-                        notification_message = {
-                            "en": _(
-                                "%(post_commenter_name)s · @%(post_commenter_username)s replied to your comment on a post."
-                            )
-                            % {
-                                "post_commenter_username": replier.username,
-                                "post_commenter_name": replier.profile.name,
-                            }
-                        }
-                    elif post_notification_target_user_is_post_creator:
-                        notification_message = {
-                            "en": _(
-                                "%(post_commenter_name)s · %(post_commenter_username)s replied to a comment on your post."
-                            )
-                            % {
-                                "post_commenter_username": replier.username,
-                                "post_commenter_name": replier.profile.name,
-                            }
-                        }
-                    else:
-                        notification_message = {
-                            "en": _(
-                                "%(post_commenter_name)s · @%(post_commenter_username)s replied on a comment you also replied on."
-                            )
-                            % {
-                                "post_commenter_username": replier.username,
-                                "post_commenter_name": replier.profile.name,
-                            }
-                        }
-
-                    self._send_post_comment_push_notification(
-                        post_comment=post_comment_reply,
-                        notification_message=notification_message,
-                        notification_target_user=post_notification_target_user,
-                    )
 
             PostCommentReplyNotification.create_post_comment_reply_notification(
                 post_comment_id=post_comment_reply.pk,
@@ -4369,13 +4341,6 @@ class User(ModelWithUUID, AbstractUser):
         email.attach_alternative(html_content, "text/html")
         email.send()
 
-    def _send_post_comment_push_notification(self, post_comment, notification_message, notification_target_user):
-        helpers.send_post_comment_push_notification_with_message(
-            post_comment=post_comment,
-            message=notification_message,
-            target_user=notification_target_user,
-        )
-
     def _delete_post_comment_notification(self, post_comment):
         if post_comment.parent_comment is not None:
             PostCommentNotification = get_post_comment_notification_model()
@@ -4399,7 +4364,7 @@ class User(ModelWithUUID, AbstractUser):
         )
 
     def _send_post_reaction_push_notification(self, post_reaction):
-        helpers.send_post_reaction_push_notification(post_reaction=post_reaction)
+        pass  # removed onesignal functionality
 
     def _create_post_comment_reaction_notification(self, post_comment_reaction):
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
@@ -4409,7 +4374,7 @@ class User(ModelWithUUID, AbstractUser):
         )
 
     def _send_post_comment_reaction_push_notification(self, post_comment_reaction):
-        helpers.send_post_comment_reaction_push_notification(post_comment_reaction=post_comment_reaction)
+        pass  # removed onesignal functionality
 
     def _delete_post_comment_reaction_notification(self, post_comment_reaction):
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
@@ -4428,15 +4393,14 @@ class User(ModelWithUUID, AbstractUser):
 
     @mute_notifications
     def _send_community_invite_push_notification(self, community_invite):
-        helpers.send_community_invite_push_notification(community_invite=community_invite)
+        pass  # removed onesignal functionality
 
     def _create_follow_notification(self, followed_user_id):
         FollowNotification = get_follow_notification_model()
         FollowNotification.create_follow_notification(follower_id=self.pk, owner_id=followed_user_id)
 
     def _send_follow_push_notification(self, followed_user_id):
-        followed_user = User.objects.get(pk=followed_user_id)
-        helpers.send_follow_push_notification(followed_user=followed_user, following_user=self)
+        pass  # removed onesignal functionality
 
     def _delete_follow_notification(self, followed_user_id):
         FollowNotification = get_follow_notification_model()
@@ -4463,10 +4427,7 @@ class User(ModelWithUUID, AbstractUser):
         )
 
     def _send_connection_request_push_notification(self, user_connection_requested_for_id):
-        connection_requested_for = User.objects.get(pk=user_connection_requested_for_id)
-        helpers.send_connection_request_push_notification(
-            connection_requester=self, connection_requested_for=connection_requested_for
-        )
+        pass  # removed onesignal functionality
 
     def _delete_connection_request_notification_for_user_with_id(self, user_id):
         ConnectionRequestNotification = get_connection_request_notification_model()
@@ -4481,7 +4442,7 @@ class User(ModelWithUUID, AbstractUser):
         )
 
     def _send_follow_request_push_notification(self, follow_request):
-        helpers.send_follow_request_push_notification(follow_request=follow_request)
+        pass  # removed onesignal functionality
 
     def _create_follow_request_approved_notification(self, follow):
         FollowRequestApprovedNotification = get_follow_request_approved_notification_model()
@@ -4490,7 +4451,7 @@ class User(ModelWithUUID, AbstractUser):
         )
 
     def _send_follow_request_approved_push_notification(self, follow):
-        helpers.send_follow_request_approved_push_notification(follow=follow)
+        pass  # removed unused onesignal functionality
 
     def _reset_auth_token(self):
         self.auth_token.delete()

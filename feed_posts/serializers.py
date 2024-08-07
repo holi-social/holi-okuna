@@ -7,6 +7,7 @@ from feed_posts.validators import (
     feed_post_exists,
 )
 from openbook import settings
+from openbook_common.serializers import GeolocationPointSerializer
 from openbook_common.serializers_fields.request import RestrictedImageFileSizeField
 from openbook_common.types import LanguageCode
 from openbook_common.validators import sanitize_text
@@ -45,6 +46,15 @@ class CreateFeedPostSerializer(serializers.Serializer):
 
     language = serializers.CharField(max_length=2, required=False, allow_blank=True)
 
+    location = serializers.CharField(
+        max_length=settings.APPOINTMENT_LOCATION_MAX_LENGTH,
+        required=False,
+        allow_null=True,
+        allow_blank=True,
+    )
+
+    geolocation = GeolocationPointSerializer(required=False)
+
 
 class UpdateFeedPostSerializer(serializers.Serializer):
     post_id = serializers.UUIDField(
@@ -82,3 +92,12 @@ class UpdateFeedPostSerializer(serializers.Serializer):
     )
 
     language = serializers.CharField(max_length=2, required=False, allow_blank=True, default=LanguageCode.ENGLISH)
+
+    location = serializers.CharField(
+        max_length=settings.APPOINTMENT_LOCATION_MAX_LENGTH,
+        required=False,
+        allow_null=True,
+        allow_blank=True,
+    )
+
+    geolocation = GeolocationPointSerializer(required=False)
