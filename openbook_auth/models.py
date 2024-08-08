@@ -4933,6 +4933,7 @@ class User(ModelWithUUID, AbstractUser):
         check_can_delete_task_within_community_with_id(user=self, task=task, community_id=task.community_id)
 
         task.soft_delete()
+        return task
 
     def add_collaboration_tool(
         self,
