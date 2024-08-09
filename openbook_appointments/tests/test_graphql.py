@@ -916,11 +916,25 @@ class TestAppointments(TestCase):
 
     @mock.patch("openbook_appointments.services.track")
     def test_emits_no_tracking_event_on_update_if_not_allowed(self, mock_track):
-        pass
+        appointment_id = create_appointment(self.user_member, self.invite_only_appointment_input_data).data[
+            "createAppointment"
+        ]["id"]
+        mock_track.reset_mock()
+        input_data = update_input_data(
+            appointment_id=appointment_id, input_data=self.invite_only_appointment_input_data
+        )
+
+        update_appointment(self.external_member, input_data)
+        mock_track.assert_not_called()
 
     @mock.patch("openbook_appointments.services.track")
     def test_emits_no_tracking_event_on_deletion_if_not_allowed(self, mock_track):
-        pass
+        appointment_id = create_appointment(self.user_member, self.invite_only_appointment_input_data).data[
+            "createAppointment"
+        ]["id"]
+        mock_track.reset_mock()
+        delete_appointment(self.external_member, appointment_id=appointment_id)
+        mock_track.assert_not_called()
 
     @mock.patch("openbook_appointments.services.track")
     def test_emits_tracking_event_on_update_by_admin(self, mock_track):
