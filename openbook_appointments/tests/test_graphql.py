@@ -9,6 +9,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import AsyncClient, TestCase
 from django.utils import timezone
 from faker import Faker
+from openbook_common.tracking import TrackingEvent, initialize_tracking, PostHogConfig
 
 from openbook import settings
 from openbook_appointments.enums import PermissionType, StatusType
@@ -50,6 +51,7 @@ class TestAppointments(TestCase):
     # prevent sending novu notifications
     @pytest.fixture(scope="class", autouse=True)
     def setup(self):
+        initialize_tracking(PostHogConfig(api_key="fake_api_key", host="fake_host", disable_for_testing=True))
         with mock.patch.object(Notification, "send"):
             yield
 
@@ -848,3 +850,127 @@ class TestAppointments(TestCase):
         delete_appointment(user=self.admin, appointment_id=appointment_id)
 
         mock_space_appointment_deletion_notification_send.assert_not_called()
+
+    @mock.patch("openbook_appointments.services.track")
+    def test_emits_tracking_event_on_creation_by_admin(self, mock_track):
+        appointment_id = create_appointment(self.admin, self.invite_only_appointment_input_data).data[
+            "createAppointment"
+        ]["id"]
+        mock_track.assert_called_once_with(
+            self.admin,
+            TrackingEvent(
+                "appointmentCreated",
+                {"spaceId": str(self.invite_only_appointment_input_data["spaceId"]), "appointmentId": appointment_id},
+            ),
+        )
+
+    @mock.patch("openbook_appointments.services.track")
+    def test_emits_tracking_event_on_creation_by_member(self, mock_track):
+        appointment_id = create_appointment(self.user_member, self.invite_only_appointment_input_data).data[
+            "createAppointment"
+        ]["id"]
+        mock_track.assert_called_once_with(
+            self.user_member,
+            TrackingEvent(
+                "appointmentCreated",
+                {"spaceId": str(self.invite_only_appointment_input_data["spaceId"]), "appointmentId": appointment_id},
+            ),
+        )
+
+    @mock.patch("openbook_appointments.services.track")
+    def test_emits_tracking_event_on_deletion_by_admin(self, mock_track):
+        appointment_id = create_appointment(self.user_member, self.invite_only_appointment_input_data).data[
+            "createAppointment"
+        ]["id"]
+        mock_track.reset_mock()
+        delete_appointment(user=self.admin, appointment_id=appointment_id)
+        mock_track.assert_called_once_with(
+            self.admin,
+            TrackingEvent(
+                "appointmentDeleted",
+                {"spaceId": str(self.invite_only_appointment_input_data["spaceId"]), "appointmentId": appointment_id},
+            ),
+        )
+
+    @mock.patch("openbook_appointments.services.track")
+    def test_emits_tracking_event_on_deletion_by_creator(self, mock_track):
+        appointment_id = create_appointment(self.user_member, self.invite_only_appointment_input_data).data[
+            "createAppointment"
+        ]["id"]
+        mock_track.reset_mock()
+        delete_appointment(self.user_member, appointment_id=appointment_id)
+        mock_track.assert_called_once_with(
+            self.user_member,
+            TrackingEvent(
+                "appointmentDeleted",
+                {"spaceId": str(self.invite_only_appointment_input_data["spaceId"]), "appointmentId": appointment_id},
+            ),
+        )
+
+    @mock.patch("openbook_appointments.services.track")
+    def test_emits_no_tracking_event_on_creation_if_not_allowed(self, mock_track):
+        # test case uses the case "not admin or member" as a random choice for an unsuccessful attempt at appointment
+        # creation, otherwise we'd have to add side effect tests to every other test case that tests domain logic
+        create_appointment(self.external_member, self.public_appointment_input_data)
+        mock_track.assert_not_called()
+
+    @mock.patch("openbook_appointments.services.track")
+    def test_emits_no_tracking_event_on_update_if_not_allowed(self, mock_track):
+        pass
+
+    @mock.patch("openbook_appointments.services.track")
+    def test_emits_no_tracking_event_on_deletion_if_not_allowed(self, mock_track):
+        pass
+
+    @mock.patch("openbook_appointments.services.track")
+    def test_emits_tracking_event_on_update_by_admin(self, mock_track):
+        appointment_id = create_appointment(self.admin, self.invite_only_appointment_input_data).data[
+            "createAppointment"
+        ]["id"]
+        mock_track.reset_mock()
+        update_data = update_input_data(appointment_id=appointment_id, input_data=self.public_appointment_input_data)
+        update_appointment(self.admin, update_data)
+
+        mock_track.assert_called_once_with(
+            self.admin,
+            TrackingEvent(
+                "appointmentUpdated",
+                {"spaceId": str(self.invite_only_appointment_input_data["spaceId"]), "appointmentId": appointment_id},
+            ),
+        )
+
+    @mock.patch("openbook_appointments.services.track")
+    def test_emits_tracking_event_on_update_by_creator(self, mock_track):
+        appointment_id = create_appointment(self.user_member, self.invite_only_appointment_input_data).data[
+            "createAppointment"
+        ]["id"]
+        mock_track.reset_mock()
+        update_data = update_input_data(appointment_id=appointment_id, input_data=self.public_appointment_input_data)
+        update_appointment(self.user_member, update_data)
+
+        mock_track.assert_called_once_with(
+            self.user_member,
+            TrackingEvent(
+                "appointmentUpdated",
+                {"spaceId": str(self.invite_only_appointment_input_data["spaceId"]), "appointmentId": appointment_id},
+            ),
+        )
+
+    @mock.patch("openbook_appointments.services.track")
+    def test_emits_tracking_event_on_update_by_participant(self, mock_track):
+        appointment_id = create_appointment(self.user_member, self.another_invite_only_appointment_input_data).data[
+            "createAppointment"
+        ]["id"]
+        mock_track.reset_mock()
+        update_data = update_input_data(
+            appointment_id=appointment_id, input_data=self.another_invite_only_appointment_input_data
+        )
+        update_appointment(self.participant, update_data)
+
+        mock_track.assert_called_once_with(
+            self.participant,
+            TrackingEvent(
+                "appointmentUpdated",
+                {"spaceId": str(self.invite_only_appointment_input_data["spaceId"]), "appointmentId": appointment_id},
+            ),
+        )
