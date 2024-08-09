@@ -498,7 +498,7 @@ class TestAppointments(TestCase):
         delete_mutation_response = delete_appointment(user=self.admin, appointment_id=appointment_id)
 
         assert delete_mutation_response.errors is None
-        assert delete_mutation_response.data["deleteAppointment"]["success"] == True
+        assert delete_mutation_response.data["deleteAppointment"]["success"] is True
 
     def test_can_delete_invite_only_appointment_if_creator(self):
         create_mutation_response = create_appointment(self.user_member, self.invite_only_appointment_input_data)
@@ -509,7 +509,7 @@ class TestAppointments(TestCase):
         delete_mutation_response = delete_appointment(self.user_member, appointment_id=appointment_id)
 
         assert delete_mutation_response.errors is None
-        assert delete_mutation_response.data["deleteAppointment"]["success"] == True
+        assert delete_mutation_response.data["deleteAppointment"]["success"] is True
 
     def test_can_delete_invite_only_appointment_if_participant(self):
         create_mutation_response = create_appointment(
@@ -522,7 +522,7 @@ class TestAppointments(TestCase):
         delete_mutation_response = delete_appointment(self.participant, appointment_id=appointment_id)
 
         assert delete_mutation_response.errors is None
-        assert delete_mutation_response.data["deleteAppointment"]["success"] == True
+        assert delete_mutation_response.data["deleteAppointment"]["success"] is True
 
     def test_can_not_delete_appointment_if_not_member(self):
         create_mutation_response = create_appointment(self.user_member, self.invite_only_appointment_input_data)
