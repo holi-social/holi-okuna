@@ -2034,7 +2034,8 @@ class User(ModelWithUUID, AbstractUser):
         track(
             self,
             TrackingEvent(
-                "spaceMembershipRequestCreated", {"spaceId": str(community_to_join.id), "requestorUserId": str(self.id)}
+                "spaceMembershipRequestCreated",
+                {"spaceId": str(community_to_join.id), "requestorUserId": str(self.id)},
             ),
         )
 
