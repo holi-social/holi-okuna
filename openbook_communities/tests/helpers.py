@@ -46,10 +46,10 @@ def mutate_update_space_user_connection_raw(
         """
         mutation ($spaceId: UUID!, $userId: UUID, $type: SpaceUserConnectionType!, $action: UpdateConnectionAction!, $message: String){
             updateSpaceUserConnection(spaceId: $spaceId,
-                                        userId: $userId,
-                                        connectionType: $type,
-                                        connectAction: $action,
-                                        message: $message) {
+                                      userId: $userId,
+                                      connectionType: $type,
+                                      connectAction: $action,
+                                      message: $message) {
                 id
                 name
                 members {

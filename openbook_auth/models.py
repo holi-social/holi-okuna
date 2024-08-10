@@ -28,6 +28,7 @@ from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
 from unidecode import unidecode
 
+from openbook_common.tracking import track, TrackingEvent
 from openbook.settings import USERBLOCK
 from openbook.utils import DEFAULT_EMAIL_LANGUAGE, get_supported_language_for_email
 from openbook_auth.checkers import *
@@ -2030,6 +2031,13 @@ class User(ModelWithUUID, AbstractUser):
             message=message,
         )
 
+        track(
+            self,
+            TrackingEvent(
+                "spaceMembershipRequestCreated", {"spaceId": str(community_to_join.id), "requestorUserId": str(self.id)}
+            ),
+        )
+
         return community_to_join
 
     def revoke_membership_request_to_community_with_name(self, community_name):
@@ -2040,6 +2048,14 @@ class User(ModelWithUUID, AbstractUser):
         membership_request = community_to_join.get_membership_request(self)
         membership_request.delete_notifications()
         community_to_join.remove_membership_request(self)
+
+        track(
+            self,
+            TrackingEvent(
+                "spaceMembershipRequestRevoked",
+                {"spaceId": str(community_to_join.id), "requestorUserId": str(self.id)},
+            ),
+        )
 
         return community_to_join
 
@@ -2074,6 +2090,18 @@ class User(ModelWithUUID, AbstractUser):
         NotificationsService.send_space_membership_request_approval_admin_notification(
             recipients=community_to_join.get_staff_members(), requester=user_to_approve, space=community_to_join
         )
+
+        track(
+            self,
+            TrackingEvent(
+                "spaceMembershipRequestApproved",
+                {
+                    "spaceId": str(community_to_join.id),
+                    "requestorUserId": str(user_to_approve.id) if user_to_approve.tracking_consent_analytics else None,
+                },
+            ),
+        )
+
         return community_to_join
 
     def accept_membership_invite_to_community_for_username(self, community_name) -> "Community":
@@ -2106,6 +2134,18 @@ class User(ModelWithUUID, AbstractUser):
             recipients=community_to_join.get_staff_members(), invitee=self, space=community_to_join
         )
 
+        track(
+            self,
+            TrackingEvent(
+                "spaceMembershipInvitationAccepted",
+                {
+                    "spaceId": str(community_to_join.id),
+                    "inviteeUserId": str(self.id),
+                    "invitingUserId": str(invite.creator.id) if invite.creator.tracking_consent_analytics else None,
+                },
+            ),
+        )
+
         return community_to_join
 
     def reject_membership_invite_to_community_for_username(self, community_name) -> "Community":
@@ -2126,6 +2166,20 @@ class User(ModelWithUUID, AbstractUser):
 
         community_invite.delete_notifications()
         community_invite.delete()
+
+        track(
+            self,
+            TrackingEvent(
+                "spaceMembershipInvitationRejected",
+                {
+                    "spaceId": str(community_to_join.id),
+                    "inviteeUserId": str(self.id),
+                    "invitingUserId": str(community_invite.creator.id)
+                    if community_invite.creator.tracking_consent_analytics
+                    else None,
+                },
+            ),
+        )
 
         self.notify_invite_declined(community_to_join, inviting_admin, self)
 
@@ -2203,6 +2257,19 @@ class User(ModelWithUUID, AbstractUser):
             denier=self,
         )
 
+        track(
+            self,
+            TrackingEvent(
+                "spaceMembershipRequestRejected",
+                {
+                    "spaceId": str(community.id),
+                    "requestorUserId": str(user_to_revoke_request_for.id)
+                    if user_to_revoke_request_for.tracking_consent_analytics
+                    else None,
+                },
+            ),
+        )
+
         return community
 
     def delete_pending_notifications(self):
@@ -2225,6 +2292,8 @@ class User(ModelWithUUID, AbstractUser):
 
         community_to_leave.remove_member(self)
 
+        track(self, TrackingEvent("spaceMemberLeft", {"spaceId": str(community_to_leave.id)}))
+
         return community_to_leave
 
     def remove_member_from_community(self, username, community_name):
@@ -2242,6 +2311,17 @@ class User(ModelWithUUID, AbstractUser):
 
         community.remove_member(user_to_remove)
         self.notify_membership_removal(community, user_to_remove)
+
+        track(
+            self,
+            TrackingEvent(
+                "spaceMemberRemoved",
+                {
+                    "spaceId": str(community.id),
+                    "removedUserId": str(user_to_remove.id) if user_to_remove.tracking_consent_analytics else None,
+                },
+            ),
+        )
 
         return community
 
@@ -2311,6 +2391,18 @@ class User(ModelWithUUID, AbstractUser):
         community_invite.delete_notifications()
         community_invite.delete()
 
+        track(
+            self,
+            TrackingEvent(
+                "spaceMembershipInvitationRevoked",
+                {
+                    "spaceId": str(community_invite.community.id),
+                    "invitingUserId": str(self.id),
+                    "inviteeUserId": str(uninvited_user.id) if uninvited_user.tracking_consent_analytics else None,
+                },
+            ),
+        )
+
         return uninvited_user
 
     def get_community_with_name_administrators(self, community_name, max_id):
@@ -2350,6 +2442,19 @@ class User(ModelWithUUID, AbstractUser):
 
         self.notify_administrator_privileges_granted(community_to_add_administrator_to, user_to_add_as_administrator)
 
+        track(
+            self,
+            TrackingEvent(
+                "spaceAdminRightsGranted",
+                {
+                    "spaceId": str(community_to_add_administrator_to.id),
+                    "grantedUserId": str(user_to_add_as_administrator.id)
+                    if user_to_add_as_administrator.tracking_consent_analytics
+                    else None,
+                },
+            ),
+        )
+
         return community_to_add_administrator_to
 
     def notify_administrator_privileges_revoked(self, community, user):
@@ -2375,6 +2480,19 @@ class User(ModelWithUUID, AbstractUser):
 
         self.notify_administrator_privileges_revoked(
             community_to_remove_administrator_from, user_to_remove_as_administrator
+        )
+
+        track(
+            self,
+            TrackingEvent(
+                "spaceAdminRightsRevoked",
+                {
+                    "spaceId": str(community_to_remove_administrator_from.id),
+                    "grantedUserId": str(user_to_remove_as_administrator.id)
+                    if user_to_remove_as_administrator.tracking_consent_analytics
+                    else None,
+                },
+            ),
         )
 
         return community_to_remove_administrator_from
@@ -3126,6 +3244,8 @@ class User(ModelWithUUID, AbstractUser):
 
         get_community_notifications_subscription_model().enable_new_post_notification_for_community(community, self)
 
+        track(self, TrackingEvent("spaceFollowed", {"spaceId": str(community.id)}))
+
         return community
 
     def disable_new_post_notifications_for_community_with_name(self, community_name):
@@ -3134,6 +3254,8 @@ class User(ModelWithUUID, AbstractUser):
         check_can_disable_new_post_notifications_for_community(user=self, community=community)
 
         get_community_notifications_subscription_model().disable_new_post_notification_for_community(community, self)
+
+        track(self, TrackingEvent("spaceUnfollowed", {"spaceId": str(community.id)}))
 
         return community
 
@@ -4763,6 +4885,18 @@ class User(ModelWithUUID, AbstractUser):
         check_should_user_or_email_be_invited_to_community(user=user, community=community, email=None)
 
         self.invite_user_to_community(user=user, community=community)
+
+        track(
+            self,
+            TrackingEvent(
+                "spaceMembershipInvitationCreated",
+                {
+                    "spaceId": str(community.id),
+                    "invitingUserId": str(self.id),
+                    "inviteeUserId": str(user.id) if user.tracking_consent_analytics else None,
+                },
+            ),
+        )
 
         return community
 
