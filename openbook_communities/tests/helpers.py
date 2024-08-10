@@ -175,7 +175,6 @@ def update_and_assert_onboarding_steps(user, community_id, onboarding_steps):
 
     assert "onboarding" in updated_space
     assert "steps" in updated_space["onboarding"]
-    new_onboarding_steps = updated_space["onboarding"]["steps"]
     assert updated_space["onboarding"]["steps"] == onboarding_steps
 
 
