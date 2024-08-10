@@ -523,7 +523,8 @@ class TestSpaceEvents(TestCase):
                 call(
                     requestor,
                     TrackingEvent(
-                        "spaceMembershipRequestCreated", {"spaceId": str(space.id), "requestorUserId": str(requestor.id)}
+                        "spaceMembershipRequestCreated",
+                        {"spaceId": str(space.id), "requestorUserId": str(requestor.id)},
                     ),
                 ),
                 call(
@@ -550,7 +551,8 @@ class TestSpaceEvents(TestCase):
                 call(
                     requestor,
                     TrackingEvent(
-                        "spaceMembershipRequestCreated", {"spaceId": str(space.id), "requestorUserId": str(requestor.id)}
+                        "spaceMembershipRequestCreated",
+                        {"spaceId": str(space.id), "requestorUserId": str(requestor.id)},
                     ),
                 ),
                 call(
