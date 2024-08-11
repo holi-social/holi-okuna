@@ -16,7 +16,7 @@ stages:
   - "test"
   - "build"
   - "deploy"
-  - "e2e"
+  - "smoketest"
   - "downstream"
   - "destroy"
 
@@ -127,8 +127,8 @@ build_docker:
   resource_group: $ENVIRONMENT_ID # never execute terraform in parallel on the same environment
   interruptible: false
 
-.e2e:
-  stage: "e2e"
+.smoketest:
+  stage: "smoketest"
   image: 'europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/holi-k6-builder'
   script:
     - API_DOMAIN=$(cat $API_DOMAIN_PATH)
@@ -148,8 +148,8 @@ review_deploy:
     - production
     - /^noenv\/.*/
 
-review_e2e:
-  extends: .e2e
+review_smoketest:
+  extends: .smoketest
   except:
     - main
     - production
@@ -194,8 +194,8 @@ staging_deploy:
   only:
     - main
 
-staging_e2e:
-  extends: .e2e
+staging_smoketest:
+  extends: .smoketest
   only:
     - main
 
@@ -219,8 +219,8 @@ production_deploy:
   only:
     - production
 
-production_e2e:
-  extends: .e2e
+production_smoketest:
+  extends: .smoketest
   only:
     - production
 
