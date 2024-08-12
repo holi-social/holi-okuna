@@ -1,8 +1,10 @@
 import uuid
+from datetime import timedelta
 from typing import Optional
 
 from django.contrib.gis.db import models
 from django.core.files.storage import default_storage
+from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
@@ -14,7 +16,7 @@ from comments.models.commentable_notification_context import CommentNotification
 from feed_posts.enums import VisibilityLevel
 from feed_posts.helpers import upload_to_feed_post_images_directory
 from openbook import settings
-from openbook_auth.models import User
+from openbook_auth.models import User, UserRole
 from openbook_common.enums import ReactionType
 from openbook_common.helpers import ExifRotate, generate_blurhash
 from openbook_common.models import ModelWithUUID, LinkPreview
@@ -78,6 +80,17 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
     )
 
     geolocation = models.PointField(blank=True, null=True, spatial_index=True)
+
+    priority_duration = models.PositiveIntegerField(
+        default=0,
+        help_text="Specifies how many days the post will remain at the top of the feed.",
+    )
+
+    @property
+    def has_priority(self):
+        if self.creator.role != UserRole.FOUNDER or self.category.slug != "founder-update":
+            return False
+        return self.created_at + timedelta(days=self.priority_duration) >= timezone.now()
 
     def save(self, *args, **kwargs):
         if self.image:
