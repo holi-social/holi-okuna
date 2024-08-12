@@ -137,13 +137,16 @@ class Mutation:
                         username=str(user_id), community_name=space.name
                     )
                     return space
+                # space admin grants admin rights to another user
                 case (ConnectionType.ADMINISTRATOR, Action.GRANT_ADMIN_ACCESS):
                     return current_user.add_administrator_with_username_to_community_with_name(user_id, space.name)
+                # space admin revokes admin rights from another user
                 case (ConnectionType.ADMINISTRATOR, Action.REVOKE_ADMIN_ACCESS):
                     space.delete_pending_notifications_for_user(user_id)
                     return current_user.remove_administrator_with_username_from_community_with_name(
                         user_id, space.name
                     )
+                # space admin removes member
                 case (ConnectionType.ADMINISTRATOR, Action.REMOVE_MEMBER):
                     space.delete_pending_notifications_for_user(user_id)
                     community = current_user.remove_member_from_community(user_id, space.name)
