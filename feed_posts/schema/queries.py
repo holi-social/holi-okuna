@@ -89,10 +89,18 @@ class Query:
 
         posts = list(filtered_feed_posts) + list(space_posts)
 
+        def get_creation_date(post):
+            if hasattr(post, "created_at"):
+                return post.created_at
+            else:
+                return post.created
+
         sorted_posts = sorted(
             posts,
-            key=lambda post: post.created_at if hasattr(post, "created_at") else post.created,
-            reverse=True,
+            key=lambda post: (
+                -int(getattr(post, "has_priority", False)),
+                -get_creation_date(post).timestamp(),
+            ),
         )
 
         start_index = offset
