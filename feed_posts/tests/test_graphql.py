@@ -8,6 +8,7 @@ from django.test import AsyncClient, TestCase
 from faker import Faker
 
 from feed_posts.enums import VisibilityLevel
+from feed_posts.repositories import FeedPostRepository
 from feed_posts.tests.helpers import (
     create_feed_post,
     my_posts,
@@ -21,6 +22,7 @@ from feed_posts.tests.helpers import (
     all_posts,
 )
 from openbook import settings
+from openbook_auth.models import UserRole
 from openbook_common.enums import ReactionType, ReactionAction, VisibilityType
 from openbook_common.tests.helpers import (
     make_user,
@@ -28,6 +30,7 @@ from openbook_common.tests.helpers import (
     make_feed_post_category,
     simple_jpeg_bytes,
     make_community,
+    make_feed_post_founder_update_category,
 )
 
 logger = logging.getLogger(__name__)
@@ -145,6 +148,10 @@ class TestFeedPosts(TestCase):
             "text": fake.text(max_nb_chars=settings.POST_MAX_LENGTH),
             "visibility": VisibilityType.MEMBERS.value,
         }
+
+        cls.founder = make_user()
+        cls.founder.role = UserRole.FOUNDER
+        cls.founder.save()
 
     def test_can_not_create_feed_post_if_anonymous_user(self):
         response = create_feed_post(user=AnonymousUser, input=self.public_feed_post_input_data)
@@ -749,7 +756,7 @@ class TestFeedPosts(TestCase):
 
         data = response.data["allPosts"]
 
-        # space member can see only all posts
+        # space member can see all posts
         assert data["totalResults"] == 6
 
         assert data["data"][0]["id"] == str(private_space_post.id)
@@ -758,3 +765,63 @@ class TestFeedPosts(TestCase):
         assert data["data"][3]["id"] == second_public_feed_post["id"]
         assert data["data"][4]["id"] == first_registered_users_only_feed_post["id"]
         assert data["data"][5]["id"] == first_public_feed_post["id"]
+
+    def test_founder_update_posts_have_higher_priority_than_regular_posts(self):
+        input_data = self.public_feed_post_input_data
+        founder_update_category = make_feed_post_founder_update_category()
+        regular_category = make_feed_post_category()
+
+        founder_post = FeedPostRepository().create_feed_post(
+            title=input_data["title"],
+            visibility=input_data["visibility"],
+            description=input_data["description"],
+            topics=input_data["topicIds"],
+            category=founder_update_category,
+            creator=self.founder,
+            image=input_data["image"],
+            location=input_data["location"],
+            geolocation=input_data["geolocation"],
+            link_preview=None,
+            language=None,
+        )
+
+        regular_post = FeedPostRepository().create_feed_post(
+            title=input_data["title"],
+            visibility=input_data["visibility"],
+            description=input_data["description"],
+            topics=input_data["topicIds"],
+            category=regular_category,
+            creator=self.user,
+            image=input_data["image"],
+            location=input_data["location"],
+            geolocation=input_data["geolocation"],
+            link_preview=None,
+            language=None,
+        )
+
+        public_space_post = self.user.create_community_post(
+            space_id=self.space.id,
+            title=self.public_space_post["title"],
+            text=self.public_space_post["text"],
+            visibility=self.public_space_post["visibility"],
+        )
+
+        assert founder_post.has_priority
+        assert founder_post.priority_duration == 2
+
+        assert not regular_post.has_priority
+        assert regular_post.priority_duration == 0
+
+        # Verify that the founder update post was created before both the regular and public space posts
+        assert founder_post.created_at < regular_post.created_at
+        assert founder_post.created_at < public_space_post.created
+
+        response = all_posts(user=self.another_user)
+        data = response.data["allPosts"]
+
+        assert data["totalResults"] == 3
+
+        # Founder update post first, followed by the public space post, and then the regular post
+        assert data["data"][0]["id"] == str(founder_post.id)
+        assert data["data"][1]["id"] == str(public_space_post.id)
+        assert data["data"][2]["id"] == str(regular_post.id)

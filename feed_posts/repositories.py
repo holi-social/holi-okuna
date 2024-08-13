@@ -3,7 +3,7 @@ import uuid
 from django.db.models import Q
 
 from feed_posts.models import FeedPost, FeedPostReaction
-from openbook_auth.models import User, get_reactions
+from openbook_auth.models import User, get_reactions, UserRole
 from openbook_common.enums import ReactionType
 from openbook_common.schema.types import GeolocationPointInput
 from openbook_common.utils.helpers import is_uuid
@@ -24,6 +24,11 @@ class FeedPostRepository:
         location,
         geolocation,
     ):
+        if creator.role == UserRole.FOUNDER and category.slug == "founder-update":
+            priority_duration = 2
+        else:
+            priority_duration = 0
+
         feed_post = FeedPost.objects.create(
             title=title,
             visibility=visibility,
@@ -35,6 +40,7 @@ class FeedPostRepository:
             language_code=language,
             location=location,
             geolocation=GeolocationPointInput.to_point(geolocation),
+            priority_duration=priority_duration,
         )
 
         if topics is not None:

@@ -703,3 +703,7 @@ def make_insight():
 
 def make_feed_post_category():
     return mixer.blend(FeedPostCategory)
+
+
+def make_feed_post_founder_update_category():
+    return mixer.blend(FeedPostCategory, slug="founder-update")
