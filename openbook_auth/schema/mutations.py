@@ -12,6 +12,7 @@ from django.utils.translation import get_language_from_request
 from graphql import GraphQLError
 from rest_framework.exceptions import ValidationError
 
+from openbook_common.tracking import track, TrackingEvent
 from openbook.helpers import (
     publish_space_deleted_event,
     publish_user_deleted_event,
@@ -90,6 +91,8 @@ class Mutation:
         locale = get_language_from_request(info.context.request)
         NotificationApi.create_or_update_subscriber(user=current_user, locale=locale)
 
+        track(current_user, TrackingEvent("userUpdated"))
+
         cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
 
         return current_user
@@ -109,6 +112,8 @@ class Mutation:
         if not response.ok:
             error_message = response.error.error if response.error else "Unknown"
             raise Exception(f"Deleting user {current_user.username} in ory failed: {error_message}")
+
+        track(current_user, TrackingEvent("userDeleted"))
 
         # crude hack to prevent concurrent user references (e.g. mentions in comments) to let the user deletion fail
         # we just retry a couple of times

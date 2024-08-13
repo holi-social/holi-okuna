@@ -21,13 +21,14 @@ from django.db.models import Q, F, Count, QuerySet
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.template.loader import render_to_string
-from django.utils import timezone, translation
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
 from unidecode import unidecode
 
+from openbook_common.tracking import track, TrackingEvent
 from openbook.settings import USERBLOCK
 from openbook.utils import DEFAULT_EMAIL_LANGUAGE, get_supported_language_for_email
 from openbook_auth.checkers import *
@@ -99,10 +100,6 @@ from openbook_hashtags.queries import (
     make_search_hashtag_query_for_user_with_id,
     make_get_hashtag_with_name_for_user_with_id_query,
 )
-from openbook_notifications import helpers
-from openbook_notifications.helpers import (
-    get_notification_language_code_for_target_user,
-)
 from openbook_notifications.toggles import notifications_toggle, mute_notifications
 from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
 from openbook_posts.query_collections import get_posts_for_user_collection
@@ -140,6 +137,17 @@ class UserConnectionStatus(Enum):
     CONNECTED = "CONNECTED"
     REQUESTED = "REQUESTED"  # requested by currently authenticated user
     PENDING_CONFIRMATION = "PENDING_CONFIRMATION"  # pending confirmation by currently authenticated user
+
+
+@strawberry.enum
+class UserRole(models.TextChoices):
+    INTERNAL = ("INTERNAL",)
+    REGULAR = ("REGULAR",)
+    MODERATOR = ("MODERATOR",)
+    REDACTOR = ("REDACTOR",)
+    JOURNALIST = ("JOURNALIST",)
+    FOUNDER = ("FOUNDER",)
+    COMMUNITY_MANAGER = ("COMMUNITY_MANAGER",)
 
 
 class UserWithProfileManager(UserManager):
@@ -285,6 +293,8 @@ class User(ModelWithUUID, AbstractUser):
         help_text="Indicates whether the user's account has been verified.",
         verbose_name="Account Verified",
     )
+
+    role = models.CharField(max_length=50, choices=UserRole.choices, blank=False, null=True, default=UserRole.REGULAR)
 
     @property
     def uuid(self):
@@ -1578,49 +1588,6 @@ class User(ModelWithUUID, AbstractUser):
                 )
             )
 
-            if post_notification_target_has_comment_reply_notifications_enabled:
-                target_user_language_code = get_notification_language_code_for_target_user(
-                    post_notification_target_user
-                )
-
-                with translation.override(target_user_language_code):
-                    if post_notification_target_user_is_post_comment_creator:
-                        notification_message = {
-                            "en": _(
-                                "%(post_commenter_name)s · @%(post_commenter_username)s replied to your comment on a post."
-                            )
-                            % {
-                                "post_commenter_username": replier.username,
-                                "post_commenter_name": replier.profile.name,
-                            }
-                        }
-                    elif post_notification_target_user_is_post_creator:
-                        notification_message = {
-                            "en": _(
-                                "%(post_commenter_name)s · %(post_commenter_username)s replied to a comment on your post."
-                            )
-                            % {
-                                "post_commenter_username": replier.username,
-                                "post_commenter_name": replier.profile.name,
-                            }
-                        }
-                    else:
-                        notification_message = {
-                            "en": _(
-                                "%(post_commenter_name)s · @%(post_commenter_username)s replied on a comment you also replied on."
-                            )
-                            % {
-                                "post_commenter_username": replier.username,
-                                "post_commenter_name": replier.profile.name,
-                            }
-                        }
-
-                    self._send_post_comment_push_notification(
-                        post_comment=post_comment_reply,
-                        notification_message=notification_message,
-                        notification_target_user=post_notification_target_user,
-                    )
-
             PostCommentReplyNotification.create_post_comment_reply_notification(
                 post_comment_id=post_comment_reply.pk,
                 owner_id=post_notification_target_user.id,
@@ -2064,6 +2031,14 @@ class User(ModelWithUUID, AbstractUser):
             message=message,
         )
 
+        track(
+            self,
+            TrackingEvent(
+                "spaceMembershipRequestCreated",
+                {"spaceId": str(community_to_join.id), "requestorUserId": str(self.id)},
+            ),
+        )
+
         return community_to_join
 
     def revoke_membership_request_to_community_with_name(self, community_name):
@@ -2074,6 +2049,14 @@ class User(ModelWithUUID, AbstractUser):
         membership_request = community_to_join.get_membership_request(self)
         membership_request.delete_notifications()
         community_to_join.remove_membership_request(self)
+
+        track(
+            self,
+            TrackingEvent(
+                "spaceMembershipRequestRevoked",
+                {"spaceId": str(community_to_join.id), "requestorUserId": str(self.id)},
+            ),
+        )
 
         return community_to_join
 
@@ -2108,6 +2091,18 @@ class User(ModelWithUUID, AbstractUser):
         NotificationsService.send_space_membership_request_approval_admin_notification(
             recipients=community_to_join.get_staff_members(), requester=user_to_approve, space=community_to_join
         )
+
+        track(
+            self,
+            TrackingEvent(
+                "spaceMembershipRequestApproved",
+                {
+                    "spaceId": str(community_to_join.id),
+                    "requestorUserId": str(user_to_approve.id) if user_to_approve.tracking_consent_analytics else None,
+                },
+            ),
+        )
+
         return community_to_join
 
     def accept_membership_invite_to_community_for_username(self, community_name) -> "Community":
@@ -2140,6 +2135,18 @@ class User(ModelWithUUID, AbstractUser):
             recipients=community_to_join.get_staff_members(), invitee=self, space=community_to_join
         )
 
+        track(
+            self,
+            TrackingEvent(
+                "spaceMembershipInvitationAccepted",
+                {
+                    "spaceId": str(community_to_join.id),
+                    "inviteeUserId": str(self.id),
+                    "invitingUserId": str(invite.creator.id) if invite.creator.tracking_consent_analytics else None,
+                },
+            ),
+        )
+
         return community_to_join
 
     def reject_membership_invite_to_community_for_username(self, community_name) -> "Community":
@@ -2160,6 +2167,20 @@ class User(ModelWithUUID, AbstractUser):
 
         community_invite.delete_notifications()
         community_invite.delete()
+
+        track(
+            self,
+            TrackingEvent(
+                "spaceMembershipInvitationRejected",
+                {
+                    "spaceId": str(community_to_join.id),
+                    "inviteeUserId": str(self.id),
+                    "invitingUserId": str(community_invite.creator.id)
+                    if community_invite.creator.tracking_consent_analytics
+                    else None,
+                },
+            ),
+        )
 
         self.notify_invite_declined(community_to_join, inviting_admin, self)
 
@@ -2237,6 +2258,19 @@ class User(ModelWithUUID, AbstractUser):
             denier=self,
         )
 
+        track(
+            self,
+            TrackingEvent(
+                "spaceMembershipRequestRejected",
+                {
+                    "spaceId": str(community.id),
+                    "requestorUserId": str(user_to_revoke_request_for.id)
+                    if user_to_revoke_request_for.tracking_consent_analytics
+                    else None,
+                },
+            ),
+        )
+
         return community
 
     def delete_pending_notifications(self):
@@ -2259,6 +2293,8 @@ class User(ModelWithUUID, AbstractUser):
 
         community_to_leave.remove_member(self)
 
+        track(self, TrackingEvent("spaceMemberLeft", {"spaceId": str(community_to_leave.id)}))
+
         return community_to_leave
 
     def remove_member_from_community(self, username, community_name):
@@ -2276,6 +2312,17 @@ class User(ModelWithUUID, AbstractUser):
 
         community.remove_member(user_to_remove)
         self.notify_membership_removal(community, user_to_remove)
+
+        track(
+            self,
+            TrackingEvent(
+                "spaceMemberRemoved",
+                {
+                    "spaceId": str(community.id),
+                    "removedUserId": str(user_to_remove.id) if user_to_remove.tracking_consent_analytics else None,
+                },
+            ),
+        )
 
         return community
 
@@ -2345,6 +2392,18 @@ class User(ModelWithUUID, AbstractUser):
         community_invite.delete_notifications()
         community_invite.delete()
 
+        track(
+            self,
+            TrackingEvent(
+                "spaceMembershipInvitationRevoked",
+                {
+                    "spaceId": str(community_invite.community.id),
+                    "invitingUserId": str(self.id),
+                    "inviteeUserId": str(uninvited_user.id) if uninvited_user.tracking_consent_analytics else None,
+                },
+            ),
+        )
+
         return uninvited_user
 
     def get_community_with_name_administrators(self, community_name, max_id):
@@ -2384,6 +2443,19 @@ class User(ModelWithUUID, AbstractUser):
 
         self.notify_administrator_privileges_granted(community_to_add_administrator_to, user_to_add_as_administrator)
 
+        track(
+            self,
+            TrackingEvent(
+                "spaceAdminRightsGranted",
+                {
+                    "spaceId": str(community_to_add_administrator_to.id),
+                    "grantedUserId": str(user_to_add_as_administrator.id)
+                    if user_to_add_as_administrator.tracking_consent_analytics
+                    else None,
+                },
+            ),
+        )
+
         return community_to_add_administrator_to
 
     def notify_administrator_privileges_revoked(self, community, user):
@@ -2409,6 +2481,19 @@ class User(ModelWithUUID, AbstractUser):
 
         self.notify_administrator_privileges_revoked(
             community_to_remove_administrator_from, user_to_remove_as_administrator
+        )
+
+        track(
+            self,
+            TrackingEvent(
+                "spaceAdminRightsRevoked",
+                {
+                    "spaceId": str(community_to_remove_administrator_from.id),
+                    "grantedUserId": str(user_to_remove_as_administrator.id)
+                    if user_to_remove_as_administrator.tracking_consent_analytics
+                    else None,
+                },
+            ),
         )
 
         return community_to_remove_administrator_from
@@ -3160,6 +3245,8 @@ class User(ModelWithUUID, AbstractUser):
 
         get_community_notifications_subscription_model().enable_new_post_notification_for_community(community, self)
 
+        track(self, TrackingEvent("spaceFollowed", {"spaceId": str(community.id)}))
+
         return community
 
     def disable_new_post_notifications_for_community_with_name(self, community_name):
@@ -3168,6 +3255,8 @@ class User(ModelWithUUID, AbstractUser):
         check_can_disable_new_post_notifications_for_community(user=self, community=community)
 
         get_community_notifications_subscription_model().disable_new_post_notification_for_community(community, self)
+
+        track(self, TrackingEvent("spaceUnfollowed", {"spaceId": str(community.id)}))
 
         return community
 
@@ -4375,13 +4464,6 @@ class User(ModelWithUUID, AbstractUser):
         email.attach_alternative(html_content, "text/html")
         email.send()
 
-    def _send_post_comment_push_notification(self, post_comment, notification_message, notification_target_user):
-        helpers.send_post_comment_push_notification_with_message(
-            post_comment=post_comment,
-            message=notification_message,
-            target_user=notification_target_user,
-        )
-
     def _delete_post_comment_notification(self, post_comment):
         if post_comment.parent_comment is not None:
             PostCommentNotification = get_post_comment_notification_model()
@@ -4405,7 +4487,7 @@ class User(ModelWithUUID, AbstractUser):
         )
 
     def _send_post_reaction_push_notification(self, post_reaction):
-        helpers.send_post_reaction_push_notification(post_reaction=post_reaction)
+        pass  # removed onesignal functionality
 
     def _create_post_comment_reaction_notification(self, post_comment_reaction):
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
@@ -4415,7 +4497,7 @@ class User(ModelWithUUID, AbstractUser):
         )
 
     def _send_post_comment_reaction_push_notification(self, post_comment_reaction):
-        helpers.send_post_comment_reaction_push_notification(post_comment_reaction=post_comment_reaction)
+        pass  # removed onesignal functionality
 
     def _delete_post_comment_reaction_notification(self, post_comment_reaction):
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
@@ -4434,15 +4516,14 @@ class User(ModelWithUUID, AbstractUser):
 
     @mute_notifications
     def _send_community_invite_push_notification(self, community_invite):
-        helpers.send_community_invite_push_notification(community_invite=community_invite)
+        pass  # removed onesignal functionality
 
     def _create_follow_notification(self, followed_user_id):
         FollowNotification = get_follow_notification_model()
         FollowNotification.create_follow_notification(follower_id=self.pk, owner_id=followed_user_id)
 
     def _send_follow_push_notification(self, followed_user_id):
-        followed_user = User.objects.get(pk=followed_user_id)
-        helpers.send_follow_push_notification(followed_user=followed_user, following_user=self)
+        pass  # removed onesignal functionality
 
     def _delete_follow_notification(self, followed_user_id):
         FollowNotification = get_follow_notification_model()
@@ -4469,10 +4550,7 @@ class User(ModelWithUUID, AbstractUser):
         )
 
     def _send_connection_request_push_notification(self, user_connection_requested_for_id):
-        connection_requested_for = User.objects.get(pk=user_connection_requested_for_id)
-        helpers.send_connection_request_push_notification(
-            connection_requester=self, connection_requested_for=connection_requested_for
-        )
+        pass  # removed onesignal functionality
 
     def _delete_connection_request_notification_for_user_with_id(self, user_id):
         ConnectionRequestNotification = get_connection_request_notification_model()
@@ -4487,7 +4565,7 @@ class User(ModelWithUUID, AbstractUser):
         )
 
     def _send_follow_request_push_notification(self, follow_request):
-        helpers.send_follow_request_push_notification(follow_request=follow_request)
+        pass  # removed onesignal functionality
 
     def _create_follow_request_approved_notification(self, follow):
         FollowRequestApprovedNotification = get_follow_request_approved_notification_model()
@@ -4496,7 +4574,7 @@ class User(ModelWithUUID, AbstractUser):
         )
 
     def _send_follow_request_approved_push_notification(self, follow):
-        helpers.send_follow_request_approved_push_notification(follow=follow)
+        pass  # removed unused onesignal functionality
 
     def _reset_auth_token(self):
         self.auth_token.delete()
@@ -4809,6 +4887,18 @@ class User(ModelWithUUID, AbstractUser):
 
         self.invite_user_to_community(user=user, community=community)
 
+        track(
+            self,
+            TrackingEvent(
+                "spaceMembershipInvitationCreated",
+                {
+                    "spaceId": str(community.id),
+                    "invitingUserId": str(self.id),
+                    "inviteeUserId": str(user.id) if user.tracking_consent_analytics else None,
+                },
+            ),
+        )
+
         return community
 
     @transaction.atomic
@@ -4978,6 +5068,7 @@ class User(ModelWithUUID, AbstractUser):
         check_can_delete_task_within_community_with_id(user=self, task=task, community_id=task.community_id)
 
         task.soft_delete()
+        return task
 
     def add_collaboration_tool(
         self,

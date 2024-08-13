@@ -196,5 +196,38 @@
       "label_tr": null,
       "label_pt_br": null
     }
+  },
+    {
+    "model": "openbook_terms.feedpostcategory",
+    "pk": "78a0ef29-17a3-4910-92b3-94c91a05b4a0",
+    "fields": {
+      "idx": 7,
+      "slug": "founder-update",
+      "title": "Founder's Update",
+      "title_es": null,
+      "title_en": "Founder's Update",
+      "title_de": "Gründer Update",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null,
+      "is_enabled": true,
+      "label": "Founder's Update",
+      "label_es": null,
+      "label_en": "Founder's Update",
+      "label_de": "Gründer Update",
+      "label_nl": null,
+      "label_da": null,
+      "label_hu": null,
+      "label_sv": null,
+      "label_fr": null,
+      "label_it": null,
+      "label_tr": null,
+      "label_pt_br": null
+    }
   }
 ]

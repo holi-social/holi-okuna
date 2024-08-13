@@ -1,1 +1,4 @@
 export GOOGLE_CLOUD_PROJECT_ID=holi-dev
+
+export POSTHOG_HOST="https://eu.i.posthog.com"
+export POSTHOG_API_KEY="phc_hjzX978CctzGvUBxYatJkyQDAg9c8ZZyreAXtPn6FJ6"

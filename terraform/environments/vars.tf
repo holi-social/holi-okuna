@@ -7,4 +7,7 @@ locals {
   dns_name = "${trimsuffix(substr(local.environment, 0, 34), ".-")}.${data.terraform_remote_state.holi_okuna_common_state.outputs.dns_okuna_domain}"
 
   default_region = data.terraform_remote_state.holi_infra_state.outputs.default_region
+
+  posthog_host     = "https://eu.posthog.com"
+  posthog_api_key  = local.environment == "production" ? "phc_otDkhAWe558gCziFqIE3XrGla2AvdosZftmhOyjfWAu" : "phc_hjzX978CctzGvUBxYatJkyQDAg9c8ZZyreAXtPn6FJ6"
 }

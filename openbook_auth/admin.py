@@ -34,6 +34,7 @@ class UserAdmin(admin.ModelAdmin):
         "get_location",
         "date_joined",
         "identity",
+        "role",
         "is_deleted",
         "is_verified",
     )

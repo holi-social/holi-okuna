@@ -7,6 +7,7 @@ from icalendar import Calendar, Event
 
 from openbook_auth.models import User
 from openbook_common.schema.types import GeolocationPointInput
+from openbook_common.tracking import track, TrackingEvent
 from openbook_common.utils.model_loaders import get_community_model, get_user_model
 from openbook_communities.models import Community
 from openbook_notifications.services import NotificationsService
@@ -74,6 +75,11 @@ class AppointmentService:
             permission=permission,
             space=space,
             creator=creator,
+        )
+
+        track(
+            creator,
+            TrackingEvent("appointmentCreated", {"spaceId": str(space_id), "appointmentId": str(appointment.id)}),
         )
 
         if appointment.ends_in_future:
@@ -154,6 +160,14 @@ class AppointmentService:
             thumbnail=thumbnail,
             remove_thumbnail=remove_thumbnail,
             permission=permission,
+        )
+
+        track(
+            user,
+            TrackingEvent(
+                "appointmentUpdated",
+                {"spaceId": str(appointment.space.id), "appointmentId": str(appointment_id)},
+            ),
         )
 
         space_model = get_community_model()
@@ -279,6 +293,13 @@ class AppointmentService:
         appointment = self.repository.get_appointment(id_or_slug=str(appointment_id))
         self.checker.check_can_delete_appointment(user=user, appointment=appointment)
         self.repository.delete_appointment(appointment_id=appointment_id)
+
+        track(
+            user,
+            TrackingEvent(
+                "appointmentDeleted", {"spaceId": str(appointment.space_id), "appointmentId": str(appointment_id)}
+            ),
+        )
 
         space_model = get_community_model()
         space: Community = space_model.objects.get(id=appointment.space.id)

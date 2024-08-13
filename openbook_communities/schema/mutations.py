@@ -1,13 +1,13 @@
 import uuid
 from typing import Optional
 
-import requests
 import strawberry
 import structlog
 from asgiref.sync import sync_to_async
 from django.db import transaction
 from graphql import GraphQLError
 
+from openbook.graphql_errors import GraphQLErrorCodes
 from openbook.helpers import (
     publish_space_created_event,
     publish_space_updated_event,
@@ -20,7 +20,6 @@ from openbook.utils import invalidate_discover_spaces_query_cache
 from openbook_auth.models import User as UserModel
 from openbook_auth.schema.types import UpdateConnectionAction
 from openbook_auth.utils import verify_authorized_user
-from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.helpers import is_parameter_null, to_input_dict
 from openbook_common.schema.types import GeolocationPointInput, Result
 from openbook_communities.models import Community as CommunityModel
@@ -55,6 +54,7 @@ from openbook_communities.serializers.communities_serializers import (
 from openbook_communities.serializers.community_serializers import (
     CommunityUserConnectionSerializer,
 )
+from openbook_common.tracking import track, TrackingEvent
 
 logger = structlog.get_logger(__name__)
 
@@ -137,13 +137,16 @@ class Mutation:
                         username=str(user_id), community_name=space.name
                     )
                     return space
+                # space admin grants admin rights to another user
                 case (ConnectionType.ADMINISTRATOR, Action.GRANT_ADMIN_ACCESS):
                     return current_user.add_administrator_with_username_to_community_with_name(user_id, space.name)
+                # space admin revokes admin rights from another user
                 case (ConnectionType.ADMINISTRATOR, Action.REVOKE_ADMIN_ACCESS):
                     space.delete_pending_notifications_for_user(user_id)
                     return current_user.remove_administrator_with_username_from_community_with_name(
                         user_id, space.name
                     )
+                # space admin removes member
                 case (ConnectionType.ADMINISTRATOR, Action.REMOVE_MEMBER):
                     space.delete_pending_notifications_for_user(user_id)
                     community = current_user.remove_member_from_community(user_id, space.name)
@@ -174,19 +177,21 @@ class Mutation:
         serializer = CreateCommunitySerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        community = current_user.create_community(
-            title=data.get("title"),
-            type=CommunityModel.COMMUNITY_TYPE_PUBLIC,
-            description=data.get("description"),
-            cover=data.get("cover"),
-            invites_enabled=True,
-            topic_ids=data.get("topics"),
-        )
+        with transaction.atomic():
+            space = current_user.create_community(
+                title=data.get("title"),
+                type=CommunityModel.COMMUNITY_TYPE_PUBLIC,
+                description=data.get("description"),
+                cover=data.get("cover"),
+                invites_enabled=True,
+                topic_ids=data.get("topics"),
+            )
 
-        publish_space_created_event(community=community)
+        publish_space_created_event(community=space)
+        track(current_user, TrackingEvent("spaceCreated", {"spaceId": str(space.id)}))
         invalidate_discover_spaces_query_cache()
 
-        return community
+        return space
 
     @strawberry.mutation
     @sync_to_async
@@ -216,6 +221,7 @@ class Mutation:
         )
 
         publish_space_updated_event(community=space)
+        track(current_user, TrackingEvent("spaceUpdated", {"spaceId": str(space.id)}))
         invalidate_discover_spaces_query_cache()
 
         return space
@@ -234,8 +240,9 @@ class Mutation:
                 )
 
             publish_space_deleted_event(space)
-
+            track(current_user, TrackingEvent("spaceDeleted", {"spaceId": str(space.id)}))
             invalidate_discover_spaces_query_cache()
+
         except CommunityModel.DoesNotExist:
             # the space does not exist in the first place, which is just as good as deleting it
             Result(success=True)
@@ -266,21 +273,30 @@ class Mutation:
         serializer = CreateTaskSerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        return current_user.create_task(
-            space_id=data.get("space_id"),
-            name=data.get("name"),
-            description=data.get("description"),
-            slots_available=data.get("slots_available"),
-            visibility=data.get("visibility"),
-            location_type=data.get("location_type"),
-            location=data.get("location"),
-            geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
-            regularity=data.get("regularity"),
-            contact_email=data.get("contact_email"),
-            contact_phone=data.get("contact_phone"),
-            skills=data.get("skills"),
-            thumbnail=data.get("thumbnail"),
+        space_id = data.get("space_id")
+        with transaction.atomic():
+            task = current_user.create_task(
+                space_id=space_id,
+                name=data.get("name"),
+                description=data.get("description"),
+                slots_available=data.get("slots_available"),
+                visibility=data.get("visibility"),
+                location_type=data.get("location_type"),
+                location=data.get("location"),
+                geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
+                regularity=data.get("regularity"),
+                contact_email=data.get("contact_email"),
+                contact_phone=data.get("contact_phone"),
+                skills=data.get("skills"),
+                thumbnail=data.get("thumbnail"),
+            )
+
+        track(
+            current_user,
+            TrackingEvent("taskCreated", {"spaceId": str(space_id), "taskId": str(task.id)}),
         )
+
+        return task
 
     @strawberry.mutation
     @sync_to_async
@@ -291,23 +307,33 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        return current_user.update_task(
-            task_id=data.get("task_id"),
-            space_id=data.get("space_id"),
-            name=data.get("name"),
-            description=data.get("description"),
-            slots_available=data.get("slots_available"),
-            visibility=data.get("visibility"),
-            location_type=data.get("location_type"),
-            location=data.get("location"),
-            geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
-            regularity=data.get("regularity"),
-            contact_email=data.get("contact_email"),
-            contact_phone=data.get("contact_phone"),
-            skills=data.get("skills"),
-            thumbnail=data.get("thumbnail"),
-            remove_thumbnail=is_parameter_null(data, "thumbnail"),
+        space_id = data.get("space_id")
+        task_id = data.get("task_id")
+        with transaction.atomic():
+            task = current_user.update_task(
+                task_id=task_id,
+                space_id=space_id,
+                name=data.get("name"),
+                description=data.get("description"),
+                slots_available=data.get("slots_available"),
+                visibility=data.get("visibility"),
+                location_type=data.get("location_type"),
+                location=data.get("location"),
+                geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
+                regularity=data.get("regularity"),
+                contact_email=data.get("contact_email"),
+                contact_phone=data.get("contact_phone"),
+                skills=data.get("skills"),
+                thumbnail=data.get("thumbnail"),
+                remove_thumbnail=is_parameter_null(data, "thumbnail"),
+            )
+
+        track(
+            current_user,
+            TrackingEvent("taskUpdated", {"spaceId": str(space_id), "taskId": str(task.id)}),
         )
+
+        return task
 
     @strawberry.mutation
     @sync_to_async
@@ -315,7 +341,12 @@ class Mutation:
         current_user = verify_authorized_user(info)
 
         with transaction.atomic():
-            current_user.delete_task_with_id(task_id=id)
+            task = current_user.delete_task_with_id(task_id=id)
+
+        track(
+            current_user,
+            TrackingEvent("taskDeleted", {"spaceId": str(task.community_id), "taskId": str(task.id)}),
+        )
 
         return Result(success=True)
 

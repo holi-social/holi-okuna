@@ -81,6 +81,8 @@ def make_user(
     date_joined=None,
     identity=None,
     email=None,
+    tracking_consent_analytics=False,
+    tracking_consent_personalization=False,
 ) -> User:
     defined_arguments = {k: v for k, v in locals().items() if v is not None}
     defined_arguments.setdefault("username", str(uuid.uuid4()))
@@ -294,7 +296,7 @@ def make_community_invites_enabled():
     return fake.boolean()
 
 
-def make_community_task(community, skills=None, visibility=VisibilityType.MEMBERS, is_deleted=False):
+def make_community_task(community, skills=None, visibility=VisibilityType.MEMBERS, is_deleted=False) -> Task:
     if not skills:
         skills = [make_skill()]
 
@@ -701,3 +703,7 @@ def make_insight():
 
 def make_feed_post_category():
     return mixer.blend(FeedPostCategory)
+
+
+def make_feed_post_founder_update_category():
+    return mixer.blend(FeedPostCategory, slug="founder-update")

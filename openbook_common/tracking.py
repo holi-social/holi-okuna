@@ -1,0 +1,74 @@
+from dataclasses import dataclass
+from typing import Protocol, Dict
+from logging import getLogger
+
+from django.conf import settings
+from posthog import Posthog
+
+logger = getLogger("tracking")
+
+posthog: Posthog | None = None
+
+
+@dataclass
+class TrackingEvent:
+    name: str
+    properties: Dict[str, str]
+    event_version__major: int
+    event_version__minor: int
+    event_version__patch: int
+
+    def __init__(self, name, properties=None, event_version__major=1, event_version__minor=0, event_version__patch=0):
+        self.name = name
+        self.properties = {} if properties is None else properties
+        self.event_version__major = event_version__major
+        self.event_version__minor = event_version__minor
+        self.event_version__patch = event_version__patch
+
+
+@dataclass
+class PostHogConfig:
+    api_key: str
+    host: str
+    disable_for_testing: bool
+
+
+class TrackingUser(Protocol):
+    username: str
+    tracking_consent_analytics: bool
+    tracking_consent_personalization: bool
+
+
+def initialize_tracking(config: PostHogConfig):
+    if config.api_key and config.host:
+        global posthog
+        posthog = Posthog(
+            api_key=config.api_key,
+            host=config.host,
+            debug=settings.DEBUG,
+            disabled=config.disable_for_testing,
+        )
+    else:
+        logger.info("POSTHOG_API_KEY and/or POSTHOG_HOST are not set, disabling tracking")
+
+
+def track(user: TrackingUser, event: TrackingEvent):
+    """Sends a tracking event to PostHog.
+    Non-blocking & guaranteed to not raise an Exception."""
+    if posthog is not None and user.tracking_consent_analytics:
+        logger.debug("tracking event %s", event)
+        try:
+            posthog.capture(
+                distinct_id=user.username,
+                event=event.name,
+                properties={
+                    **event.properties,
+                    "event_version__major": event.event_version__major,
+                    "event_version__minor": event.event_version__minor,
+                    "event_version__patch": event.event_version__patch,
+                    "trackingConsentAnalytics": user.tracking_consent_analytics,
+                    "trackingConsentPersonalization": user.tracking_consent_personalization,
+                },
+            )
+        except Exception as e:
+            logger.warning("failed to track event: %s", e)

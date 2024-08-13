@@ -1,6 +1,7 @@
 import strawberry
 from asgiref.sync import sync_to_async
 from strawberry.types import Info
+from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_polls.schema.types import CreatePollInput, Poll, Choice
 from openbook_polls.models import Choice as ChoiceModel
 from openbook_polls.models import Vote as VoteModel
@@ -8,9 +9,11 @@ from openbook_auth.utils import verify_authorized_user
 from openbook_polls.serializers.poll_serializers import CreatePollSerializer
 from openbook_common.helpers import to_input_dict
 from django.db import transaction
-
-
+from graphql import GraphQLError
+import structlog
 import uuid
+
+logger = structlog.get_logger(__name__)
 
 
 @strawberry.type
@@ -37,7 +40,10 @@ class Mutation:
             poll = choice.poll
 
             if VoteModel.objects.filter(user=current_user, poll=poll).exists():
-                raise Exception("User has already voted for this poll")
+                raise GraphQLError(
+                    f"User {current_user.username} has already voted for poll {poll.id}",
+                    extensions={"code": GraphQLErrorCodes.BAD_USER_INPUT},
+                )
 
             choice.increment_votes()
             VoteModel.objects.create(user=current_user, choice=choice, poll=poll)
