@@ -88,9 +88,9 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
 
     @property
     def has_priority(self):
-        if self.creator.role != UserRole.FOUNDER or self.category.slug != "founder-update":
-            return False
-        return self.created_at + timedelta(days=self.priority_duration) >= timezone.now()
+        if self.creator.role == UserRole.FOUNDER and self.category.slug == "founder-update":
+            return self.created_at + timedelta(days=self.priority_duration) >= timezone.now()
+        return False
 
     def save(self, *args, **kwargs):
         if self.image:
