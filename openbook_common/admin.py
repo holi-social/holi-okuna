@@ -3,6 +3,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db.models import F, Func, IntegerField, Value
 from modeltranslation.admin import TranslationAdmin
 
+from openbook_common.enums import NeedUpdateType
 from openbook_common.forms import AppVersionForm
 from openbook_common.models import Emoji, EmojiGroup, Badge, ProxyBlacklistedDomain, AppVersion, FeatureToggle
 
@@ -33,6 +34,11 @@ class ProxyBlacklistDomainAdmin(admin.ModelAdmin):
     list_display = ("domain",)
 
 
+@admin.action(description="Mark selected app versions as mandatory update")
+def make_mandatory(modeladmin, request, queryset):
+    queryset.update(need_update=NeedUpdateType.MANDATORY)
+
+
 @admin.register(AppVersion)
 class AppVersionAdmin(admin.ModelAdmin):
     form = AppVersionForm
@@ -49,6 +55,7 @@ class AppVersionAdmin(admin.ModelAdmin):
         "created",
     )
     search_fields = ("version", "build_number")
+    actions = [make_mandatory]
 
     # create a readonly, nicely sortable semantic version field for displaying it in the list and sorting by.
     # For this, we internally use an integer array. created from the version field.
