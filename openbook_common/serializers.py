@@ -1,5 +1,4 @@
 from collections import OrderedDict
-import json
 
 from django.conf import settings
 from rest_framework import serializers
@@ -8,7 +7,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 from openbook_auth.models import User, UserProfile
 from openbook_circles.models import Circle
-from openbook_common.models import Emoji, EmojiGroup, Badge, Language, LinkPreview
+from openbook_common.models import AppVersion, Emoji, EmojiGroup, Badge, Language, LinkPreview
 from openbook_common.serializers_fields.user import IsFollowingField, IsFollowedField
 from openbook_common.types import GeolocationFeature
 from openbook_communities.models import Community, CommunityMembership
@@ -463,3 +462,12 @@ class GeolocationFeatureSerializer(GeoFeatureModelSerializer):
 
     def to_internal_value(self, data):
         return GeolocationFeature.from_geojson(data)
+
+
+class AppVersionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AppVersion
+        fields = (
+            "version",
+            "build_number",
+        )
