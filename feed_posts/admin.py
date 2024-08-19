@@ -19,7 +19,7 @@ class FeedPostAdminModel(admin.ModelAdmin):
         "language_code",
         "creator",
         "display_category",
-        "display_is_founder",
+        "display_is_co_founder",
         "priority_duration",
         "created_at",
     )
@@ -34,9 +34,9 @@ class FeedPostAdminModel(admin.ModelAdmin):
     def display_category(self, obj):
         return obj.category.title
 
-    def display_is_founder(self, obj):
-        return obj.creator.role == UserRole.FOUNDER
+    def display_is_co_founder(self, obj):
+        return obj.creator.role == UserRole.CO_FOUNDER
 
     display_topics.short_description = "Topics"
     display_category.short_description = "Category"
-    display_is_founder.short_description = "Founder's Post"
+    display_is_co_founder.short_description = "Co-founder's Post"
