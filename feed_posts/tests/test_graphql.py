@@ -149,9 +149,9 @@ class TestFeedPosts(TestCase):
             "visibility": VisibilityType.MEMBERS.value,
         }
 
-        cls.founder = make_user()
-        cls.founder.role = UserRole.FOUNDER
-        cls.founder.save()
+        cls.co_founder = make_user()
+        cls.co_founder.role = UserRole.CO_FOUNDER
+        cls.co_founder.save()
 
     def test_can_not_create_feed_post_if_anonymous_user(self):
         response = create_feed_post(user=AnonymousUser, input=self.public_feed_post_input_data)
@@ -777,7 +777,7 @@ class TestFeedPosts(TestCase):
             description=input_data["description"],
             topics=input_data["topicIds"],
             category=founder_update_category,
-            creator=self.founder,
+            creator=self.co_founder,
             image=input_data["image"],
             location=input_data["location"],
             geolocation=input_data["geolocation"],

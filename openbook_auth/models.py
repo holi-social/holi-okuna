@@ -144,9 +144,9 @@ class UserRole(models.TextChoices):
     INTERNAL = ("INTERNAL",)
     REGULAR = ("REGULAR",)
     MODERATOR = ("MODERATOR",)
-    REDACTOR = ("REDACTOR",)
+    REDACTOR = ("EDITOR",)
     JOURNALIST = ("JOURNALIST",)
-    FOUNDER = ("FOUNDER",)
+    CO_FOUNDER = ("CO_FOUNDER", "Co-founder")
     COMMUNITY_MANAGER = ("COMMUNITY_MANAGER",)
 
 
