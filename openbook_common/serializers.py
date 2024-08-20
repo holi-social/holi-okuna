@@ -302,7 +302,7 @@ class GeoFeatureModelSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        meta = getattr(self, "Meta")
+        meta = self.Meta
         default_id_field = None
         primary_key = self.Meta.model._meta.pk.name
         # use primary key as id_field when possible

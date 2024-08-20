@@ -32,7 +32,7 @@ class Query:
         data = serializer.validated_data
 
         logger.info(f"App version {version} not found. Creating a new App Version.")
-        return AppVersionModel.objects.create(version=version, build_number=build_number)
+        return AppVersionModel.objects.create(version=data.version, build_number=data.build_number)
 
     @strawberry_django.field(deprecation_reason="Deprecated since 1.26 as it was replaced by Posthog feature flags")
     async def feature_toggles(self) -> List[FeatureToggle]:

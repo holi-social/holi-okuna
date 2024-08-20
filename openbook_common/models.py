@@ -201,7 +201,7 @@ class LinkPreview(ModelWithUUID):
 
     @staticmethod
     def _fetch_html_of_url(url: str) -> BeautifulSoup:
-        response = requests.get(url=url)
+        response = requests.get(url=url, timeout=10)
         if hasattr(response, "apparent_encoding") and response.apparent_encoding:
             response.encoding = response.apparent_encoding
         else:
