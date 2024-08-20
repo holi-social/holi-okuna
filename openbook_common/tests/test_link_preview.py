@@ -13,7 +13,7 @@ class LinkPreviewTestCase(TestCase):
         mock_get.return_value = MockResponse("<html>no opengraph</html>")
         preview = LinkPreview.from_url("www.abcd.de")
         preview2 = LinkPreview.from_url("www.abcd.de")
-        self.assertIn(mock.call(url="http://www.abcd.de/"), mock_get.call_args_list)
+        self.assertIn(mock.call(url="http://www.abcd.de/", timeout=10), mock_get.call_args_list)
         self.assertEqual(1, len(mock_get.call_args_list))
         self.assertEqual(preview, preview2)
         self.assertEqual(preview.has_data(), False)
@@ -30,7 +30,7 @@ class LinkPreviewTestCase(TestCase):
         mock_get.return_value = MockResponse("<html><head><title>This is my title</title></head>no opengraph</html>")
         preview = LinkPreview.from_url("www.abcd.de")
         preview2 = LinkPreview.from_url("www.abcd.de")
-        self.assertIn(mock.call(url="http://www.abcd.de/"), mock_get.call_args_list)
+        self.assertIn(mock.call(url="http://www.abcd.de/", timeout=10), mock_get.call_args_list)
         self.assertEqual(1, len(mock_get.call_args_list))
         self.assertEqual(preview, preview2)
         self.assertEqual(preview.has_data(), True)
@@ -47,7 +47,7 @@ class LinkPreviewTestCase(TestCase):
         mock_get.return_value = MockResponse("<html>no opengraph</html>")
         previews = LinkPreview.parse_text("www.abcd.de")
         previews2 = LinkPreview.parse_text("www.abcd.de")
-        self.assertIn(mock.call(url="http://www.abcd.de/"), mock_get.call_args_list)
+        self.assertIn(mock.call(url="http://www.abcd.de/", timeout=10), mock_get.call_args_list)
         self.assertEqual(1, len(mock_get.call_args_list))
         self.assertEqual(previews, previews2)
         self.assertEqual(previews, [])
@@ -67,7 +67,7 @@ class LinkPreviewTestCase(TestCase):
             """
         )
         previews = LinkPreview.parse_text("www.my.de")
-        self.assertIn(mock.call(url="http://www.my.de/"), mock_get.call_args_list)
+        self.assertIn(mock.call(url="http://www.my.de/", timeout=10), mock_get.call_args_list)
         self.assertEqual(1, len(previews))
         preview = previews[0]
         self.assertEqual(preview.has_data(), True)
@@ -108,8 +108,8 @@ class LinkPreviewTestCase(TestCase):
             ),
         )
         previews = LinkPreview.parse_text("Two URLs: www.my.de and www.mysecond.de are in this text")
-        self.assertIn(mock.call(url="http://www.my.de/"), mock_get.call_args_list)
-        self.assertIn(mock.call(url="http://www.mysecond.de/"), mock_get.call_args_list)
+        self.assertIn(mock.call(url="http://www.my.de/", timeout=10), mock_get.call_args_list)
+        self.assertIn(mock.call(url="http://www.mysecond.de/", timeout=10), mock_get.call_args_list)
         self.assertEqual(2, len(previews))
 
         preview = previews[0]
