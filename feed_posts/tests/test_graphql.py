@@ -783,6 +783,7 @@ class TestFeedPosts(TestCase):
             geolocation=input_data["geolocation"],
             link_preview=None,
             language=None,
+            images=None,
         )
 
         regular_post = FeedPostRepository().create_feed_post(
@@ -797,6 +798,7 @@ class TestFeedPosts(TestCase):
             geolocation=input_data["geolocation"],
             link_preview=None,
             language=None,
+            images=None,
         )
 
         public_space_post = self.user.create_community_post(

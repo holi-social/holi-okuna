@@ -2,7 +2,7 @@ import uuid
 
 from django.db.models import Q
 
-from feed_posts.models import FeedPost, FeedPostReaction
+from feed_posts.models import FeedPost, FeedPostReaction, FeedPostImage
 from openbook_auth.models import User, get_reactions, UserRole
 from openbook_common.enums import ReactionType
 from openbook_common.schema.types import GeolocationPointInput
@@ -23,11 +23,19 @@ class FeedPostRepository:
         language,
         location,
         geolocation,
+        images,
     ):
         if creator.role == UserRole.CO_FOUNDER and category.slug == "founder-update":
             priority_duration = 2
         else:
             priority_duration = 0
+
+        post_image = None
+
+        if image is not None:
+            post_image = image
+        elif images is not None and len(images) > 0:
+            post_image = images[0]["image"]
 
         feed_post = FeedPost.objects.create(
             title=title,
@@ -35,16 +43,23 @@ class FeedPostRepository:
             description=description,
             category=category,
             creator=creator,
-            image=image,
             link_preview=link_preview,
             language_code=language,
             location=location,
             geolocation=GeolocationPointInput.to_point(geolocation),
             priority_duration=priority_duration,
+            image=post_image,
         )
 
         if topics is not None:
             feed_post.topics.set(topics)
+
+        # This code is required for backward compatibility. Remove it after version 1.30.x
+        if image is not None:
+            FeedPostImage.objects.create(feed_post=feed_post, image=image, order=1)
+
+        if images is not None:
+            self._add_images(feed_post=feed_post, images=images)
 
         return feed_post
 
@@ -71,6 +86,7 @@ class FeedPostRepository:
         language=None,
         location=None,
         geolocation=None,
+        images=None,
     ):
         post = FeedPost.objects.get(id=post_id)
 
@@ -89,10 +105,18 @@ class FeedPostRepository:
         if topics is not None:
             post.topics.set(topics)
 
+        # This code is required for backward compatibility. Remove it after version 1.30.x
         if remove_image:
             post.delete_image()
+            FeedPostImage.objects.filter(feed_post=post).delete()
         elif image:
             post.update_image(image)
+            q = FeedPostImage.objects.filter(feed_post=post)
+
+            if q.exists():
+                q.delete()
+
+            FeedPostImage.objects.create(feed_post=post, image=image, order=1)
 
         if language is not None:
             post.language_code = language
@@ -102,6 +126,9 @@ class FeedPostRepository:
 
         if geolocation is not None:
             post.geolocation = GeolocationPointInput.to_point(geolocation)
+
+        if images is not None:
+            self._update_images(feed_post=post, images=images)
 
         post.link_preview = link_preview
 
@@ -114,6 +141,35 @@ class FeedPostRepository:
 
     def delete_feed_post(self, post_id):
         return FeedPost.objects.get(id=post_id).delete()
+
+    def _add_images(self, feed_post, images):
+        return FeedPostImage.objects.bulk_create(
+            [
+                FeedPostImage(feed_post=feed_post, image=obj["image"], order=obj["order"], alt_text=obj["altText"])
+                for obj in images
+            ]
+        )
+
+    def _update_images(self, feed_post, images):
+        current_images = FeedPostImage.objects.filter(feed_post=feed_post)
+        current_image_set = set(current_images.values_list("image", flat=True))
+
+        image_set = set([obj["image"] for obj in images])
+
+        images_to_delete = current_image_set - image_set
+        if images_to_delete:
+            FeedPostImage.objects.filter(feed_post=feed_post, image__in=images_to_delete).delete()
+
+        images_to_add = image_set - current_image_set
+
+        new_images = [
+            FeedPostImage(feed_post=feed_post, image=obj["image"], order=obj["order"], alt_text=obj["altText"])
+            for obj in images
+            if obj["image"] in images_to_add
+        ]
+
+        if new_images:
+            FeedPostImage.objects.bulk_create(new_images)
 
 
 class FeedPostReactionRepository:
