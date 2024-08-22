@@ -145,7 +145,9 @@ class FeedPostRepository:
     def _add_images(self, feed_post, images):
         return FeedPostImage.objects.bulk_create(
             [
-                FeedPostImage(feed_post=feed_post, image=obj["image"], order=obj["order"], alt_text=obj["altText"])
+                FeedPostImage(
+                    feed_post=feed_post, image=obj["image"], order=obj["order"], alt_text=obj.get("alt_text") or None
+                )
                 for obj in images
             ]
         )
@@ -163,7 +165,9 @@ class FeedPostRepository:
         images_to_add = image_set - current_image_set
 
         new_images = [
-            FeedPostImage(feed_post=feed_post, image=obj["image"], order=obj["order"], alt_text=obj["altText"])
+            FeedPostImage(
+                feed_post=feed_post, image=obj["image"], order=obj["order"], alt_text=obj.get("alt_text") or None
+            )
             for obj in images
             if obj["image"] in images_to_add
         ]
