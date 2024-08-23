@@ -125,6 +125,13 @@ class CreateFeedPostInput:
 
 
 @strawberry.input
+class FeedPostImageMetadata:
+    id: uuid.UUID
+    order: int
+    alt_text: Optional[str] = strawberry.UNSET
+
+
+@strawberry.input
 class UpdateFeedPostInput:
     post_id: uuid.UUID
     title: Optional[str] = strawberry.UNSET
@@ -138,7 +145,8 @@ class UpdateFeedPostInput:
     language: Optional[str] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
-    images: Optional[List[Optional[FeedPostImageInput]]] = strawberry.UNSET
+    existing_images: Optional[List[Optional[FeedPostImageMetadata]]] = strawberry.UNSET
+    new_images: Optional[List[Optional[FeedPostImageInput]]] = strawberry.UNSET
 
 
 GenericPost = strawberry.union("GenericPost", (FeedPost, Post))

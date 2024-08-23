@@ -25,6 +25,14 @@ class FeedPostImageSerializer(serializers.Serializer):
     )
 
 
+class FeedPostImageMetadataSerializer(serializers.Serializer):
+    id = serializers.UUIDField(required=True)
+    order = serializers.IntegerField(required=True)
+    alt_text = serializers.CharField(
+        required=False, max_length=settings.CONTENT_IMAGE_ALT_TEXT_MAX_LENGTH, allow_blank=True
+    )
+
+
 class CreateFeedPostSerializer(serializers.Serializer):
     title = serializers.CharField(
         min_length=settings.FEED_POST_TITLE_MIN_LENGTH,
@@ -116,4 +124,6 @@ class UpdateFeedPostSerializer(serializers.Serializer):
 
     geolocation = GeolocationPointSerializer(required=False)
 
-    images = FeedPostImageSerializer(many=True, required=False, allow_null=True)
+    existing_images = FeedPostImageMetadataSerializer(many=True, required=False, allow_null=True)
+
+    new_images = FeedPostImageSerializer(many=True, required=False, allow_null=True)

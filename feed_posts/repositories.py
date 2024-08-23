@@ -86,7 +86,8 @@ class FeedPostRepository:
         language=None,
         location=None,
         geolocation=None,
-        images=None,
+        new_images=None,
+        existing_images=None,
     ):
         post = FeedPost.objects.get(id=post_id)
 
@@ -127,8 +128,8 @@ class FeedPostRepository:
         if geolocation is not None:
             post.geolocation = GeolocationPointInput.to_point(geolocation)
 
-        if images is not None:
-            self._update_images(feed_post=post, images=images)
+        if new_images is not None or existing_images is not None:
+            self._update_images(feed_post=post, new_images=new_images, existing_images=existing_images)
 
         post.link_preview = link_preview
 
@@ -152,28 +153,42 @@ class FeedPostRepository:
             ]
         )
 
-    def _update_images(self, feed_post, images):
-        current_images = FeedPostImage.objects.filter(feed_post=feed_post)
-        current_image_set = set(current_images.values_list("image", flat=True))
+    def _update_images(self, feed_post, new_images, existing_images):
+        if existing_images is not None:
+            current_images = FeedPostImage.objects.filter(feed_post=feed_post)
+            current_image_set = set(current_images.values_list("id", flat=True))
 
-        image_set = set([obj["image"] for obj in images])
+            existing_image_set = set([obj["id"] for obj in existing_images])
 
-        images_to_delete = current_image_set - image_set
-        if images_to_delete:
-            FeedPostImage.objects.filter(feed_post=feed_post, image__in=images_to_delete).delete()
+            images_to_delete = current_image_set - existing_image_set
 
-        images_to_add = image_set - current_image_set
+            if images_to_delete:
+                FeedPostImage.objects.filter(feed_post=feed_post, id__in=images_to_delete).delete()
 
-        new_images = [
-            FeedPostImage(
-                feed_post=feed_post, image=obj["image"], order=obj["order"], alt_text=obj.get("alt_text") or None
-            )
-            for obj in images
-            if obj["image"] in images_to_add
-        ]
+            images_to_update = current_image_set.intersection(existing_image_set)
 
-        if new_images:
-            FeedPostImage.objects.bulk_create(new_images)
+            if images_to_update:
+                updates = {obj["id"]: obj for obj in existing_images if obj["id"] in images_to_update}
+
+                images = FeedPostImage.objects.filter(feed_post=feed_post, id__in=images_to_update)
+                for image in images:
+                    image_data = updates.get(image.id)
+                    if image_data:
+                        image.order = image_data.get("order", image.order)
+                        image.alt_text = image_data.get("alt_text", image.alt_text)
+
+                FeedPostImage.objects.bulk_update(images, ["order", "alt_text"])
+
+        if new_images is not None:
+            images_to_persist = [
+                FeedPostImage(
+                    feed_post=feed_post, image=obj["image"], order=obj["order"], alt_text=obj.get("alt_text") or None
+                )
+                for obj in new_images
+            ]
+
+            if images_to_persist:
+                FeedPostImage.objects.bulk_create(images_to_persist)
 
 
 class FeedPostReactionRepository:

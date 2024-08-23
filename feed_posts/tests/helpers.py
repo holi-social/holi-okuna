@@ -35,6 +35,12 @@ def create_feed_post(user, input):
                     latitude
                     longitude
                 }
+                images {
+                    id
+                    image
+                    order
+                    altText
+                }
             }
         }
         """,
@@ -72,6 +78,12 @@ def update_feed_post(user, input):
                 geolocation {
                     latitude
                     longitude
+                }
+                images {
+                    id
+                    image
+                    order
+                    altText
                 }
             }
         }
@@ -285,9 +297,10 @@ def post(user, id_or_slug):
 
 
 # Helpers
-def update_input_data(post_id, input_data):
+def update_input_data(post_id, input_data, existing_images=None):
     data = input_data.copy()
     data["postId"] = post_id
+    data["existingImages"] = existing_images
     return data
 
 

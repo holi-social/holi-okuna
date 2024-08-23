@@ -80,7 +80,8 @@ class FeedPostService:
         language=None,
         location=None,
         geolocation=None,
-        images=None,
+        new_images=None,
+        existing_images=None,
     ):
         post = self.repository.get_feed_post(id_or_slug=str(post_id))
 
@@ -109,7 +110,8 @@ class FeedPostService:
             language=language,
             location=location,
             geolocation=geolocation,
-            images=images,
+            new_images=new_images,
+            existing_images=existing_images,
         )
 
     def get_feed_posts(self):
