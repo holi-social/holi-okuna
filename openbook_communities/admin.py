@@ -15,6 +15,7 @@ import traceback
 import structlog
 import time
 
+
 logger = structlog.get_logger(__name__)
 
 
@@ -62,7 +63,7 @@ class CommunityAdmin(admin.ModelAdmin):
                 for membership in community.memberships.all():
                     logger.info("Adding user: " + str(membership.user))
                     publish_space_user_added_event(membership.user.username, community)
-            except Exception as e:
+            except Exception:
                 logger.warning(traceback.format_exc())
 
     @admin.action(description="Resend SpaceUpdatedEvent")
@@ -71,10 +72,19 @@ class CommunityAdmin(admin.ModelAdmin):
             logger.info("Resending SpaceUpdatedEvent: " + str(community))
             try:
                 publish_space_updated_event(community)
-            except Exception as e:
+            except Exception:
                 logger.warning(traceback.format_exc())
 
     actions = [resend_space_created_event, resend_space_updated_event]
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        def nice_name(obj):
+            return f'{obj.profile.name if hasattr(obj, "profile") else ""} {obj.profile.last_name if hasattr(obj, "profile") else ""} ({obj.email}), {obj.username}'
+
+        formfield = super().formfield_for_foreignkey(db_field, request, **kwargs)
+        if db_field.name == "creator":
+            formfield.label_from_instance = nice_name
+        return formfield
 
 
 @admin.register(CommunityMembership)
