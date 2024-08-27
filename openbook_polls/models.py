@@ -1,31 +1,28 @@
-from django.db import models
-from openbook_auth.models import User
-from django.utils import timezone
-from django.db import transaction
+from django.db import models, transaction
 from django.db.models import F
-
-from openbook_common.models import (
-    ModelWithUUID,
-)
-
-from openbook_common.utils.helpers import (
-    get_magic,
-)
-from openbook_notifications.services import NotificationsService
-
-from openbook_polls.checkers import (
-    check_can_be_published,
-)
-
-
+from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
+from openbook_auth.models import User
 from openbook_common.helpers import (
     PrefixedQ,
     attr_filled,
 )
+from openbook_common.models import (
+    ModelWithUUID,
+)
+from openbook_common.utils.helpers import (
+    get_magic,
+)
+from openbook_notifications.services import NotificationsService
+from openbook_polls.checkers import (
+    check_can_be_published,
+)
 
 magic = get_magic()
+
+MIN_VOTES_RESULTS_REVEAL = 5
+RESULTS_REMINDER = 30
 
 
 class Poll(ModelWithUUID):
@@ -158,6 +155,6 @@ class Vote(ModelWithUUID):
         voters = User.objects.filter(vote__poll=self.poll).distinct()
         total_votes = voters.count()
 
-        if total_votes == 30 or total_votes == 100:
+        if total_votes == MIN_VOTES_RESULTS_REVEAL or total_votes == RESULTS_REMINDER:
             NotificationsService.send_poll_updates_notification(poll=self.poll, recipients=voters)
         return self
