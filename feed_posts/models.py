@@ -93,28 +93,14 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
         return False
 
     def save(self, *args, **kwargs):
-        if self.image:
+        if self.image and not self.image_blurhash:
             self.image_blurhash = generate_blurhash(self.image)
-
         if not self.slug:
             base_slug = slugify(self.title)
             suffix = str(uuid.uuid4())[:8]
             self.slug = f"{base_slug}-{suffix}"
 
         super().save(*args, **kwargs)
-
-    def delete_image(self):
-        if self.image:
-            delete_file_field(self.image)
-            self.image_blurhash = None
-            self.image = None
-            self.image.delete()
-
-    def update_image(self, image):
-        if self.image:
-            self.delete_image()
-
-        self.image = image
 
     def comment_on(self, commenter: User, text: str, language: Optional[str]):
         return Comment.create_comment(text=text, commenter=commenter, commentable=self, language=language)
@@ -192,7 +178,7 @@ class FeedPostImage(ModelWithUUID):
 
     def save(self, *args, **kwargs):
         self.image_blurhash = generate_blurhash(self.image)
-        super().save()
+        super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         delete_file_field(self.image)

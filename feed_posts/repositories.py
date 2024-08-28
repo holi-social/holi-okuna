@@ -1,3 +1,4 @@
+import concurrent
 import uuid
 
 from django.db.models import Q
@@ -56,7 +57,7 @@ class FeedPostRepository:
 
         # This code is required for backward compatibility. Remove it after version 1.30.x
         if image is not None:
-            FeedPostImage.objects.create(feed_post=feed_post, image=image, order=1)
+            FeedPostImage.objects.create(feed_post=feed_post, image=image, order=0)
 
         if images is not None:
             self._add_images(feed_post=feed_post, images=images)
@@ -108,16 +109,14 @@ class FeedPostRepository:
 
         # This code is required for backward compatibility. Remove it after version 1.30.x
         if remove_image:
-            post.delete_image()
             FeedPostImage.objects.filter(feed_post=post).delete()
         elif image:
-            post.update_image(image)
             q = FeedPostImage.objects.filter(feed_post=post)
 
             if q.exists():
                 q.delete()
 
-            FeedPostImage.objects.create(feed_post=post, image=image, order=1)
+            FeedPostImage.objects.create(feed_post=post, image=image, order=0)
 
         if language is not None:
             post.language_code = language
@@ -144,14 +143,17 @@ class FeedPostRepository:
         return FeedPost.objects.get(id=post_id).delete()
 
     def _add_images(self, feed_post, images):
-        return FeedPostImage.objects.bulk_create(
-            [
-                FeedPostImage(
-                    feed_post=feed_post, image=obj["image"], order=obj["order"], alt_text=obj.get("alt_text") or None
-                )
-                for obj in images
-            ]
-        )
+        def save_image(obj):
+            image = FeedPostImage(
+                feed_post=feed_post,
+                image=obj["image"],
+                order=obj["order"],
+                alt_text=obj.get("alt_text") or None,
+            )
+            image.save()
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            executor.map(save_image, images)
 
     def _update_images(self, feed_post, new_images, existing_images):
         if existing_images is not None:
@@ -169,26 +171,16 @@ class FeedPostRepository:
 
             if images_to_update:
                 updates = {obj["id"]: obj for obj in existing_images if obj["id"] in images_to_update}
-
                 images = FeedPostImage.objects.filter(feed_post=feed_post, id__in=images_to_update)
                 for image in images:
                     image_data = updates.get(image.id)
                     if image_data:
                         image.order = image_data.get("order", image.order)
                         image.alt_text = image_data.get("alt_text", image.alt_text)
-
-                FeedPostImage.objects.bulk_update(images, ["order", "alt_text"])
+                        image.save()
 
         if new_images is not None:
-            images_to_persist = [
-                FeedPostImage(
-                    feed_post=feed_post, image=obj["image"], order=obj["order"], alt_text=obj.get("alt_text") or None
-                )
-                for obj in new_images
-            ]
-
-            if images_to_persist:
-                FeedPostImage.objects.bulk_create(images_to_persist)
+            self._add_images(feed_post=feed_post, images=new_images)
 
 
 class FeedPostReactionRepository:
