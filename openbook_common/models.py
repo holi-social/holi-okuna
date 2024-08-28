@@ -3,6 +3,7 @@ import uuid
 from urllib.parse import urlparse, urljoin, urlsplit
 
 from django.conf import settings
+from django.core.validators import RegexValidator
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Q
 from django.utils import timezone
@@ -200,7 +201,7 @@ class LinkPreview(ModelWithUUID):
 
     @staticmethod
     def _fetch_html_of_url(url: str) -> BeautifulSoup:
-        response = requests.get(url=url)
+        response = requests.get(url=url, timeout=10)
         if hasattr(response, "apparent_encoding") and response.apparent_encoding:
             response.encoding = response.apparent_encoding
         else:
@@ -248,7 +249,17 @@ class LinkPreview(ModelWithUUID):
 
 
 class AppVersion(ModelWithUUID):
-    version = models.CharField(max_length=16, blank=False, null=False)
+    version = models.CharField(
+        max_length=16,
+        blank=False,
+        null=False,
+        validators=[
+            RegexValidator(
+                regex=r"^[\d]+\.[\d]+\.[\d]+$",
+                message="Enter a valid semver <major.minor.patch> version, e.g. 1.2.3",
+            ),
+        ],
+    )
     build_number = models.CharField(max_length=16, blank=True, null=True)
     need_update = models.CharField(
         max_length=12,

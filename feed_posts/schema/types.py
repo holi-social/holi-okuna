@@ -7,7 +7,11 @@ from strawberry.file_uploads import Upload
 
 from comments.models.enabled_commentable_type import EnabledCommentableType
 from feed_posts.enums import VisibilityLevel
-from feed_posts.models import FeedPost as FeedPostModel, FeedPostReaction as FeedPostReactionModel
+from feed_posts.models import (
+    FeedPost as FeedPostModel,
+    FeedPostReaction as FeedPostReactionModel,
+    FeedPostImage as FeedPostImageModel,
+)
 from feed_posts.services import FeedPostReactionService, FeedPostMentionService
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import ReactionCounts, Paged, GeolocationPointInput, GeolocationPoint
@@ -15,6 +19,15 @@ from openbook_posts.schema.types import LinkPreview, Post
 from openbook_terms.schema.types import Topic, FeedPostCategory
 from comments.models import Comment as CommentModel
 from openbook_auth.models import UserBlock as UserBlockModel
+
+
+@strawberry_django.type(FeedPostImageModel)
+class FeedPostImage:
+    id: strawberry.auto
+    image: str
+    image_blurhash: str
+    order: int
+    alt_text: Optional[str]
 
 
 @strawberry_django.type(FeedPostModel)
@@ -25,8 +38,12 @@ class FeedPost:
     description: strawberry.auto
     location: Optional[str]
     link_preview: Optional[LinkPreview]
-    image: Optional[str]
-    image_blurhash: Optional[str]
+    image: Optional[
+        str
+    ]  # This field is deprecated. Please use the new images field instead. Remove it after version 1.30.x
+    image_blurhash: Optional[
+        str
+    ]  # This field is deprecated. Please use the new images field instead. Remove it after version 1.30.x
     visibility: VisibilityLevel
     topics: Optional[List[Topic]]
     category: FeedPostCategory
@@ -79,18 +96,39 @@ class FeedPost:
     def geolocation(self) -> Optional[GeolocationPoint]:
         return GeolocationPoint.from_point(self.geolocation)
 
+    @strawberry_django.field()
+    def images(self) -> Optional[List[Optional[FeedPostImage]]]:
+        return self.images.all()
+
+
+@strawberry.input
+class FeedPostImageInput:
+    image: Upload
+    order: int
+    alt_text: Optional[str] = strawberry.UNSET
+
 
 @strawberry.input
 class CreateFeedPostInput:
     title: str
     description: str
-    image: Optional[Upload] = strawberry.UNSET
+    image: Optional[Upload] = (
+        strawberry.UNSET
+    )  # This field is deprecated. Please use the new images field instead. Remove it after version 1.30.x
     visibility: VisibilityLevel
     topic_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     category_id: uuid.UUID
     language: Optional[str] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
+    images: Optional[List[Optional[FeedPostImageInput]]] = strawberry.UNSET
+
+
+@strawberry.input
+class FeedPostImageMetadata:
+    id: uuid.UUID
+    order: int
+    alt_text: Optional[str] = strawberry.UNSET
 
 
 @strawberry.input
@@ -98,13 +136,17 @@ class UpdateFeedPostInput:
     post_id: uuid.UUID
     title: Optional[str] = strawberry.UNSET
     description: Optional[str] = strawberry.UNSET
-    image: Optional[Upload] = strawberry.UNSET
+    image: Optional[Upload] = (
+        strawberry.UNSET
+    )  # This field is deprecated. Please use the new images field instead. Remove it after version 1.30.x
     visibility: Optional[VisibilityLevel] = strawberry.UNSET
     topic_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     category_id: Optional[uuid.UUID] = strawberry.UNSET
     language: Optional[str] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
+    existing_images: Optional[List[Optional[FeedPostImageMetadata]]] = strawberry.UNSET
+    new_images: Optional[List[Optional[FeedPostImageInput]]] = strawberry.UNSET
 
 
 GenericPost = strawberry.union("GenericPost", (FeedPost, Post))

@@ -13,6 +13,26 @@ from openbook_common.types import LanguageCode
 from openbook_common.validators import sanitize_text
 
 
+class FeedPostImageSerializer(serializers.Serializer):
+    image = RestrictedImageFileSizeField(
+        allow_empty_file=False,
+        max_upload_size=settings.FEED_POST_IMAGE_MAX_SIZE,
+        required=True,
+    )
+    order = serializers.IntegerField(required=True)
+    alt_text = serializers.CharField(
+        required=False, max_length=settings.CONTENT_IMAGE_ALT_TEXT_MAX_LENGTH, allow_blank=True
+    )
+
+
+class FeedPostImageMetadataSerializer(serializers.Serializer):
+    id = serializers.UUIDField(required=True)
+    order = serializers.IntegerField(required=True)
+    alt_text = serializers.CharField(
+        required=False, max_length=settings.CONTENT_IMAGE_ALT_TEXT_MAX_LENGTH, allow_blank=True
+    )
+
+
 class CreateFeedPostSerializer(serializers.Serializer):
     title = serializers.CharField(
         min_length=settings.FEED_POST_TITLE_MIN_LENGTH,
@@ -43,6 +63,8 @@ class CreateFeedPostSerializer(serializers.Serializer):
         required=False,
         max_upload_size=settings.FEED_POST_IMAGE_MAX_SIZE,
     )
+
+    images = FeedPostImageSerializer(many=True, required=False, allow_null=True)
 
     language = serializers.CharField(max_length=2, required=False, allow_blank=True)
 
@@ -101,3 +123,7 @@ class UpdateFeedPostSerializer(serializers.Serializer):
     )
 
     geolocation = GeolocationPointSerializer(required=False)
+
+    existing_images = FeedPostImageMetadataSerializer(many=True, required=False, allow_null=True)
+
+    new_images = FeedPostImageSerializer(many=True, required=False, allow_null=True)

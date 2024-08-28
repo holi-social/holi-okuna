@@ -14,7 +14,7 @@ from rest_framework.exceptions import ValidationError
 from comments.models import Comment
 from comments.models.commentable_notification_context import CommentNotificationMixin, CommentNotificationContext
 from feed_posts.enums import VisibilityLevel
-from feed_posts.helpers import upload_to_feed_post_images_directory
+from feed_posts.helpers import upload_to_feed_post_images_directory, upload_to_new_feed_post_images_directory
 from openbook import settings
 from openbook_auth.models import User, UserRole
 from openbook_common.enums import ReactionType
@@ -46,7 +46,7 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
     )
 
     created_at = models.DateTimeField(editable=False, auto_now_add=True)
-
+    # This field is deprecated. Please use the new FeedPostImage model instead. Remove it after version 1.30.x
     image = ProcessedImageField(
         storage=default_storage,
         verbose_name=_("thumbnail"),
@@ -63,7 +63,7 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
         ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
-
+    # This field is deprecated. Please use the new FeedPostImage model instead. Remove it after version 1.30.x
     image_blurhash = models.CharField(max_length=50, blank=True, null=True)
 
     link_preview = models.ForeignKey(LinkPreview, null=True, blank=True, on_delete=models.SET_NULL)
@@ -159,3 +159,40 @@ class FeedPostMention(ModelWithUUID):
             "feed_post",
             "mention",
         )
+
+
+class FeedPostImage(ModelWithUUID):
+    feed_post = models.ForeignKey(FeedPost, on_delete=models.CASCADE, related_name="images")
+    image = ProcessedImageField(
+        storage=default_storage,
+        verbose_name=_("image"),
+        upload_to=upload_to_new_feed_post_images_directory,
+        processors=[
+            ExifRotate(),
+            ResizeToFit(
+                width=settings.CONTENT_IMAGE_MAX_DIMENSION,
+                height=settings.CONTENT_IMAGE_MAX_DIMENSION,
+                upscale=False,
+            ),
+        ],
+        max_length=settings.IMAGE_URL_MAX_LENGTH,
+    )
+    image_blurhash = models.CharField(max_length=50, blank=True, null=True)
+    order = models.PositiveIntegerField()
+    uploaded_at = models.DateTimeField(editable=False, auto_now_add=True)
+    alt_text = models.TextField(max_length=settings.CONTENT_IMAGE_ALT_TEXT_MAX_LENGTH, blank=True, null=True)
+
+    class Meta:
+        ordering = ["order"]
+        unique_together = (
+            "feed_post",
+            "image",
+            "order",
+        )
+
+    def save(self, *args, **kwargs):
+        self.image_blurhash = generate_blurhash(self.image)
+        super().save()
+
+    def delete(self, *args, **kwargs):
+        delete_file_field(self.image)

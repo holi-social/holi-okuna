@@ -137,6 +137,47 @@ class TestFeedPosts(TestCase):
             },
         }
 
+        cls.registered_users_only_feed_post_update_input_data = {
+            "title": fake.text(max_nb_chars=settings.FEED_POST_TITLE_MAX_LENGTH),
+            "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
+            "visibility": VisibilityLevel.REGISTERED_USERS_ONLY,
+            "categoryId": str(make_feed_post_category().id),
+            "topicIds": [str(make_topic().id) for _ in range(3)],
+            "newImages": [
+                {
+                    "image": SimpleUploadedFile(name="image_2.jpg", content=simple_jpeg_bytes),
+                    "order": 1,
+                    "altText": "image description",
+                }
+            ],
+            "location": "Munich, Germany",
+            "geolocation": {
+                "latitude": 48.1371079,
+                "longitude": 11.5753822,
+            },
+        }
+
+        cls.another_public_feed_post_update_input_data = {
+            "title": fake.text(max_nb_chars=settings.FEED_POST_TITLE_MAX_LENGTH),
+            "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
+            "visibility": VisibilityLevel.PUBLIC,
+            "categoryId": str(make_feed_post_category().id),
+            "topicIds": [str(make_topic().id) for _ in range(6)],
+            "image": SimpleUploadedFile(name="image_3.jpg", content=simple_jpeg_bytes),
+            "images": [
+                {
+                    "image": SimpleUploadedFile(name="image_3.jpg", content=simple_jpeg_bytes),
+                    "order": 0,
+                    "altText": "image description",
+                }
+            ],
+            "location": "Munich, Germany",
+            "geolocation": {
+                "latitude": 48.1371079,
+                "longitude": 11.5753822,
+            },
+        }
+
         cls.public_space_post = {
             "title": fake.text(max_nb_chars=settings.POST_TITLE_MAX_LENGTH),
             "text": fake.text(max_nb_chars=settings.POST_MAX_LENGTH),
@@ -373,32 +414,38 @@ class TestFeedPosts(TestCase):
         assert "You cannot update this feed post" in response.errors[0].extensions["errors"]
 
     def test_can_update_feed_post_if_owner(self):
-        mutation_response = create_feed_post(user=self.user, input=self.another_public_feed_post_input_data)
+        mutation_response = create_feed_post(user=self.user, input=self.another_public_feed_post_update_input_data)
         assert mutation_response.errors is None
 
         post_id = mutation_response.data["createFeedPost"]["id"]
-
-        input_data = update_input_data(post_id=post_id, input_data=self.registered_users_only_feed_post_input_data)
+        images = mutation_response.data["createFeedPost"]["images"]
+        existing_images = [{"id": images[0]["id"], "order": 9, "altText": "new image description"}]
+        input_data = update_input_data(
+            post_id=post_id,
+            input_data=self.registered_users_only_feed_post_update_input_data,
+            existing_images=existing_images,
+        )
 
         response = update_feed_post(user=self.user, input=input_data)
 
         data = response.data["updateFeedPost"]
 
-        assert data["title"] == self.registered_users_only_feed_post_input_data["title"]
-        assert data["description"] == self.registered_users_only_feed_post_input_data["description"]
-        assert data["visibility"] == self.registered_users_only_feed_post_input_data["visibility"]
-        assert data["category"]["id"] == self.registered_users_only_feed_post_input_data["categoryId"]
-        assert len(data["topics"]) == len(self.registered_users_only_feed_post_input_data["topicIds"])
+        assert data["title"] == self.registered_users_only_feed_post_update_input_data["title"]
+        assert data["description"] == self.registered_users_only_feed_post_update_input_data["description"]
+        assert data["visibility"] == self.registered_users_only_feed_post_update_input_data["visibility"]
+        assert data["category"]["id"] == self.registered_users_only_feed_post_update_input_data["categoryId"]
+        assert len(data["topics"]) == len(self.registered_users_only_feed_post_update_input_data["topicIds"])
         assert data["creator"]["id"] == str(self.user.pk)
         assert data["image"]
-        assert data["location"] == self.registered_users_only_feed_post_input_data["location"]
+        assert len(data["images"]) == 2
+        assert data["location"] == self.registered_users_only_feed_post_update_input_data["location"]
         assert (
             data["geolocation"]["latitude"]
-            == self.registered_users_only_feed_post_input_data["geolocation"]["latitude"]
+            == self.registered_users_only_feed_post_update_input_data["geolocation"]["latitude"]
         )
         assert (
             data["geolocation"]["longitude"]
-            == self.registered_users_only_feed_post_input_data["geolocation"]["longitude"]
+            == self.registered_users_only_feed_post_update_input_data["geolocation"]["longitude"]
         )
 
     def test_can_query_only_public_feed_posts_if_anonymous_user(self):
@@ -783,6 +830,7 @@ class TestFeedPosts(TestCase):
             geolocation=input_data["geolocation"],
             link_preview=None,
             language=None,
+            images=None,
         )
 
         regular_post = FeedPostRepository().create_feed_post(
@@ -797,6 +845,7 @@ class TestFeedPosts(TestCase):
             geolocation=input_data["geolocation"],
             link_preview=None,
             language=None,
+            images=None,
         )
 
         public_space_post = self.user.create_community_post(

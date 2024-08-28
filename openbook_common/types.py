@@ -83,3 +83,4 @@ class LanguageCode(TextChoices):
     VIETNAMESE = ("vi",)
     CHINESE_SIMPLIFIED = ("zh",)
     CHINESE_TRADITIONAL = ("zt",)
+    FICTITIOUS_LANGUAGE = ("zz",)

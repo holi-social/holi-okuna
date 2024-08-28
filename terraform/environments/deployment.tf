@@ -437,6 +437,11 @@ resource "google_cloud_run_service" "okuna" {
         "run.googleapis.com/vpc-access-egress" = "private-ranges-only"
         "run.googleapis.com/startup-cpu-boost" = "true"
       }
+      # labels set on the revision level
+      labels = {
+        "environment_type" = local.environment_type
+        "holi_service"     = "okuna"
+      }
     }
   }
 
@@ -445,6 +450,11 @@ resource "google_cloud_run_service" "okuna" {
     annotations = {
       # possible values: all/internal/internal-and-cloud-load-balancing https://cloud.google.com/sdk/gcloud/reference/run/services/update#--ingress
       "run.googleapis.com/ingress" = "internal"
+    }
+    # labels set on the service level
+    labels = {
+      "environment_type" = local.environment_type
+      "holi_service"     = "okuna"
     }
   }
 
