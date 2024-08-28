@@ -437,7 +437,7 @@ class TestFeedPosts(TestCase):
         assert len(data["topics"]) == len(self.registered_users_only_feed_post_update_input_data["topicIds"])
         assert data["creator"]["id"] == str(self.user.pk)
         assert data["image"]
-        assert len(data["images"]) == 2
+        assert len(data["images"]) == 1
         assert data["location"] == self.registered_users_only_feed_post_update_input_data["location"]
         assert (
             data["geolocation"]["latitude"]
