@@ -6,6 +6,7 @@ from feed_posts.repositories import FeedPostRepository, FeedPostReactionReposito
 from openbook_auth.models import User
 from openbook_common.helpers import extract_urls_from_string
 from openbook_common.models import LinkPreview
+from openbook_common.tracking import track, TrackingEvent
 from openbook_common.utils.helpers import extract_usernames_from_string
 from openbook_terms.models import FeedPostCategory, Topic
 
@@ -52,6 +53,8 @@ class FeedPostService:
         )
 
         self.mention_service.add_mentions(post_id=post.id, description=description, creator=creator)
+
+        track(creator, TrackingEvent("feedPostCreated", {"postId": str(post.id)}))
 
         return post
 
