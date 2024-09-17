@@ -10,6 +10,7 @@ from openbook_communities.models import (
     OnboardingStep,
 )
 from openbook_communities.models.network_relationship import SpacesRelationship
+from django.db.models import Count
 
 import traceback
 import structlog
@@ -26,22 +27,31 @@ class CommunityNetworkRelationshipInline(admin.TabularInline):
     max_num = 1
     extra = 0
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related("from_space")
+
 
 @admin.register(Community)
 class CommunityAdmin(admin.ModelAdmin):
     readonly_fields = ["name"]
     list_display = ("name", "title", "creator", "created", "get_num_posts", "get_num_members", "is_deleted")
     search_fields = ("title", "creator__email", "creator__profile__name", "creator__profile__last_name")
+    exclude = ["banned_users", "starrers"]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(num_posts=Count("posts"), num_members=Count("memberships"))
 
     inlines = [CommunityNetworkRelationshipInline]
 
     @admin.display(description="Num posts")
     def get_num_posts(self, obj):
-        return obj.posts.count()
+        return obj.num_posts
 
     @admin.display(description="Num members")
     def get_num_members(self, obj):
-        return obj.memberships.count()
+        return obj.num_members
 
     def has_add_permission(self, request, obj=None):
         return True  # needs to be true for adding communities via /admin (needed for creating posts)

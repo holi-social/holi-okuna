@@ -46,6 +46,7 @@ from openbook_common.utils.helpers import (
     extract_usernames_from_string,
     get_magic,
 )
+from openbook_common.tracking import track, TrackingEvent
 from openbook_common.utils.model_loaders import (
     get_community_model,
     get_community_new_post_notification_model,
@@ -191,6 +192,14 @@ class Post(CommentNotificationMixin, ModelWithUUID):
             post.publish()
         else:
             post.save()
+
+        track(
+            creator,
+            TrackingEvent(
+                "spacePostCreated",
+                {"spaceId": str(community_id), "postId": str(post.id)},
+            ),
+        )
 
         return post
 
