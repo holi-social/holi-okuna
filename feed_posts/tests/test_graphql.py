@@ -1,4 +1,5 @@
 import logging
+from unittest.mock import patch
 
 import pytest
 import pytz
@@ -32,6 +33,7 @@ from openbook_common.tests.helpers import (
     make_community,
     make_feed_post_founder_update_category,
 )
+from openbook_notifications.notifications import PostReactionNotification
 
 logger = logging.getLogger(__name__)
 fake = Faker()
@@ -562,7 +564,8 @@ class TestFeedPosts(TestCase):
 
         assert "Unauthorized" in str(response.errors[0].message)
 
-    def test_can_react_to_feed_post_if_authenticated_user(self):
+    @patch.object(PostReactionNotification, "send")
+    def test_can_react_to_feed_post_if_authenticated_user(self, mock_send_post_reaction_notification):
         mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
         assert mutation_response.errors is None
 
@@ -579,6 +582,7 @@ class TestFeedPosts(TestCase):
 
         assert data["myReaction"] == {"HEART": 1}
         assert data["reactions"] == {"HEART": 1}
+        mock_send_post_reaction_notification.assert_called_once()
 
     def test_can_remove_reaction_to_feed_post_if_authenticated_user(self):
         mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)

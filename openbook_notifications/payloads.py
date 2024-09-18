@@ -11,7 +11,6 @@ from openbook_notifications.helpers import replace_mentions_with_full_names
 if TYPE_CHECKING:
     from openbook_auth.models import User
     from openbook_communities.models import Community
-    from openbook_posts.models import Post
     from comments.models import Comment
     from openbook_appointments.models import Appointment
     from openbook_polls.models import Poll
@@ -207,9 +206,9 @@ class PostData:
             data["text"] = self.text
         if self.community:
             data["context"] = self.community.title
-            data["postLink"] = f"/spaces/{self.community.id}/updates/{self.id}"
+            data["link"] = f"/spaces/{self.community.id}/updates/{self.id}"
         else:
-            data["postLink"] = f"/feed-post/{self.id}"
+            data["link"] = f"/feed-post/{self.id}"
         if self.description:
             data["description"] = self.description
         if self.is_public:
@@ -533,7 +532,7 @@ class PostReactionPayload(Payload):
     def __init__(self, reactor: User, post):
         super().__init__(
             data={
-                "reactor": UserData.from_user(reactor).to_dict(),
+                "user": UserData.from_user(reactor).to_dict(),
                 "post": PostData.from_post(post).to_dict(),
             },
             notification_type=NotificationType.POST_REACTION.value,
@@ -544,11 +543,13 @@ class PostReactionPayload(Payload):
 class CommentReactionPayload(Payload):
     NOTIFICATION_VERSION = "1.0.0"
 
-    def __init__(self, reactor: User, comment: Comment):
+    def __init__(self, reactor: User, comment: Comment, context_id: str):
+        comment_dict = CommentData.from_comment(comment).to_dict()
+        comment_dict["link"] = CommentData.create_link(comment, context_id)
         super().__init__(
             data={
-                "reactor": UserData.from_user(reactor).to_dict(),
-                "comment": CommentData.from_comment(comment).to_dict(),
+                "user": UserData.from_user(reactor).to_dict(),
+                "comment": comment_dict,
             },
             notification_type=NotificationType.COMMENT_REACTION.value,
             notification_version=CommentReactionPayload.NOTIFICATION_VERSION,

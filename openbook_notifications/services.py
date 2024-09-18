@@ -352,8 +352,9 @@ class NotificationsService:
         reactor: User,
         recipient: User,
     ):
+        context_id = NotificationsService._find_comment_commentable_context_id(comment)
         notification = CommentReactionNotification(
             commenter=str(recipient.username),
-            payload=CommentReactionPayload(reactor=reactor, comment=comment),
+            payload=CommentReactionPayload(reactor=reactor, comment=comment, context_id=context_id),
         )
         notification.send()

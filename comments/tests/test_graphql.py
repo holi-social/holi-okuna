@@ -1,5 +1,6 @@
 import logging
 from unittest import TestCase, mock
+from unittest.mock import patch
 
 import pytest
 from django.core.management import call_command
@@ -18,8 +19,10 @@ from openbook_common.tests.helpers import (
     make_post,
     make_space_post_comment,
     make_user,
+    make_community,
 )
 from openbook_insights.models.discussion import Discussion
+from openbook_notifications.notifications import CommentReactionNotification
 
 from .helpers import (
     get_comment_by_id,
@@ -183,12 +186,13 @@ class TestPostComments(TestCase):
 
     def test_should_delete_comment(self):
         posting_user = make_user()
+        space = make_community(creator=posting_user)
         comment_user = make_user()
 
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True, community_id=space.id)
         comment = post.comment(text="comment text", commenter=comment_user)
         reaction = comment.react(posting_user, "HEART")
         post.comment(text="comment text 2", commenter=comment_user)
@@ -203,13 +207,14 @@ class TestPostComments(TestCase):
 
     def test_should_not_be_able_to_delete_others_comments(self):
         posting_user = make_user()
+        space = make_community(creator=posting_user)
         comment_user = make_user()
         other_user = make_user()
 
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True, community_id=space.id)
         comment = post.comment(text="comment text", commenter=comment_user)
         reaction = comment.react(posting_user, "HEART")
         post.comment(text="comment text 2", commenter=comment_user)
@@ -223,12 +228,13 @@ class TestPostComments(TestCase):
 
     def test_should_not_be_able_to_delete_a_comment_that_does_not_exist(self):
         posting_user = make_user()
+        space = make_community(creator=posting_user)
         comment_user = make_user()
 
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True, community_id=space.id)
         comment = post.comment(text="comment text", commenter=comment_user)
         reaction = comment.react(posting_user, "HEART")
         post.comment(text="comment text 2", commenter=comment_user)
@@ -240,17 +246,21 @@ class TestPostComments(TestCase):
         assert comment.id in post.comments.values_list("id", flat=True)
         assert reaction.id in CommentReaction.objects.filter(post_comment=comment).values_list("id", flat=True)
 
-    def test_should_be_able_to_react_to_a_comment(self):
+    @patch.object(CommentReactionNotification, "send")
+    def test_should_be_able_to_react_to_a_comment(self, mock_send_comment_reaction_notification):
         posting_user = make_user()
+        space = make_community(creator=posting_user)
         other_user = make_user(name="Other")
 
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True, community_id=space.id)
         comment = post.comment(text="comment text", commenter=other_user)
 
         react_to_post_comment(comment, "SET", posting_user)
+        mock_send_comment_reaction_notification.assert_called_once()
+
         executed = react_to_post_comment(comment, "SET", posting_user)  # setting twice is same as setting once
         updated_post_comment = executed.data["updatePostCommentReaction"]
 
