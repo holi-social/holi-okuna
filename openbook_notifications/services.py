@@ -25,6 +25,8 @@ from openbook_notifications.notifications import (
     SpaceAppointmentUpdateNotification,
     SpaceAppointmentDeletionNotification,
     PollUpdatesNotification,
+    CommentReactionNotification,
+    PostReactionNotification,
 )
 from openbook_notifications.payloads import (
     SpaceMembershipRequestPayload,
@@ -42,6 +44,8 @@ from openbook_notifications.payloads import (
     SpaceAppointmentUpdatePayload,
     SpaceAppointmentDeletionPayload,
     PollUpdatesPayload,
+    PostReactionPayload,
+    CommentReactionPayload,
 )
 
 if TYPE_CHECKING:
@@ -327,5 +331,29 @@ class NotificationsService:
         notification = PollUpdatesNotification(
             recipients=[str(recipient.username) for recipient in recipients],
             payload=PollUpdatesPayload(poll=poll),
+        )
+        notification.send()
+
+    @staticmethod
+    def send_post_reaction_notification(
+        post,
+        reactor: User,
+        recipient: User,
+    ):
+        notification = PostReactionNotification(
+            author=str(recipient.username),
+            payload=PostReactionPayload(reactor=reactor, post=post),
+        )
+        notification.send()
+
+    @staticmethod
+    def send_comment_reaction_notification(
+        comment: Comment,
+        reactor: User,
+        recipient: User,
+    ):
+        notification = CommentReactionNotification(
+            commenter=str(recipient.username),
+            payload=CommentReactionPayload(reactor=reactor, comment=comment),
         )
         notification.send()
