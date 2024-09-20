@@ -58,6 +58,10 @@ class HoliSchema(strawberry.Schema):
                     GraphQLErrorCodes.UNAUTHORIZED,
                 ]
             )
+            and not (
+                # don't error log UUID parsing failures of user parameters (-> BAD_USER_INPUT)
+                error.message.startswith("Value cannot represent a UUID:")
+            )
         ]
         super().process_errors(real_errors, execution_context)
 
