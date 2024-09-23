@@ -149,6 +149,7 @@ class FeedPostRepository:
                 image=obj["image"],
                 order=obj["order"],
                 alt_text=obj.get("alt_text") or None,
+                aspect_ratio=obj.get("aspect_ratio") or None,
             )
             image.save()
 
@@ -177,6 +178,7 @@ class FeedPostRepository:
                     if image_data:
                         image.order = image_data.get("order", image.order)
                         image.alt_text = image_data.get("alt_text", image.alt_text)
+                        image.aspect_ratio = image_data.get("aspect_ratio", image.aspect_ratio)
                         image.save()
 
         if new_images is not None:

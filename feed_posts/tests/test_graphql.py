@@ -8,7 +8,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import AsyncClient, TestCase
 from faker import Faker
 
-from feed_posts.enums import VisibilityLevel
+from feed_posts.enums import VisibilityLevel, AspectRatio
 from feed_posts.repositories import FeedPostRepository
 from feed_posts.tests.helpers import (
     create_feed_post,
@@ -150,6 +150,7 @@ class TestFeedPosts(TestCase):
                     "image": SimpleUploadedFile(name="image_2.jpg", content=simple_jpeg_bytes),
                     "order": 1,
                     "altText": "image description",
+                    "aspectRatio": AspectRatio.ONE_ONE,
                 }
             ],
             "location": "Munich, Germany",
@@ -171,6 +172,7 @@ class TestFeedPosts(TestCase):
                     "image": SimpleUploadedFile(name="image_3.jpg", content=simple_jpeg_bytes),
                     "order": 0,
                     "altText": "image description",
+                    "aspectRatio": AspectRatio.ONE_ONE,
                 }
             ],
             "location": "Munich, Germany",
@@ -421,7 +423,14 @@ class TestFeedPosts(TestCase):
 
         post_id = mutation_response.data["createFeedPost"]["id"]
         images = mutation_response.data["createFeedPost"]["images"]
-        existing_images = [{"id": images[0]["id"], "order": 9, "altText": "new image description"}]
+        existing_images = [
+            {
+                "id": images[0]["id"],
+                "order": 9,
+                "altText": "new image description",
+                "aspectRatio": AspectRatio.SIXTEEN_NINE,
+            }
+        ]
         input_data = update_input_data(
             post_id=post_id,
             input_data=self.registered_users_only_feed_post_update_input_data,

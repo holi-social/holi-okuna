@@ -6,7 +6,7 @@ import strawberry_django
 from strawberry.file_uploads import Upload
 
 from comments.models.enabled_commentable_type import EnabledCommentableType
-from feed_posts.enums import VisibilityLevel
+from feed_posts.enums import VisibilityLevel, AspectRatio
 from feed_posts.models import (
     FeedPost as FeedPostModel,
     FeedPostReaction as FeedPostReactionModel,
@@ -28,6 +28,7 @@ class FeedPostImage:
     image_blurhash: str
     order: int
     alt_text: Optional[str]
+    aspect_ratio: Optional[AspectRatio]
 
 
 @strawberry_django.type(FeedPostModel)
@@ -106,6 +107,7 @@ class FeedPostImageInput:
     image: Upload
     order: int
     alt_text: Optional[str] = strawberry.UNSET
+    aspect_ratio: Optional[AspectRatio] = strawberry.UNSET
 
 
 @strawberry.input
@@ -129,6 +131,7 @@ class FeedPostImageMetadata:
     id: uuid.UUID
     order: int
     alt_text: Optional[str] = strawberry.UNSET
+    aspect_ratio: Optional[AspectRatio] = strawberry.UNSET
 
 
 @strawberry.input

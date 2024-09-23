@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from feed_posts.enums import VisibilityLevel
+from feed_posts.enums import VisibilityLevel, AspectRatio
 from feed_posts.validators import (
     validate_topic_exists_by_id,
     validate_feed_post_category_exists_by_id,
@@ -23,6 +23,7 @@ class FeedPostImageSerializer(serializers.Serializer):
     alt_text = serializers.CharField(
         required=False, max_length=settings.CONTENT_IMAGE_ALT_TEXT_MAX_LENGTH, allow_blank=True
     )
+    aspect_ratio = serializers.ChoiceField(required=False, choices=AspectRatio.choices)
 
 
 class FeedPostImageMetadataSerializer(serializers.Serializer):
@@ -31,6 +32,7 @@ class FeedPostImageMetadataSerializer(serializers.Serializer):
     alt_text = serializers.CharField(
         required=False, max_length=settings.CONTENT_IMAGE_ALT_TEXT_MAX_LENGTH, allow_blank=True
     )
+    aspect_ratio = serializers.ChoiceField(required=False, choices=AspectRatio.choices)
 
 
 class CreateFeedPostSerializer(serializers.Serializer):
