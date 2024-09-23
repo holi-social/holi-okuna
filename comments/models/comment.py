@@ -34,6 +34,7 @@ from openbook_common.utils.model_loaders import (
     get_user_model,
 )
 from openbook_moderation.models import ModeratedObject
+from openbook_notifications.services import NotificationsService
 
 from .comment_reaction import CommentReaction
 from .enabled_commentable_type import EnabledCommentableType
@@ -182,7 +183,11 @@ class Comment(ModelWithUUID):
         return post_comment
 
     def react(self, reactor, reaction_type):
-        return CommentReaction.create_reaction(reactor=reactor, reaction_type=reaction_type, comment=self)
+        reaction = CommentReaction.create_reaction(reactor=reactor, reaction_type=reaction_type, comment=self)
+        NotificationsService.send_comment_reaction_notification(
+            comment=self, reactor=reactor, recipient=self.commenter
+        )
+        return reaction
 
     def clear_reaction(self, reactor, reaction_type):
         return CommentReaction.remove_reaction(reactor=reactor, reaction_type=reaction_type, comment=self)
