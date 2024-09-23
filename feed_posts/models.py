@@ -13,7 +13,7 @@ from rest_framework.exceptions import ValidationError
 
 from comments.models import Comment
 from comments.models.commentable_notification_context import CommentNotificationMixin, CommentNotificationContext
-from feed_posts.enums import VisibilityLevel
+from feed_posts.enums import VisibilityLevel, AspectRatio
 from feed_posts.helpers import upload_to_feed_post_images_directory, upload_to_new_feed_post_images_directory
 from openbook import settings
 from openbook_auth.models import User, UserRole
@@ -167,6 +167,7 @@ class FeedPostImage(ModelWithUUID):
     order = models.PositiveIntegerField()
     uploaded_at = models.DateTimeField(editable=False, auto_now_add=True)
     alt_text = models.TextField(max_length=settings.CONTENT_IMAGE_ALT_TEXT_MAX_LENGTH, blank=True, null=True)
+    aspect_ratio = models.CharField(max_length=20, choices=AspectRatio.choices, blank=True, null=True)
 
     class Meta:
         ordering = ["order"]

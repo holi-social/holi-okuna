@@ -40,6 +40,7 @@ def create_feed_post(user, input):
                     image
                     order
                     altText
+                    aspectRatio
                 }
             }
         }
@@ -84,6 +85,7 @@ def update_feed_post(user, input):
                     image
                     order
                     altText
+                    aspectRatio
                 }
             }
         }
