@@ -208,7 +208,7 @@ class PostData:
             data["context"] = self.community.title
             data["link"] = f"/spaces/{self.community.id}/updates/{self.id}"
         else:
-            data["link"] = f"/feed-post/{self.id}"
+            data["link"] = f"/feed-posts/{self.id}"
         if self.description:
             data["description"] = self.description
         if self.is_public:
