@@ -8,6 +8,7 @@ from openbook_common.helpers import extract_urls_from_string
 from openbook_common.models import LinkPreview
 from openbook_common.tracking import track, TrackingEvent
 from openbook_common.utils.helpers import extract_usernames_from_string
+from openbook_notifications.services import NotificationsService
 from openbook_terms.models import FeedPostCategory, Topic
 
 
@@ -135,7 +136,11 @@ class FeedPostReactionService:
         return self.repository.get_reaction_by_user(feed_post=feed_post, reactor=reactor)
 
     def create_reaction(self, feed_post, reactor, reaction_type):
-        return self.repository.create_reaction(feed_post=feed_post, reactor=reactor, reaction_type=reaction_type)
+        reaction = self.repository.create_reaction(feed_post=feed_post, reactor=reactor, reaction_type=reaction_type)
+        NotificationsService.send_post_reaction_notification(
+            post=feed_post, reactor=reactor, recipient=feed_post.creator
+        )
+        return reaction
 
     def remove_reaction(self, feed_post, reactor, reaction_type):
         return self.repository.remove_reaction(feed_post=feed_post, reactor=reactor, reaction_type=reaction_type)

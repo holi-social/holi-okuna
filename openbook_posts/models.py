@@ -65,6 +65,7 @@ from openbook_common.utils.model_loaders import (
     get_user_notifications_subscription_model,
 )
 from openbook_moderation.models import ModeratedObject
+from openbook_notifications.services import NotificationsService
 from openbook_posts.checkers import (
     check_can_add_media,
     check_can_be_published,
@@ -537,7 +538,9 @@ class Post(CommentNotificationMixin, ModelWithUUID):
         commenter.delete_comment_with_id(post_comment_id=id)
 
     def react(self, reactor, reaction_type):
-        return PostReaction.create_reaction(reactor=reactor, reaction_type=reaction_type, post=self)
+        reaction = PostReaction.create_reaction(reactor=reactor, reaction_type=reaction_type, post=self)
+        NotificationsService.send_post_reaction_notification(post=self, reactor=reactor, recipient=self.creator)
+        return reaction
 
     def clear_reaction(self, reactor, reaction_type):
         return PostReaction.remove_reaction(reactor=reactor, reaction_type=reaction_type, post=self)

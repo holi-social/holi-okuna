@@ -11,7 +11,6 @@ from openbook_notifications.helpers import replace_mentions_with_full_names
 if TYPE_CHECKING:
     from openbook_auth.models import User
     from openbook_communities.models import Community
-    from openbook_posts.models import Post
     from comments.models import Comment
     from openbook_appointments.models import Appointment
     from openbook_polls.models import Poll
@@ -35,6 +34,8 @@ class NotificationType(Enum):
     SPACE_APPOINTMENT_UPDATE = "SPACE_APPOINTMENT_UPDATE"
     SPACE_APPOINTMENT_DELETION = "SPACE_APPOINTMENT_DELETION"
     POLL_UPDATES = "POLL_UPDATES"
+    POST_REACTION = "POST_REACTION"
+    COMMENT_REACTION = "COMMENT_REACTION"
 
 
 class UserData:
@@ -186,30 +187,43 @@ class AppointmentData:
 
 
 class PostData:
-    def __init__(self, id: str, title: str, text: str, context: str, is_public: bool):
+    def __init__(
+        self, id: str, title: str, text: str = None, community=None, is_public: bool = None, description: str = None
+    ):
         self.id = id
         self.title = title
         self.text = text
-        self.context = context
+        self.community = community
         self.is_public = is_public
+        self.description = description
 
     def to_dict(self):
-        return {
+        data = {
             "id": self.id,
             "title": self.title,
-            "text": self.text,
-            "context": self.context,
-            "isPublic": self.is_public,
         }
+        if self.text:
+            data["text"] = self.text
+        if self.community:
+            data["context"] = self.community.title
+            data["link"] = f"/spaces/{self.community.id}/updates/{self.id}"
+        else:
+            data["link"] = f"/feed-post/{self.id}"
+        if self.description:
+            data["description"] = self.description
+        if self.is_public:
+            data["isPublic"] = self.is_public
+        return data
 
     @classmethod
-    def from_post(cls, post: Post):
+    def from_post(cls, post):
         return cls(
             id=str(post.id),
             title=post.title if post.title else "",
-            text=post.text,
-            context=post.community.title,
-            is_public=post.is_public,
+            text=post.text if hasattr(post, "text") else None,
+            community=post.community if hasattr(post, "community") else None,
+            is_public=post.is_public if hasattr(post, "is_public") else None,
+            description=post.description if hasattr(post, "description") else None,
         )
 
 
@@ -435,7 +449,7 @@ class SpaceNewPostPayload(Payload):
 
     def __init__(
         self,
-        post: Post,
+        post,
         notification_type: NotificationType,
     ):
         super().__init__(
@@ -509,4 +523,34 @@ class PollUpdatesPayload(Payload):
             },
             notification_type=NotificationType.POLL_UPDATES.value,
             notification_version=PollUpdatesPayload.NOTIFICATION_VERSION,
+        )
+
+
+class PostReactionPayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, reactor: User, post):
+        super().__init__(
+            data={
+                "user": UserData.from_user(reactor).to_dict(),
+                "post": PostData.from_post(post).to_dict(),
+            },
+            notification_type=NotificationType.POST_REACTION.value,
+            notification_version=PostReactionPayload.NOTIFICATION_VERSION,
+        )
+
+
+class CommentReactionPayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, reactor: User, comment: Comment, context_id: str):
+        comment_dict = CommentData.from_comment(comment).to_dict()
+        comment_dict["link"] = CommentData.create_link(comment, context_id)
+        super().__init__(
+            data={
+                "user": UserData.from_user(reactor).to_dict(),
+                "comment": comment_dict,
+            },
+            notification_type=NotificationType.COMMENT_REACTION.value,
+            notification_version=CommentReactionPayload.NOTIFICATION_VERSION,
         )

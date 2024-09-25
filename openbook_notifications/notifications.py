@@ -26,6 +26,8 @@ from openbook_notifications.payloads import (
     SpaceMembershipRequestPayload,
     SpaceNewPostPayload,
     PollUpdatesPayload,
+    PostReactionPayload,
+    CommentReactionPayload,
 )
 from openbook_notifications.toggles import notifications_toggle
 
@@ -48,6 +50,8 @@ class Workflow(Enum):
     SPACE_APPOINTMENT_UPDATE = "space-appointment-update"
     SPACE_APPOINTMENT_DELETION = "space-appointment-deletion"
     POLL_UPDATES = "poll-updates"
+    POST_REACTIONS = "post-reactions"
+    COMMENT_REACTIONS = "comment-reactions"
 
 
 # INTERNAL USE ONLY, use NotificationsService  to trigger notifications
@@ -340,6 +344,36 @@ class PollUpdatesNotification(Notification):
         super().__init__(
             workflow=Workflow.POLL_UPDATES.value,
             recipients=recipients,
+            payload=payload.to_dict(),
+            transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
+        )
+
+
+class PostReactionNotification(Notification):
+    def __init__(
+        self,
+        author: str,
+        payload: PostReactionPayload,
+        transaction_id: Optional[str] = None,
+    ):
+        super().__init__(
+            workflow=Workflow.POST_REACTIONS.value,
+            recipients=author,
+            payload=payload.to_dict(),
+            transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
+        )
+
+
+class CommentReactionNotification(Notification):
+    def __init__(
+        self,
+        commenter: str,
+        payload: CommentReactionPayload,
+        transaction_id: Optional[str] = None,
+    ):
+        super().__init__(
+            workflow=Workflow.COMMENT_REACTIONS.value,
+            recipients=commenter,
             payload=payload.to_dict(),
             transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
         )

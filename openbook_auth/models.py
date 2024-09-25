@@ -2941,6 +2941,7 @@ class User(ModelWithUUID, AbstractUser):
         is_public=None,
         circles_ids=None,
         language=None,
+        community_id=None,
     ):
         Post = get_post_model()
         return Post.create_post(
@@ -2954,6 +2955,7 @@ class User(ModelWithUUID, AbstractUser):
             is_draft=is_draft,
             circles_ids=circles_ids,
             language=language,
+            community_id=community_id,
         )
 
     def create_poll(

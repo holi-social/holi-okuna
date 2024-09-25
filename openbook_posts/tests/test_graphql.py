@@ -1,5 +1,6 @@
 import logging
 from unittest import TestCase, mock
+from unittest.mock import patch, Mock
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -19,6 +20,7 @@ from openbook_common.tests.helpers import (
 )
 from openbook_communities.models import CommunityNotificationsSubscription
 from openbook_notifications.models import CommunityNewPostNotification
+from openbook_notifications.notifications import PostReactionNotification
 from openbook_posts.models import (
     Post,
     PostImage,
@@ -203,7 +205,8 @@ class TestPosts(TestCase):
         assert post_data is None
         assert "Forbidden" in response.errors[0].message
 
-    def test_react_to_post(self):
+    @patch.object(PostReactionNotification, "send")
+    def test_react_to_post(self, mock_send_post_reaction_notification: Mock):
         posting_user = make_user()
         other_user = make_user(name="Other")
 
@@ -213,6 +216,7 @@ class TestPosts(TestCase):
         post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
 
         react_to_post(post, "SET", posting_user)
+        mock_send_post_reaction_notification.assert_called_once()
         executed = react_to_post(post, "SET", posting_user)  # setting twice is same as setting once
         updated_post = executed.data["updatePostReaction"]
 
