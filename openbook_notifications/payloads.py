@@ -247,6 +247,8 @@ class CommentData:
         comment_target = comment.commentable_type.model
 
         if "feedpost" == comment_target:
+            if comment.parent_comment_id is not None:
+                return f"/feed-posts/{comment.commentable_id}?commentId={comment.parent_comment_id}"
             return f"/feed-posts/{comment.commentable_id}?commentId={comment.id}"
 
         if "post" == comment_target:
