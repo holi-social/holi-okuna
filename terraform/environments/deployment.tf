@@ -48,10 +48,10 @@ variable "image_tag" {
 # The job deployed by this resource is then triggered using the following null_resource definition every time a new image
 # will be deployed.
 resource "google_cloud_run_v2_job" "okuna_migration" {
-  project  = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
-  name     = "${random_id.main.hex}-migration"
-  location = local.default_region # finland, low CO2 emissions
-  # https://github.com/hashicorp/terraform-provider-google/issues/5898
+  project             = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
+  name                = "${random_id.main.hex}-migration"
+  location            = local.default_region # finland, low CO2 emissions
+  deletion_protection = false
 
   template {
     task_count = 1

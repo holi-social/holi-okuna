@@ -168,6 +168,13 @@ review_destroy:
     name: review/$CI_COMMIT_REF_SLUG
     action: stop
   dependencies: [] # explicitly disable artifact usage
+  artifacts:
+    paths:
+      - "terraform/environments/crash.log" # optional, only available in case of a crash/panic
+      - "terraform/environments/terraform-*.log" # separate log for every step/command
+    name: "${CI_JOB_NAME}_${CI_JOB_ID}"
+    when: on_failure
+    expire_in: 1 week
   script:
     # branch may have been deleted, so we clone and checkout main
     - git clone $CI_REPOSITORY_URL main-clone
