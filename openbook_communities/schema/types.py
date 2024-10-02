@@ -389,6 +389,17 @@ class Space:
         return Paged.of(appointments, offset, limit)
 
     @strawberry_django.field()
+    def parent_space(self) -> Optional["Space"]:
+        """
+        We currently assume that a space can only have one parent.
+        There is no technical limitation for this, however, a Space can have multiple
+        different parent-child relationships/be part of different hierarchies.
+        """
+        return Community.objects.filter(
+            space_relationships__to_space=self, space_relationships__relationship_type=SpacesRelationshipType.PARENT_OF
+        ).first()
+
+    @strawberry_django.field()
     def child_spaces(
         self, info, geolocation: Optional[GeoJSON] = None, offset: int = 0, limit: int = 10
     ) -> Paged["Space"]:
