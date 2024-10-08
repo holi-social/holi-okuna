@@ -229,36 +229,28 @@ CACHE_BACKENDS = {
 }
 
 
-def redis_cache_backend() -> str:
-    # use for local cache debugging
-    result = CACHE_BACKENDS["redis"]
-    # result = (
-    #    CACHE_BACKENDS["dummy"] if DEBUG and not (IS_PRODUCTION or IS_STAGING or TESTING) else CACHE_BACKENDS["redis"]
-    # )
-    return result
-
-
 CACHES = {
     "default": {
-        "BACKEND": redis_cache_backend(),
+        "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_DEFAULT_CACHE_LOCATION,
-        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",  "REDIS_CLIENT_KWARGS": {"health_check_interval": 30}},
         "KEY_PREFIX": "ob-api-" + ENVIRONMENT_ID + "-",
         "TIMEOUT": 60 * 60,
     },
     USERBLOCK: {
-        "BACKEND": redis_cache_backend(),
+        "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_USERBLOCK_CACHE_LOCATION,
-        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",  "REDIS_CLIENT_KWARGS": {"health_check_interval": 30}},
         "KEY_PREFIX": f"ob-userblock-{ENVIRONMENT_ID}-",
         "TIMEOUT": 60 * 60,  # 1 hour
     },
     UNIFIED_API_RESPONSE_CACHE: {
-        "BACKEND": redis_cache_backend(),
+        "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_UNIFIED_API_RESPONSE_CACHE_LOCATION,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
+             "REDIS_CLIENT_KWARGS": {"health_check_interval": 30}
         },
         "KEY_PREFIX": "response-cache",
         "KEY_FUNCTION": "openbook.utils.unified_api_response_cache_key_function",
@@ -266,21 +258,21 @@ CACHES = {
         "TIMEOUT": 60 * 60,
     },
     RQ_DEFAULT_JOBS: {
-        "BACKEND": CACHE_BACKENDS["redis"],  # django_rq needs redis, doesn't work with dummy backend
+        "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_RQ_DEFAULT_JOBS_CACHE_LOCATION,
-        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",  "REDIS_CLIENT_KWARGS": {"health_check_interval": 30}},
         "KEY_PREFIX": "ob-api-rq-default-job-" + ENVIRONMENT_ID + "-",
     },
     RQ_HIGH_JOBS: {
-        "BACKEND": CACHE_BACKENDS["redis"],  # django_rq needs redis, doesn't work with dummy backend
+        "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_RQ_HIGH_JOBS_CACHE_LOCATION,
-        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",  "REDIS_CLIENT_KWARGS": {"health_check_interval": 30}},
         "KEY_PREFIX": "ob-api-rq-high-job-" + ENVIRONMENT_ID + "-",
     },
     RQ_LOW_JOBS: {
-        "BACKEND": CACHE_BACKENDS["redis"],  # django_rq needs redis, doesn't work with dummy backend
+        "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_RQ_LOW_JOBS_CACHE_LOCATION,
-        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",  "REDIS_CLIENT_KWARGS": {"health_check_interval": 30}},
         "KEY_PREFIX": "ob-api-rq-low-job-" + ENVIRONMENT_ID + "-",
     },
 }

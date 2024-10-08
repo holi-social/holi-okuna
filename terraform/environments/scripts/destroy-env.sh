@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 # exit when any command fails
 set -ex
@@ -12,7 +12,7 @@ export TF_LOG=DEBUG
 # * GCP stuff not allowing our resources to be deleted.
 # Most of the time, retrying a destroy fixes these causes.
 retry() {
-  for i in {1..3}; do
+  for i in $(seq 1 3); do
     set +e
     "$@"
     retval=$?
