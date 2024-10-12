@@ -58,7 +58,7 @@ def api_update_authenticated_user_names_data(user, first_name, last_name):
     response = async_to_sync(schema.execute)(
         """
         mutation test($input: UpdateAuthenticatedUserInput!) {
-            updateAuthenticatedUser(input: $input) {
+            updateAuthenticatedUserV2(input: $input) {
                 id
                 firstName
                 lastName
@@ -70,7 +70,7 @@ def api_update_authenticated_user_names_data(user, first_name, last_name):
         variable_values={"input": {"firstName": first_name, "lastName": last_name}},
     )
     assert response.errors is None
-    return response.data["updateAuthenticatedUser"]
+    return response.data["updateAuthenticatedUserV2"]
 
 
 def get_user_connection_status_to_space_data(user_to_get, space, calling_user=None):
