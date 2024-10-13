@@ -39,7 +39,7 @@ class TestCommons:
         ]
 
         response = async_to_sync(schema.execute)(
-            f"""
+            """
             query {{
                 featureToggles {{
                     id

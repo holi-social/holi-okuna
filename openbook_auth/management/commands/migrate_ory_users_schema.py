@@ -1,8 +1,9 @@
+# ruff: noqa: T201
 import http
 import requests
 from django.core.management.base import BaseCommand
 
-from openbook.settings import ORY_ACCESS_TOKEN, ORY_BASE_URL
+from openbook.settings import ORY_BASE_URL
 from openbook_auth.management.commands.sync_okuna_user_names_to_ory import get_ory_error_str
 from openbook_auth.management.common import for_every_ory_user, ory_user_to_str, ORY_HEADER
 
@@ -34,7 +35,7 @@ class Command(BaseCommand):
             print(f"{count} Updating {ory_user_to_str(user)}")
 
             response = requests.patch(
-                f"{ORY_BASE_URL}/admin/identities/{user['id']}", headers=ORY_HEADER, json=body_data
+                f"{ORY_BASE_URL}/admin/identities/{user['id']}", headers=ORY_HEADER, json=body_data, timeout=30
             )
 
             if response.status_code != http.HTTPStatus.OK:

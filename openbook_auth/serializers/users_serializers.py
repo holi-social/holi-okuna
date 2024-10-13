@@ -68,20 +68,6 @@ class GetUserUserCircleSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "color", "users_count")
 
 
-class GetUserUserListEmojiSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Emoji
-        fields = ("id", "image", "keyword")
-
-
-class GetUserUserListSerializer(serializers.ModelSerializer):
-    emoji = GetUserUserListEmojiSerializer(many=False)
-
-    class Meta:
-        model = List
-        fields = ("id", "name", "emoji")
-
-
 class GetUserUserSerializer(serializers.ModelSerializer):
     profile = GetUserUserProfileSerializer(many=False)
     followers_count = FollowersCountField()

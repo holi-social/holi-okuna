@@ -11,7 +11,6 @@ from openbook_common.serializers_fields.user import (
     AreNewPostNotificationsEnabledForUserField,
 )
 from openbook_communities.models import CommunityMembership, CommunityInvite
-from openbook_communities.serializers_fields import CommunityMembershipsField
 from openbook_communities.validators import (
     community_name_exists,
     community_name_characters_validator,

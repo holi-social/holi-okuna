@@ -323,7 +323,7 @@ class TestInsights:
         user_bc = make_user(name="firstB", last_name="lastC")
         user_cb = make_user(name="firstC", last_name="lastB")
         make_user(name="firstOther", last_name="lastOther")
-        user_without_profile = User.objects.create(username=str(uuid.uuid4()), email="ab@test.de", password="password")
+        user_without_profile = User.objects.create(username=str(uuid.uuid4()), email="ab@test.de", password="password")  # noqa: S106
 
         now = timezone.now()
         Insight.objects.create(creator=user_aa, title="Insight 1", date_published=now)

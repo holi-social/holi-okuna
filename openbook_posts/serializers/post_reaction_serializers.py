@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from openbook_auth.models import UserProfile, User
-from openbook_common.models import Emoji
 from openbook_posts.models import PostReaction
 from openbook_posts.validators import post_id_exists, post_reaction_id_exists
 from openbook_posts.serializers.post_comment_reaction_serializers import (

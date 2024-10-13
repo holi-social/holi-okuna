@@ -1,15 +1,12 @@
-import ipaddress
 from urllib.parse import urlparse
 
 from django.core.management.base import BaseCommand
 from tldextract import tldextract
 
 from openbook_common.models import ProxyBlacklistedDomain
-from openbook_common.utils.model_loaders import get_user_invite_model, get_badge_model
 
 import logging
 from django.core.validators import URLValidator
-from django.core.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +20,6 @@ class Command(BaseCommand):
         parser.add_argument("--file", type=str, help="The file to import the blacklisted domains from")
 
     def handle(self, *args, **options):
-
         imported_domains = 0
         already_existing_domains = 0
 

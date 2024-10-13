@@ -1,7 +1,4 @@
-from django.contrib.auth.validators import (
-    UnicodeUsernameValidator,
-    ASCIIUsernameValidator,
-)
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.mail import EmailMultiAlternatives
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models

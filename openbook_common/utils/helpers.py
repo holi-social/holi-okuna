@@ -15,8 +15,6 @@ from imagekit.models import ProcessedImageField
 import hashlib
 import tldextract
 
-r = lambda: secrets.randbelow(255)
-
 
 def normalise_request_data(request_data):
     """
@@ -55,19 +53,21 @@ def normalize_list_value_in_request_data(list_name, request_data):
 
 
 def generate_random_hex_color():
+    def r():
+        return secrets.randbelow(255)
+
     return f"#{r():02X}{r():02X}{r():02X}"
 
 
 def get_random_pastel_color():
     # It's a random color jeez, we don't need cryptographically secure randomness
-    h, s, l = (
-        random.random(),
-        0.5 + random.random() / 2.0,
-        0.4 + random.random() / 5.0,
-    )  # nosec
+    h, s, l = (  # noqa: E741
+        random.random(),  # noqa: S311
+        0.5 + random.random() / 2.0,  # noqa: S311
+        0.4 + random.random() / 5.0,  # noqa: S311
+    )
     r, g, b = [int(256 * i) for i in colorsys.hls_to_rgb(h, l, s)]
     hex_color = f"#{r:02x}{g:02x}{b:02x}"
-    # color = spectra.html(hex_color).darken(amount=20)
     return hex_color
 
 
@@ -82,7 +82,6 @@ def delete_file_field(filefield):
         pass
 
     else:
-
         if isinstance(filefield.field, ProcessedImageField):
             # ImageKit has a bug where files are cached and not deleted right away
             # https://github.com/matthewwithanm/django-imagekit/issues/229#issuecomment-315690575

@@ -1,3 +1,4 @@
+# ruff: noqa: T201
 import io
 import random
 import sys
@@ -33,7 +34,7 @@ NO_TOPICS_AVAILABLE = "no topics available, please generate topics first (via lo
 
 @contextmanager
 def image_fetcher(url=f"{settings.IMAGEKIT_URL}/tr:w-300,h-300/default-image.jpg"):
-    with request.urlopen(url) as response:
+    with request.urlopen(url) as response:  # noqa: S310
         with io.BytesIO(response.read()) as image_io:
             in_memory_file = InMemoryUploadedFile(
                 image_io, "ImageField", "image.jpg", "JPEG", sys.getsizeof(image_io), None
@@ -78,7 +79,7 @@ class Command(BaseCommand):
             raise CommandError(NO_USERS_AVAILABLE)
         for _ in range(nr):
             with image_fetcher() as image_file:
-                random.choice(users).create_post(
+                random.choice(users).create_post(  # noqa: S311
                     is_public=True,
                     title=make_fake_post_title(),
                     text=fake.text(max_nb_chars=300),
@@ -92,18 +93,18 @@ class Command(BaseCommand):
             raise CommandError(NO_USERS_AVAILABLE)
         for _ in range(nr):
             with image_fetcher() as image_file:
-                post = random.choice(users).create_post(
+                post = random.choice(users).create_post(  # noqa: S311
                     is_public=True, title=make_fake_post_title(), text=fake.text(max_nb_chars=300), image=image_file
                 )
-                comment_count = random.randint(1, 5)
+                comment_count = random.randint(1, 5)  # noqa: S311
                 for _ in range(comment_count):
-                    post.comment(fake.text(max_nb_chars=300), random.choice(users))
+                    post.comment(fake.text(max_nb_chars=300), random.choice(users))  # noqa: S311
 
     @staticmethod
     def _generate_reactions(obj, users):
         for user in users:
-            if random.choice([False, True]):
-                obj.react(user, random.choice([_ for _ in ReactionType]))
+            if random.choice([False, True]):  # noqa: S311
+                obj.react(user, random.choice([_ for _ in ReactionType]))  # noqa: S311
 
     def generate_post_with_comment_and_reaction(self, nr):
         print(f"generate {nr} posts with comments and reactions")
@@ -112,14 +113,14 @@ class Command(BaseCommand):
             raise CommandError(NO_USERS_AVAILABLE)
         for _ in range(nr):
             with image_fetcher() as image_file:
-                post = random.choice(users).create_post(
+                post = random.choice(users).create_post(  # noqa: S311
                     is_public=True, title=make_fake_post_title(), text=fake.text(max_nb_chars=300), image=image_file
                 )
                 self._generate_reactions(post, users)
-                comment_count = random.randint(1, 5)
+                comment_count = random.randint(1, 5)  # noqa: S311
                 for _ in range(comment_count):
-                    post_comment = post.comment(fake.text(max_nb_chars=300), random.choice(users))
-                    if random.random() < 0.2:
+                    post_comment = post.comment(fake.text(max_nb_chars=300), random.choice(users))  # noqa: S311
+                    if random.random() < 0.2:  # noqa: S311
                         self._generate_reactions(post_comment, users)
 
     def generate_insight(self, nr):
@@ -133,14 +134,14 @@ class Command(BaseCommand):
         for _ in range(nr):
             with image_fetcher() as image_file:
                 insight = Insight.objects.create(
-                    creator=random.choice(users),
+                    creator=random.choice(users),  # noqa: S311
                     title=make_fake_post_title(),
                     description=fake.text(max_nb_chars=300),
                     date_published=now(),
                     header_image=image_file,
                 )
-                for _ in range(random.randint(1, 8)):
-                    insight.posts.add(random.choice(posts))
+                for _ in range(random.randint(1, 8)):  # noqa: S311
+                    insight.posts.add(random.choice(posts))  # noqa: S311
 
     def generate_space(self, nr):
         print(f"generate {nr} spaces")
@@ -152,12 +153,12 @@ class Command(BaseCommand):
             raise CommandError(NO_TOPICS_AVAILABLE)
         for _ in range(nr):
             with image_fetcher() as image_file:
-                random.choice(users).create_community(
+                random.choice(users).create_community(  # noqa: S311
                     title=make_community_title(),
                     type="P",
                     description=fake.text(max_nb_chars=300),
                     avatar=image_file,
                     cover=image_file,
-                    topic_ids=[random.choice(topic_ids)],
+                    topic_ids=[random.choice(topic_ids)],  # noqa: S311
                     location="Germany",
                 )

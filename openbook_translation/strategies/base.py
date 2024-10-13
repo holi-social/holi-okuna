@@ -15,7 +15,7 @@ class TranslationClientError(Exception):
     pass
 
 
-class UnsupportedLanguagePairException(Exception):
+class UnsupportedLanguagePairError(Exception):
     pass
 
 

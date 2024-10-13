@@ -101,7 +101,6 @@ INSTALLED_APPS = [
     "openbook_follows",
     "openbook_communities",
     "openbook_invitations",
-    "openbook_tags",
     "openbook_hashtags",
     "openbook_categories",
     "openbook_notifications",
@@ -233,14 +232,20 @@ CACHES = {
     "default": {
         "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_DEFAULT_CACHE_LOCATION,
-        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",  "REDIS_CLIENT_KWARGS": {"health_check_interval": 30}},
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "REDIS_CLIENT_KWARGS": {"health_check_interval": 30},
+        },
         "KEY_PREFIX": "ob-api-" + ENVIRONMENT_ID + "-",
         "TIMEOUT": 60 * 60,
     },
     USERBLOCK: {
         "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_USERBLOCK_CACHE_LOCATION,
-        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",  "REDIS_CLIENT_KWARGS": {"health_check_interval": 30}},
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "REDIS_CLIENT_KWARGS": {"health_check_interval": 30},
+        },
         "KEY_PREFIX": f"ob-userblock-{ENVIRONMENT_ID}-",
         "TIMEOUT": 60 * 60,  # 1 hour
     },
@@ -250,7 +255,7 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
-             "REDIS_CLIENT_KWARGS": {"health_check_interval": 30}
+            "REDIS_CLIENT_KWARGS": {"health_check_interval": 30},
         },
         "KEY_PREFIX": "response-cache",
         "KEY_FUNCTION": "openbook.utils.unified_api_response_cache_key_function",
@@ -260,19 +265,28 @@ CACHES = {
     RQ_DEFAULT_JOBS: {
         "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_RQ_DEFAULT_JOBS_CACHE_LOCATION,
-        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",  "REDIS_CLIENT_KWARGS": {"health_check_interval": 30}},
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "REDIS_CLIENT_KWARGS": {"health_check_interval": 30},
+        },
         "KEY_PREFIX": "ob-api-rq-default-job-" + ENVIRONMENT_ID + "-",
     },
     RQ_HIGH_JOBS: {
         "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_RQ_HIGH_JOBS_CACHE_LOCATION,
-        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",  "REDIS_CLIENT_KWARGS": {"health_check_interval": 30}},
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "REDIS_CLIENT_KWARGS": {"health_check_interval": 30},
+        },
         "KEY_PREFIX": "ob-api-rq-high-job-" + ENVIRONMENT_ID + "-",
     },
     RQ_LOW_JOBS: {
         "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_RQ_LOW_JOBS_CACHE_LOCATION,
-        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",  "REDIS_CLIENT_KWARGS": {"health_check_interval": 30}},
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "REDIS_CLIENT_KWARGS": {"health_check_interval": 30},
+        },
         "KEY_PREFIX": "ob-api-rq-low-job-" + ENVIRONMENT_ID + "-",
     },
 }

@@ -1,7 +1,7 @@
 import json
 import pytest
 
-from django.test import AsyncClient, Client, TransactionTestCase
+from django.test import AsyncClient, TransactionTestCase
 from unittest import mock
 from django.urls import reverse
 from asgiref.sync import async_to_sync
@@ -129,7 +129,7 @@ class NotificationWebhookTestCase(TransactionTestCase):
         # THEN
         assert response.status_code == 200
         content = json.loads(response.content)
-        assert content["valid"] == True
+        assert content["valid"] is True
 
     def test_handles_if_subscriber_is_not_admin_for_membership_request(self):
         # GIVEN
@@ -153,7 +153,7 @@ class NotificationWebhookTestCase(TransactionTestCase):
         # THEN
         assert response.status_code == 200
         content = json.loads(response.content)
-        assert content["valid"] == False
+        assert content["valid"] is False
 
     def test_handles_missing_user_for_membership_request(self):
         # GIVEN
@@ -176,7 +176,7 @@ class NotificationWebhookTestCase(TransactionTestCase):
         # THEN
         assert response.status_code == 200
         content = json.loads(response.content)
-        assert content["valid"] == False
+        assert content["valid"] is False
 
     def test_handles_missing_space_for_membership_request(self):
         # GIVEN
@@ -199,7 +199,7 @@ class NotificationWebhookTestCase(TransactionTestCase):
         # THEN
         assert response.status_code == 200
         content = json.loads(response.content)
-        assert content["valid"] == False
+        assert content["valid"] is False
 
     def test_handles_invalid_notification_payload_for_membership_request(self):
         # GIVEN
@@ -222,12 +222,12 @@ class NotificationWebhookTestCase(TransactionTestCase):
         # THEN
         assert response.status_code == 200
         content = json.loads(response.content)
-        assert content["valid"] == False
+        assert content["valid"] is False
 
     def test_handles_invalid_payload_for_membership_request(self):
         # GIVEN
         client = AsyncClient()
-        user = make_user()
+        make_user()
         payload = {
             "payload": {
                 "notificationType": NotificationType.SPACE_MEMBERSHIP_REQUEST.value,
@@ -241,12 +241,12 @@ class NotificationWebhookTestCase(TransactionTestCase):
         # THEN
         assert response.status_code == 200
         content = json.loads(response.content)
-        assert content["valid"] == False
+        assert content["valid"] is False
 
     def test_handles_unhandled_notification_type(self):
         # GIVEN
         client = AsyncClient()
-        user = make_user()
+        make_user()
         payload = {
             "payload": {
                 "notificationType": NotificationType.SPACE_MEMBERSHIP_INVITE.value,
@@ -263,7 +263,7 @@ class NotificationWebhookTestCase(TransactionTestCase):
     def test_handles_unknown_notification_type(self):
         # GIVEN
         client = AsyncClient()
-        user = make_user()
+        make_user()
         payload = {
             "payload": {
                 "notificationType": "unknown",
@@ -280,7 +280,7 @@ class NotificationWebhookTestCase(TransactionTestCase):
     def test_handles_missing_notification_type(self):
         # GIVEN
         client = AsyncClient()
-        user = make_user()
+        make_user()
         payload = {
             "payload": {},
         }

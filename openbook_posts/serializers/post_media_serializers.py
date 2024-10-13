@@ -3,7 +3,7 @@ from generic_relations.relations import GenericRelatedField
 from rest_framework import serializers
 
 from openbook_common.serializers_fields.request import RestrictedFileSizeField
-from openbook_posts.models import PostMedia, PostImage, PostVideo
+from openbook_posts.models import PostMedia, PostImage
 from openbook_posts.validators import post_id_exists
 
 

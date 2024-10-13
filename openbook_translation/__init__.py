@@ -32,7 +32,7 @@ class TranslationStrategyManager:
             strategy = params.pop("STRATEGY")
             strategy_cls = import_string(strategy)
         except ImportError as e:
-            raise InvalidTranslationStrategyError(f"Could not find strategy '{strategy}': {e}")
+            raise InvalidTranslationStrategyError(f"Could not find strategy '{strategy}': {e}") from e
 
         return strategy_cls(params)
 

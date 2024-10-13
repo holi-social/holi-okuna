@@ -13,7 +13,6 @@ from openbook_auth.validators import (
     username_not_taken_validator,
     email_not_taken_validator,
     user_email_exists,
-    user_username_exists,
 )
 from django.contrib.auth.password_validation import validate_password
 

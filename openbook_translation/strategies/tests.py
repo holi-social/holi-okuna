@@ -1,6 +1,6 @@
 from openbook_translation.strategies.base import (
     BaseTranslationStrategy,
-    UnsupportedLanguagePairException,
+    UnsupportedLanguagePairError,
     MaxTextLengthExceededError,
 )
 
@@ -29,4 +29,4 @@ class MockAmazonTranslate(BaseTranslationStrategy):
             return {"translated_text": "I am a man 😀. You're a woman."}
 
         if target_language_code == "ar" and source_language_code == "no":
-            raise UnsupportedLanguagePairException
+            raise UnsupportedLanguagePairError

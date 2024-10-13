@@ -1,9 +1,10 @@
-from . import *
+import os
+from . import *  # noqa: F403
 
-ENVIRONMENT = EnvironmentChecker.TEST_VALUE
+ENVIRONMENT = EnvironmentChecker.TEST_VALUE  # noqa: F405
 TESTING = True
 
-for queueConfig in RQ_QUEUES.values():
+for queueConfig in RQ_QUEUES.values():  # noqa: F405, N816
     queueConfig["ASYNC"] = False
 
 TEST_DB_NAME = os.environ.get("TEST_DB_NAME", "okuna_test_db")

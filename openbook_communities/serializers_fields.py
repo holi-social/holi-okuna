@@ -1,4 +1,3 @@
-from rest_framework import serializers
 from rest_framework.fields import Field
 
 from openbook_communities.models import Community

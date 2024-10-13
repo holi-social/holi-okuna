@@ -1,3 +1,4 @@
+# ruff: noqa: T201
 import requests
 from django.core.management import BaseCommand
 
@@ -53,10 +54,12 @@ class Command(BaseCommand):
         print(f"User {ory_id} set to verified")
 
     def set_password(self, ory_id, new_password):
-        resp = requests.get(f"{ORY_BASE_URL}/admin/identities/{ory_id}", headers=ORY_HEADER)
+        resp = requests.get(f"{ORY_BASE_URL}/admin/identities/{ory_id}", headers=ORY_HEADER, timeout=30)
         ory_user = resp.json()
         ory_user["credentials"]["password"]["config"] = {"password": new_password}
-        response = requests.put(f"{ORY_BASE_URL}/admin/identities/{ory_id}", headers=ORY_HEADER, json=ory_user)
+        response = requests.put(
+            f"{ORY_BASE_URL}/admin/identities/{ory_id}", headers=ORY_HEADER, json=ory_user, timeout=30
+        )
         if no_ory_errors(response):
             print(f"User {ory_id} password set to {new_password}")
 
@@ -64,7 +67,9 @@ class Command(BaseCommand):
         body_data = [
             {"op": "add", "path": "/traits/email", "value": new_email},
         ]
-        response = requests.patch(f"{ORY_BASE_URL}/admin/identities/{ory_id}", headers=ORY_HEADER, json=body_data)
+        response = requests.patch(
+            f"{ORY_BASE_URL}/admin/identities/{ory_id}", headers=ORY_HEADER, json=body_data, timeout=30
+        )
         if no_ory_errors(response):
             print(f"User {ory_id} email set to {new_email}")
 

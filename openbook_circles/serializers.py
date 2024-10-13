@@ -9,7 +9,6 @@ from openbook_circles.validators import circle_id_exists
 from openbook_common.models import Badge
 from openbook_common.serializers_fields.user import (
     IsFullyConnectedField,
-    IsPendingConnectionConfirmation,
 )
 from openbook_common.validators import hex_color_validator
 
