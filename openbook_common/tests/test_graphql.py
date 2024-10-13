@@ -40,13 +40,13 @@ class TestCommons:
 
         response = async_to_sync(schema.execute)(
             """
-            query {{
-                featureToggles {{
+            query {
+                featureToggles {
                     id
                     name
                     status
-                }}
-            }}
+                }
+            }
             """,
         )
         assert response.errors is None
