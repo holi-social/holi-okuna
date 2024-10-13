@@ -21,7 +21,6 @@ class MockAmazonTranslate(BaseTranslationStrategy):
         return "en"
 
     def translate_text(self, text, source_language_code, target_language_code):
-
         if len(text) > self.text_max_length:
             raise MaxTextLengthExceededError("MaxTextLengthExceededError")
 
