@@ -960,7 +960,10 @@ class User(ModelWithUUID, AbstractUser):
 
         return not connection.circles.exists()
 
-    def get_connection_status_with_user_id(self, user_id):
+    def get_connection_status_with_user_id(self, user_id) -> Optional[UserConnectionStatus]:
+        # users can't connect with themselves (quick exit saves query execution time)
+        if self.id == user_id:
+            return None
         # check if not connected (no user requested to connect)
         if not self.is_connected_with_user_with_id(user_id=user_id):
             return UserConnectionStatus.NOT_CONNECTED
@@ -970,7 +973,7 @@ class User(ModelWithUUID, AbstractUser):
         # check if pending confirm connection (true only for the user who received the connection request)
         if self.is_pending_confirm_connection_for_user_with_id(user_id=user_id):
             return UserConnectionStatus.PENDING_CONFIRMATION
-        # if none of the above is true, the currently signed in user has made the request
+        # if none of the above is true, the currently signed-in user has made the request
         return UserConnectionStatus.REQUESTED
 
     def delete_all_pending_connection_requests(self):
