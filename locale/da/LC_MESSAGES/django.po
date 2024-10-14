@@ -1636,14 +1636,6 @@ msgstr "Intet hashtag med det angivne navn."
 msgid "Hashtags must to be alphanumerical and up to 32 characters."
 msgstr "Hashtags skal være alfanumeriske og op til 32 tegn."
 
-#: openbook_importer/views.py:44
-msgid "done"
-msgstr "udført"
-
-#: openbook_importer/views.py:92 openbook_importer/views.py:98
-msgid "invalid archive"
-msgstr "ugyldigt arkiv"
-
 #: openbook_insights/models.py:31
 msgid "header image"
 msgstr ""

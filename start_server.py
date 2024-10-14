@@ -41,7 +41,6 @@ def main():
             "./openbook_devices",
             "./openbook_follows",
             "./openbook_hashtags",
-            "./openbook_importer",
             "./openbook_insights",
             "./openbook_invitations",
             "./openbook_lists",
