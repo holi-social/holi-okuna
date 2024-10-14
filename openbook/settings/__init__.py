@@ -106,7 +106,6 @@ INSTALLED_APPS = [
     "openbook_notifications",
     "openbook_devices",
     "openbook_moderation",
-    "openbook_translation",
     "openbook_terms",
     "strawberry.django",
     "sortedm2m",
@@ -423,23 +422,6 @@ REST_FRAMEWORK = {
     "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.AcceptHeaderVersioning",
     "DEFAULT_THROTTLE_RATES": {
         "link_preview": "300/hour",
-    },
-}
-
-# AWS Translate
-AWS_TRANSLATE_REGION = os.environ.get("AWS_TRANSLATE_REGION", "eu-central-1")
-AWS_TRANSLATE_MAX_LENGTH = os.environ.get("AWS_TRANSLATE_MAX_LENGTH", 10000)
-OS_TRANSLATION_STRATEGY_NAME = "default"
-OS_TRANSLATION_CONFIG = {
-    "default": {
-        "STRATEGY": "openbook_translation.strategies.amazon.AmazonTranslate",
-        "TEXT_MAX_LENGTH": AWS_TRANSLATE_MAX_LENGTH,
-        "DEFAULT_TRANSLATION_LANGUAGE_CODE": "en",
-    },
-    "testing": {
-        "STRATEGY": "openbook_translation.strategies.tests.MockAmazonTranslate",
-        "TEXT_MAX_LENGTH": 40,
-        "DEFAULT_TRANSLATION_LANGUAGE_CODE": "en",
     },
 }
 

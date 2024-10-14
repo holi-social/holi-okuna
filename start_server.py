@@ -50,7 +50,6 @@ def main():
             "./openbook_polls",
             "./openbook_posts",
             "./openbook_terms",
-            "./openbook_translation",
             "./comments",
         ],
     )
