@@ -1634,14 +1634,6 @@ msgstr ""
 msgid "Hashtags must to be alphanumerical and up to 32 characters."
 msgstr ""
 
-#: openbook_importer/views.py:44
-msgid "done"
-msgstr "terminé"
-
-#: openbook_importer/views.py:92 openbook_importer/views.py:98
-msgid "invalid archive"
-msgstr "archive invalide"
-
 #: openbook_insights/models.py:31
 msgid "header image"
 msgstr ""
