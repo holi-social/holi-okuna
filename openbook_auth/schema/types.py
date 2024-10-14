@@ -108,9 +108,10 @@ class User:
 
     @strawberry_django.field()
     def connection_status_to_myself(self, info) -> Optional[UserConnectionStatus]:
-        if info.context.request.user.is_anonymous:
+        user = info.context.request.user
+        if user.is_anonymous:
             return None
-        return info.context.request.user.get_connection_status_with_user_id(user_id=self.id)
+        return user.get_connection_status_with_user_id(user_id=self.id)
 
     @strawberry_django.field()
     def connection_status_to_space(self, info, space_id: uuid.UUID) -> List[Optional[SpaceUserConnectionType]]:
