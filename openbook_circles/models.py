@@ -1,13 +1,9 @@
-import uuid
-
-from django.conf import settings
 from django.db import models
 
 # Create your models here.
 from django.utils import timezone
 
 from openbook.settings import CIRCLE_MAX_LENGTH, COLOR_ATTR_MAX_LENGTH
-from openbook_auth.models import User
 from openbook_common.models import ModelWithUUID
 from openbook_common.utils.model_loaders import get_connection_model
 from openbook_connections.models import Connection

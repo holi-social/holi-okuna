@@ -1,5 +1,5 @@
+# ruff: noqa: T201
 import http
-import random
 
 import requests
 from django.core.management.base import BaseCommand
@@ -26,7 +26,7 @@ class Command(BaseCommand):
             {"op": "add", "path": "/traits/identity", "value": identity},
         ]
         response = requests.patch(
-            f"{ORY_BASE_URL}/admin/identities/{user.username}", headers=ORY_HEADER, json=body_data
+            f"{ORY_BASE_URL}/admin/identities/{user.username}", headers=ORY_HEADER, json=body_data, timeout=30
         )
         match response.status_code:
             case http.HTTPStatus.OK:

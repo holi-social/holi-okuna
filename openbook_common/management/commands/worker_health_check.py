@@ -1,3 +1,4 @@
+# ruff: noqa: T201
 from sys import exit
 from logging import getLogger
 
@@ -7,7 +8,7 @@ from django.core.management.base import BaseCommand
 from openbook_common.utils.rq_helpers import RQStats
 from openbook_common.helpers import send_alert_to_channel
 
-from openbook.settings import RQ_QUEUES, FAILED_JOB_THRESHOLD
+from openbook.settings import RQ_QUEUES
 from openbook.settings import ACTIVE_JOB_THRESHOLD, ACTIVE_WORKER_THRESHOLD
 
 
@@ -23,7 +24,6 @@ class Command(BaseCommand):
         env = settings.ENVIRONMENT
 
         for queue in RQ_QUEUES.keys():
-
             rq_stats = RQStats(queue)
 
             active_job_count = rq_stats.get_active_job_count()
@@ -46,7 +46,6 @@ class Command(BaseCommand):
                 self.retval += 1
 
     def handle(self, *args, **options):
-
         self.retval = 1
 
         try:

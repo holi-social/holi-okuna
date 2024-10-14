@@ -2,7 +2,7 @@ from openbook_translation.strategies.base import (
     BaseTranslationStrategy,
     MaxTextLengthExceededError,
     TranslationClientError,
-    UnsupportedLanguagePairException,
+    UnsupportedLanguagePairError,
 )
 from django.conf import settings
 from langdetect import DetectorFactory, detect
@@ -14,7 +14,6 @@ DetectorFactory.seed = 0
 
 
 class AmazonTranslate(BaseTranslationStrategy):
-
     client = boto3.client(
         service_name="translate",
         region_name=settings.AWS_TRANSLATE_REGION,
@@ -77,7 +76,6 @@ class AmazonTranslate(BaseTranslationStrategy):
             return self.default_translation_language_code
 
     def translate_text(self, text, source_language_code, target_language_code):
-
         if len(text) > self.text_max_length:
             raise MaxTextLengthExceededError("MaxTextLengthExceededError")
 
@@ -87,12 +85,12 @@ class AmazonTranslate(BaseTranslationStrategy):
                 SourceLanguageCode=source_language_code,
                 TargetLanguageCode=target_language_code,
             )
-        except self.client.exceptions.UnsupportedLanguagePairException as e:
-            print(f"Client error from AWS Translate : \n {e}")
-            raise UnsupportedLanguagePairException
+        except self.client.exceptions.UnsupportedLanguagePairError as e:
+            print(f"Client error from AWS Translate : \n {e}")  # noqa: T201
+            raise UnsupportedLanguagePairError from e
         except ClientError as e:
-            print(f"Client error from AWS Translate : \n {e}")
-            raise TranslationClientError
+            print(f"Client error from AWS Translate : \n {e}")  # noqa: T201
+            raise TranslationClientError from e
 
         result = {
             "translated_text": response.get("TranslatedText"),

@@ -104,9 +104,6 @@ LOGGING_CONFIG = {
         "uvicorn.access": {
             "level": "WARNING",
         },
-        # "django.db.backends": {
-        #     "level": "DEBUG",
-        # },
     },
     "root": {
         "level": "INFO",
@@ -117,7 +114,7 @@ LOGGING_CONFIG = {
 
 def initialize_logging():
     if SQL_LOGGING != "DO_NOT_LOG":
-        print("Setting logger django.db.backends to level DEBUG")
+        print("Setting logger django.db.backends to level DEBUG")  # noqa: T201
         LOGGING_CONFIG["loggers"]["django.db.backends"] = {
             "level": "DEBUG",
         }

@@ -45,7 +45,7 @@ class LoadAverage(object):
             with open("/proc/loadavg") as f:
                 content = f.read()
             return [float(x) for x in content.split()[:3]]
-        except:
+        except:  # noqa: E722
             return [0.0, 0.0, 0.0]
 
 
@@ -74,7 +74,7 @@ class MemoryStatus(object):
                 content = f.read()
             size = self.matcher.search(content).groups()[0]
             return to_bytes(size)
-        except:
+        except:  # noqa: E722
             return 0
 
 

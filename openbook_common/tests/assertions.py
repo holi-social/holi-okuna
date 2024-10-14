@@ -7,8 +7,8 @@ from openbook_posts.schema.types import Post
 
 
 class TestAssertionsMixin:
-    def assertNotification(
-        self,
+    @staticmethod
+    def assert_notification(
         notification: Notification,
         type: Optional[str] = None,
         user: Optional[User] = None,

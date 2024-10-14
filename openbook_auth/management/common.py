@@ -1,5 +1,6 @@
+# ruff: noqa: T201
 from time import sleep
-from typing import Callable, Any
+from typing import Callable
 
 import requests
 import http
@@ -22,10 +23,12 @@ def for_every_ory_user(function: Callable[[dict], None]):
     while first or next_page_url:
         first = False
         if next_page_url:
-            response = requests.get(next_page_url, headers=ORY_HEADER)
+            response = requests.get(next_page_url, headers=ORY_HEADER, timeout=30)
         else:
             params = {"per_page": per_page}
-            response = requests.get(f"{settings.ORY_BASE_URL}/admin/identities/", params=params, headers=ORY_HEADER)
+            response = requests.get(
+                f"{settings.ORY_BASE_URL}/admin/identities/", params=params, headers=ORY_HEADER, timeout=30
+            )
 
         if response.status_code != http.HTTPStatus.OK:
             message = get_ory_error_str(response)
@@ -38,7 +41,7 @@ def for_every_ory_user(function: Callable[[dict], None]):
             return
 
         else:
-            # total = response.headers.get("x-total-count")
+            # total = response.headers.get("x-total-count")  # noqa: ERA001
             retry_count = 0
             response_data = response.json()
             for user in response_data:
@@ -56,7 +59,9 @@ def get_next_page_parameters(next_page):
 
 def get_ory_user(email):
     params = {"per_page": 1, "credentials_identifier": email}
-    response = requests.get(f"{settings.ORY_BASE_URL}/admin/identities/", params=params, headers=ORY_HEADER)
+    response = requests.get(
+        f"{settings.ORY_BASE_URL}/admin/identities/", params=params, headers=ORY_HEADER, timeout=30
+    )
 
     if no_ory_errors(response, "Error getting users from Ory"):
         response_json = response.json()

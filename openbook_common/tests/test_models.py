@@ -27,7 +27,7 @@ class TestFeatureToggleModel:
             status=FeatureToggleType.PREVIEW,
         )
 
-        with pytest.raises(Exception):
+        with pytest.raises(Exception):  # noqa: B017
             FeatureToggle.objects.create(
                 name=self.feature_toggle_name,
                 status=FeatureToggleType.PRODUCTION,

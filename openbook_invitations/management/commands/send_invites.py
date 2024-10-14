@@ -1,5 +1,3 @@
-from smtplib import SMTPException
-
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
@@ -17,6 +15,6 @@ class Command(BaseCommand):
                 with transaction.atomic():
                     try:
                         user.send_invite_email()
-                    except Exception as e:
+                    except Exception:
                         self.stderr.write("Exception occurred during send_invite_email")
         self.stdout.write(self.style.SUCCESS("Successfully sent invitation emails"))

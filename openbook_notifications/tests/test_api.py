@@ -267,7 +267,7 @@ class NotificationApiTestCase(TestCase):
         NotificationApi.delete_in_app_messages(transaction_id="transaction-id")
 
         # THEN
-        mock_message_api_list.call_count == 2
+        assert mock_message_api_list.call_count == 2
         mock_message_api_delete.assert_has_calls([call(message_id=1), call(message_id=2), call(message_id=3)])
 
     @patch.object(MessageApi, "list")

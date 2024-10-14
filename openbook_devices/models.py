@@ -7,7 +7,6 @@ import strawberry
 
 from openbook_auth.models import User
 from openbook_common.models import ModelWithUUID
-from openbook_communities.models import Community
 
 
 class Device(ModelWithUUID):

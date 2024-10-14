@@ -49,7 +49,6 @@ def main():
             "./openbook_notifications",
             "./openbook_polls",
             "./openbook_posts",
-            "./openbook_tags",
             "./openbook_terms",
             "./openbook_translation",
             "./comments",

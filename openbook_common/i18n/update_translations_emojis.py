@@ -1,6 +1,7 @@
+# ruff: noqa: T201
 import json
 import polib
-import os, django
+import os
 from django.conf import settings
 
 CATEGORIES_PATH = os.path.join(settings.BASE_DIR, "openbook_common/fixtures/emojis.json")
