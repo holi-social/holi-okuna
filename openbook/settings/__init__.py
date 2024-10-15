@@ -50,7 +50,7 @@ DEBUG = environment_checker.is_debug()
 IS_PRODUCTION = environment_checker.is_production()
 IS_STAGING = environment_checker.is_staging()
 IS_BUILD = environment_checker.is_build()
-TESTING = "pytest" in sys.argv[0]
+TESTING = "pytest" in sys.modules
 
 APP_URL = os.environ.get("APP_URL", "https://staging.dev.holi.social")
 if IS_PRODUCTION:

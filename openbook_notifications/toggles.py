@@ -1,34 +1,21 @@
 import logging
 from functools import wraps
 
-from openbook_common.enums import FeatureToggleName, FeatureToggleType
-from openbook_common.models import FeatureToggle as FeatureToggleModel
+from openbook.settings import TESTING, IS_BUILD
 
 logger = logging.getLogger(__name__)
 
 
-def notifications_toggle(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        try:
-            notifications_feature_toggle = FeatureToggleModel.objects.get(name=FeatureToggleName.NOTIFICATIONS.value)
-            if notifications_feature_toggle.status == FeatureToggleType.PRODUCTION:
-                return func(*args, **kwargs)
-        except FeatureToggleModel.DoesNotExist:
-            logger.warning(f"Feature toggle {FeatureToggleName.NOTIFICATIONS.value} does not exist")
-
-    return wrapper
-
-
+# Functions annotated with mute_notifications will never be executed in production. This decorator was introduced
+# to be used in the context of migrating individual notification types from the Okuna-based Notification system
+# to Novu. Once the old system is removed, this decorator and code using it can also be removed.
 def mute_notifications(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        try:
-            notifications_feature_toggle = FeatureToggleModel.objects.get(name=FeatureToggleName.NOTIFICATIONS.value)
-            if notifications_feature_toggle.status == FeatureToggleType.PRODUCTION:
-                return
-        except FeatureToggleModel.DoesNotExist:
-            logger.warning(f"Feature toggle {FeatureToggleName.NOTIFICATIONS.value} does not exist")
-        return func(*args, **kwargs)
+        # As long as the old Okuna-based subsystem is not removed, some tests still rely on the code being executed.
+        if TESTING or IS_BUILD:
+            return func(*args, **kwargs)
+        else:
+            return
 
     return wrapper

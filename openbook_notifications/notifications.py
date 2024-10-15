@@ -29,7 +29,6 @@ from openbook_notifications.payloads import (
     PostReactionPayload,
     CommentReactionPayload,
 )
-from openbook_notifications.toggles import notifications_toggle
 
 
 class Workflow(Enum):
@@ -81,7 +80,6 @@ class Notification:
             "apns": {"payload": payload},
         }
 
-    @notifications_toggle
     def send(self):
         if not self.recipients:
             return

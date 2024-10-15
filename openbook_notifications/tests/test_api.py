@@ -13,24 +13,20 @@ from openbook_common.tests.helpers import make_user
 from openbook_notifications.api import NotificationApi
 from openbook_notifications.enums import NotificationProvider
 
-from openbook_common.enums import FeatureToggleName, FeatureToggleType
-from openbook_common.models import FeatureToggle as FeatureToggleModel
-
 
 @pytest.mark.django_db
 class NotificationApiTestCase(TestCase):
     def setUp(self):
         self.user = make_user(name="John", last_name="Doe")
         self.locale = "en"
-        self.notifications_toggle = FeatureToggleModel.objects.create(
-            name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
-        )
 
     def tearDown(self):
         self.user.delete()
 
+    @patch.object(NotificationApi, "enabled")
     @patch.object(SubscriberApi, "create")
-    def test_create_subscriber(self, mock_subscriber_api_create):
+    def test_create_subscriber(self, mock_subscriber_api_create, mock_enabled):
+        mock_enabled.return_value = True
         subscriber_data = {
             "first_name": self.user.profile.name,
             "last_name": self.user.profile.last_name,
@@ -45,26 +41,32 @@ class NotificationApiTestCase(TestCase):
 
         self.assertEqual(subscriber, subscriber_data)
 
+    @patch.object(NotificationApi, "enabled")
     @patch.object(SubscriberApi, "delete")
-    def test_delete_subscriber(self, mock_subscriber_api_delete):
+    def test_delete_subscriber(self, mock_subscriber_api_delete, mock_enabled):
+        mock_enabled.return_value = True
         subscriber_id = str(self.user.username)
 
         NotificationApi.delete_subscriber(subscriber_id)
 
         mock_subscriber_api_delete.assert_called_once_with(subscriber_id=subscriber_id)
 
+    @patch.object(NotificationApi, "enabled")
     @patch.object(
         SubscriberApi, "delete", side_effect=HTTPError(response=type("Response", (object,), {"status_code": 404}))
     )
-    def test_delete_subscriber_if_already_deleted(self, mock_subscriber_api_delete):
+    def test_delete_subscriber_if_already_deleted(self, mock_subscriber_api_delete, mock_enabled):
+        mock_enabled.return_value = True
         subscriber_id = str(self.user.username)
 
         NotificationApi.delete_subscriber(subscriber_id)
 
         mock_subscriber_api_delete.assert_called_once_with(subscriber_id=subscriber_id)
 
+    @patch.object(NotificationApi, "enabled")
     @patch.object(SubscriberApi, "get")
-    def test_find_subscriber(self, mock_subscriber_api_get):
+    def test_find_subscriber(self, mock_subscriber_api_get, mock_enabled):
+        mock_enabled.return_value = True
         subscriber_data = {
             "first_name": self.user.profile.name,
             "last_name": self.user.profile.last_name,
@@ -79,9 +81,13 @@ class NotificationApiTestCase(TestCase):
 
         self.assertEqual(subscriber, subscriber_data)
 
+    @patch.object(NotificationApi, "enabled")
     @patch.object(SubscriberApi, "get")
     @patch.object(SubscriberApi, "create")
-    def test_find_or_create_subscriber_existing(self, mock_subscriber_api_create, mock_subscriber_api_get):
+    def test_find_or_create_subscriber_existing(
+        self, mock_subscriber_api_create, mock_subscriber_api_get, mock_enabled
+    ):
+        mock_enabled.return_value = True
         subscriber_data = {
             "first_name": self.user.profile.name,
             "last_name": self.user.profile.last_name,
@@ -97,11 +103,15 @@ class NotificationApiTestCase(TestCase):
         self.assertEqual(subscriber, subscriber_data)
         mock_subscriber_api_create.assert_not_called()
 
+    @patch.object(NotificationApi, "enabled")
     @patch.object(
         SubscriberApi, "get", side_effect=HTTPError(response=type("Response", (object,), {"status_code": 404}))
     )
     @patch.object(SubscriberApi, "create")
-    def test_find_or_create_subscriber_not_existing(self, mock_subscriber_api_create, mock_subscriber_api_get):
+    def test_find_or_create_subscriber_not_existing(
+        self, mock_subscriber_api_create, mock_subscriber_api_get, mock_enabled
+    ):
+        mock_enabled.return_value = True
         subscriber_data = {
             "first_name": self.user.profile.name,
             "last_name": self.user.profile.last_name,
@@ -119,8 +129,10 @@ class NotificationApiTestCase(TestCase):
         mock_subscriber_api_get.assert_called_once()
         mock_subscriber_api_create.assert_called_once()
 
+    @patch.object(NotificationApi, "enabled")
     @patch.object(SubscriberApi, "put")
-    def test_update_subscriber(self, mock_subscriber_api_put):
+    def test_update_subscriber(self, mock_subscriber_api_put, mock_enabled):
+        mock_enabled.return_value = True
         subscriber_data = {
             "subscriber_id": str(self.user.username),
             "first_name": self.user.profile.name,
@@ -135,9 +147,13 @@ class NotificationApiTestCase(TestCase):
 
         self.assertEqual(subscriber, subscriber_data)
 
+    @patch.object(NotificationApi, "enabled")
     @patch.object(SubscriberApi, "put")
     @patch.object(SubscriberApi, "create")
-    def test_create_or_update_subscriber_existing(self, mock_subscriber_api_create, mock_subscriber_api_put):
+    def test_create_or_update_subscriber_existing(
+        self, mock_subscriber_api_create, mock_subscriber_api_put, mock_enabled
+    ):
+        mock_enabled.return_value = True
         subscriber_data = {
             "first_name": self.user.profile.name,
             "last_name": self.user.profile.last_name,
@@ -153,11 +169,15 @@ class NotificationApiTestCase(TestCase):
         self.assertEqual(subscriber, subscriber_data)
         mock_subscriber_api_create.assert_not_called()
 
+    @patch.object(NotificationApi, "enabled")
     @patch.object(
         SubscriberApi, "put", side_effect=HTTPError(response=type("Response", (object,), {"status_code": 404}))
     )
     @patch.object(SubscriberApi, "create")
-    def test_create_or_update_subscriber_not_existing(self, mock_subscriber_api_create, mock_subscriber_api_put):
+    def test_create_or_update_subscriber_not_existing(
+        self, mock_subscriber_api_create, mock_subscriber_api_put, mock_enabled
+    ):
+        mock_enabled.return_value = True
         subscriber_data = {
             "first_name": self.user.profile.name,
             "last_name": self.user.profile.last_name,
@@ -175,13 +195,15 @@ class NotificationApiTestCase(TestCase):
         mock_subscriber_api_put.assert_called_once()
         mock_subscriber_api_create.assert_called_once()
 
+    @patch.object(NotificationApi, "enabled")
     @patch.object(
         SubscriberApi, "put", side_effect=HTTPError(response=type("Response", (object,), {"status_code": 400}))
     )
     @patch.object(SubscriberApi, "create")
     def test_create_or_update_subscriber_not_existing_code_400(
-        self, mock_subscriber_api_create, mock_subscriber_api_put
+        self, mock_subscriber_api_create, mock_subscriber_api_put, mock_enabled
     ):
+        mock_enabled.return_value = True
         subscriber_data = {
             "first_name": self.user.profile.name,
             "last_name": self.user.profile.last_name,
@@ -199,9 +221,13 @@ class NotificationApiTestCase(TestCase):
         mock_subscriber_api_put.assert_called_once()
         mock_subscriber_api_create.assert_called_once()
 
+    @patch.object(NotificationApi, "enabled")
     @patch.object(SubscriberApi, "credentials")
     @patch.object(SubscriberApi, "delete_credentials")
-    def test_set_subscriber_credentials(self, mock_subscriber_api_delete_credentials, mock_subscriber_api_credentials):
+    def test_set_subscriber_credentials(
+        self, mock_subscriber_api_delete_credentials, mock_subscriber_api_credentials, mock_enabled
+    ):
+        mock_enabled.return_value = True
         user_id = str(self.user.username)
         provider_id = NotificationProvider.APNS
         webhook_url = "https://example.com/webhook"
@@ -225,17 +251,21 @@ class NotificationApiTestCase(TestCase):
             user_id, provider_id.value.value, webhook_url, device_tokens
         )
 
+    @patch.object(NotificationApi, "enabled")
     @patch.object(EventApi, "delete")
-    def test_cancel_workflow(self, mock_event_api_delete):
+    def test_cancel_workflow(self, mock_event_api_delete, mock_enabled):
+        mock_enabled.return_value = True
         mock_event_api_delete.return_value = None
 
         NotificationApi.cancel_workflow(transaction_id="transaction-id")
 
         mock_event_api_delete.assert_called_once_with(transaction_id="transaction-id")
 
+    @patch.object(NotificationApi, "enabled")
     @patch.object(MessageApi, "list")
     @patch.object(MessageApi, "delete")
-    def test_delete_in_app_messages(self, mock_message_api_delete, mock_message_api_list):
+    def test_delete_in_app_messages(self, mock_message_api_delete, mock_message_api_list, mock_enabled):
+        mock_enabled.return_value = True
         mock_message_api_list.return_value = PaginatedMessageDto(
             data=[MessageDto(_id=1), MessageDto(_id=2)],
             total_count=2,
@@ -247,9 +277,13 @@ class NotificationApiTestCase(TestCase):
         )
         mock_message_api_delete.assert_has_calls([call(message_id=1), call(message_id=2)])
 
+    @patch.object(NotificationApi, "enabled")
     @patch.object(MessageApi, "list")
     @patch.object(MessageApi, "delete")
-    def test_delete_multiple_pages_of_in_app_messages(self, mock_message_api_delete, mock_message_api_list):
+    def test_delete_multiple_pages_of_in_app_messages(
+        self, mock_message_api_delete, mock_message_api_list, mock_enabled
+    ):
+        mock_enabled.return_value = True
         mock_message_api_list.side_effect = [
             PaginatedMessageDto(
                 data=[MessageDto(_id=1), MessageDto(_id=2)],
@@ -270,9 +304,11 @@ class NotificationApiTestCase(TestCase):
         assert mock_message_api_list.call_count == 2
         mock_message_api_delete.assert_has_calls([call(message_id=1), call(message_id=2), call(message_id=3)])
 
+    @patch.object(NotificationApi, "enabled")
     @patch.object(MessageApi, "list")
     @patch.object(MessageApi, "delete")
-    def test_delete_in_app_messages_for_subscriber(self, mock_message_api_delete, mock_message_api_list):
+    def test_delete_in_app_messages_for_subscriber(self, mock_message_api_delete, mock_message_api_list, mock_enabled):
+        mock_enabled.return_value = True
         subscriber_id = str(self.user.username)
         mock_message_api_list.return_value = PaginatedMessageDto(
             data=[MessageDto(_id=1), MessageDto(_id=2)],
@@ -285,11 +321,15 @@ class NotificationApiTestCase(TestCase):
         )
         mock_message_api_delete.assert_has_calls([call(message_id=1), call(message_id=2)])
 
+    @patch.object(NotificationApi, "enabled")
     @patch.object(MessageApi, "list")
     @patch.object(
         MessageApi, "delete", side_effect=HTTPError(response=type("Response", (object,), {"status_code": 404}))
     )
-    def test_delete_in_app_messages_if_already_deleted(self, mock_message_api_delete, mock_message_api_list):
+    def test_delete_in_app_messages_if_already_deleted(
+        self, mock_message_api_delete, mock_message_api_list, mock_enabled
+    ):
+        mock_enabled.return_value = True
         mock_message_api_list.return_value = PaginatedMessageDto(
             data=[MessageDto(_id=1)],
             total_count=1,

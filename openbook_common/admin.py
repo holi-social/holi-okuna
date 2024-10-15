@@ -5,7 +5,7 @@ from modeltranslation.admin import TranslationAdmin
 
 from openbook_common.enums import NeedUpdateType
 from openbook_common.forms import AppVersionForm
-from openbook_common.models import Emoji, EmojiGroup, Badge, ProxyBlacklistedDomain, AppVersion, FeatureToggle
+from openbook_common.models import Emoji, EmojiGroup, Badge, ProxyBlacklistedDomain, AppVersion
 
 
 class EmojiGroupEmoji(admin.TabularInline):
@@ -84,10 +84,3 @@ class AppVersionAdmin(admin.ModelAdmin):
         if obj:  # Editing
             return self.readonly_fields
         return ()  # Creating
-
-
-@admin.register(FeatureToggle)
-class FeatureToggleAdmin(admin.ModelAdmin):
-    readonly_fields = ("created",)
-    list_display = ("name", "status", "created")
-    ordering = ("name",)
