@@ -9,8 +9,7 @@ from novu.api import EventApi
 
 from comments.models import Comment, CommentReaction
 from openbook_auth.models import UserBlock
-from openbook_common.enums import FeatureToggleName, FeatureToggleType, ReactionType
-from openbook_common.models import FeatureToggle as FeatureToggleModel
+from openbook_common.enums import ReactionType
 from openbook_common.tests.helpers import (
     make_community_post,
     make_fake_post_text,
@@ -66,14 +65,6 @@ def mock_novu_api():
 @pytest.mark.usefixtures("mock_novu_api")
 @pytest.mark.django_db
 class TestPostComments(TestCase):
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        notifications_toggle = FeatureToggleModel.objects.create(
-            name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
-        )
-        yield
-        notifications_toggle.delete()
-
     @mock.patch("openbook_notifications.services.NotificationsService.send_comment_mention_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_commentable_author_notification")
     def test_should_mention_a_user_in_a_post_comment(
@@ -281,14 +272,6 @@ class TestPostComments(TestCase):
 @pytest.mark.usefixtures("mock_novu_api")
 @pytest.mark.django_db
 class TestAddingComments(TestCase):
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        notifications_toggle = FeatureToggleModel.objects.create(
-            name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
-        )
-        yield
-        notifications_toggle.delete()
-
     def test_should_add_a_comment(self):
         post = make_post()
         commenter = make_user(name="Commenter")
@@ -387,14 +370,6 @@ class TestAddingComments(TestCase):
 @pytest.mark.usefixtures("mock_novu_api")
 @pytest.mark.django_db
 class TestDeletingComments(TestCase):
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        notifications_toggle = FeatureToggleModel.objects.create(
-            name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
-        )
-        yield
-        notifications_toggle.delete()
-
     def test_should_delete_own_comment(self):
         comment = make_space_post_comment()
         commenter = comment.commenter
@@ -447,14 +422,6 @@ class TestDeletingComments(TestCase):
 @pytest.mark.usefixtures("mock_novu_api")
 @pytest.mark.django_db
 class TestReactingToComments(TestCase):
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        notifications_toggle = FeatureToggleModel.objects.create(
-            name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
-        )
-        yield
-        notifications_toggle.delete()
-
     def test_should_be_able_to_react_to_a_comment(self):
         comment = make_space_post_comment()
         commenter = comment.commenter
@@ -486,14 +453,6 @@ class TestReactingToComments(TestCase):
 @pytest.mark.usefixtures("mock_novu_api")
 @pytest.mark.django_db
 class TestComments(TestCase):
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        notifications_toggle = FeatureToggleModel.objects.create(
-            name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
-        )
-        yield
-        notifications_toggle.delete()
-
     def test_comment_by_id(self):
         post = make_post()
         user = make_user(name="User")

@@ -9,7 +9,6 @@ from django.contrib.gis import geos
 from django.db.models import QuerySet
 
 from openbook_common.models import AppVersion as AppVersionModel
-from openbook_common.models import FeatureToggle as FeatureToggleModel
 from openbook_common.types import GeolocationFeature
 
 logger = structlog.get_logger(__name__)
@@ -79,13 +78,6 @@ class AppVersionResponse:
     play_store_url: str = strawberry_django.field(
         field_name="play_store_url", default=AppVersionModel._meta.get_field("app_store_url").get_default()
     )
-
-
-@strawberry_django.type(FeatureToggleModel)
-class FeatureToggle:
-    id: strawberry.auto
-    name: strawberry.auto
-    status: strawberry.auto
 
 
 @strawberry.type

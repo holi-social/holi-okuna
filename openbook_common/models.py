@@ -13,7 +13,7 @@ from requests import RequestException
 
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
 from openbook_common.helpers import extract_urls_from_string, attr_filled
-from openbook_common.enums import NeedUpdateType, FeatureToggleType
+from openbook_common.enums import NeedUpdateType
 from openbook_common.utils.helpers import normalize_url
 from openbook_common.validators import hex_color_validator
 import tldextract
@@ -277,15 +277,3 @@ class AppVersion(ModelWithUUID):
             "version",
             "build_number",
         )
-
-
-class FeatureToggle(ModelWithUUID):
-    name = models.CharField(max_length=50, unique=True, blank=False, null=False)
-    created = models.DateTimeField(default=timezone.now, editable=False)
-    status = models.CharField(
-        max_length=20,
-        choices=FeatureToggleType.choices,
-        default=FeatureToggleType.OFF,
-        blank=False,
-        null=False,
-    )

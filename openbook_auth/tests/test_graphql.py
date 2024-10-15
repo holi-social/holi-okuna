@@ -32,8 +32,6 @@ from openbook_auth.tests.helpers import (
     get_connected_users,
     get_connected_users_raw,
 )
-from openbook_common.enums import FeatureToggleName, FeatureToggleType
-from openbook_common.models import FeatureToggle
 from openbook_common.tests.helpers import (
     assert_is_unauthorized,
     make_authentication_headers_for_user,
@@ -70,14 +68,6 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 @pytest.mark.django_db
 class TestUsers:
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        notifications_toggle = FeatureToggle.objects.create(
-            name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
-        )
-        yield
-        notifications_toggle.delete()
-
     @pytest.mark.asyncio
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")

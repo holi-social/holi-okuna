@@ -1,13 +1,10 @@
-from typing import List
-
 import strawberry
 import strawberry_django
 import structlog
 from django.db.models import Q
 
 from openbook_common.models import AppVersion as AppVersionModel
-from openbook_common.models import FeatureToggle as FeatureToggleModel
-from openbook_common.schema.types import AppVersionResponse, FeatureToggle
+from openbook_common.schema.types import AppVersionResponse
 from openbook_common.serializers import AppVersionSerializer
 
 logger = structlog.get_logger(__name__)
@@ -33,7 +30,3 @@ class Query:
 
         logger.info(f"App version {version} not found. Creating a new App Version.")
         return AppVersionModel.objects.create(version=data["version"], build_number=data["build_number"])
-
-    @strawberry_django.field(deprecation_reason="Deprecated since 1.26 as it was replaced by Posthog feature flags")
-    async def feature_toggles(self) -> List[FeatureToggle]:
-        return FeatureToggleModel.objects.all()
