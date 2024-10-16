@@ -127,7 +127,7 @@ class CommunityTaskAdmin(admin.ModelAdmin):
 
 
 @admin.register(OnboardingStep)
-class CommunityTaskAdmin(admin.ModelAdmin):
+class CommunityOnboardingStepAdmin(admin.ModelAdmin):
     model = OnboardingStep
     list_display = (
         "community",

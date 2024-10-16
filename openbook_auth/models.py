@@ -38,7 +38,7 @@ from openbook_auth.helpers import (
 )
 from openbook_auth.utils import normalize_spaces
 from openbook_common.enums import VisibilityType
-from openbook_common.helpers import ExifRotate, generate_blurhash, get_supported_translation_language, PrefixedQ
+from openbook_common.helpers import ExifRotate, generate_blurhash, PrefixedQ
 from openbook_common.models import Badge, ModelWithUUID
 from openbook_common.schema.types import Paged
 from openbook_common.types import GeolocationFeature, ReactableType
@@ -100,11 +100,10 @@ from openbook_hashtags.queries import (
     make_search_hashtag_query_for_user_with_id,
     make_get_hashtag_with_name_for_user_with_id_query,
 )
-from openbook_notifications.toggles import notifications_toggle, mute_notifications
+from openbook_notifications.toggles import mute_notifications
 from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
 from openbook_posts.query_collections import get_posts_for_user_collection
 from openbook_terms.models import Topic, SDG, Skill
-from openbook_translation import translation_strategy
 
 if typing.TYPE_CHECKING:
     from comments.models import Comment
@@ -708,7 +707,6 @@ class User(ModelWithUUID, AbstractUser):
         Language = get_language_model()
         language = Language.objects.get(pk=language_id)
         self.language = language
-        self.translation_language = get_supported_translation_language(language.code)
         self.save()
 
     def verify_password_reset_token(self, token, password):
@@ -962,7 +960,10 @@ class User(ModelWithUUID, AbstractUser):
 
         return not connection.circles.exists()
 
-    def get_connection_status_with_user_id(self, user_id):
+    def get_connection_status_with_user_id(self, user_id) -> Optional[UserConnectionStatus]:
+        # users can't connect with themselves (quick exit saves query execution time)
+        if self.id == user_id:
+            return None
         # check if not connected (no user requested to connect)
         if not self.is_connected_with_user_with_id(user_id=user_id):
             return UserConnectionStatus.NOT_CONNECTED
@@ -972,7 +973,7 @@ class User(ModelWithUUID, AbstractUser):
         # check if pending confirm connection (true only for the user who received the connection request)
         if self.is_pending_confirm_connection_for_user_with_id(user_id=user_id):
             return UserConnectionStatus.PENDING_CONFIRMATION
-        # if none of the above is true, the currently signed in user has made the request
+        # if none of the above is true, the currently signed-in user has made the request
         return UserConnectionStatus.REQUESTED
 
     def delete_all_pending_connection_requests(self):
@@ -3139,17 +3140,6 @@ class User(ModelWithUUID, AbstractUser):
         check_can_get_user_with_id(user=self, user_id=user.pk)
         return user
 
-    def translate_post_with_id(self, post_id):
-        check_can_translate_post_with_id(user=self, post_id=post_id)
-        Post = get_post_model()
-        post = Post.objects.get(id=post_id)
-        result = translation_strategy.translate_text(
-            source_language_code=post.language.code,
-            target_language_code=self.translation_language.code,
-            text=post.text,
-        )
-        return post, result.get("translated_text")
-
     def open_post_with_id(self, post_id):
         check_can_open_post_with_id(user=self, post_id=post_id)
         Post = get_post_model()
@@ -4051,13 +4041,11 @@ class User(ModelWithUUID, AbstractUser):
     def has_device_with_token_and_type(self, token, device_type):
         return self.devices.filter(token=token, device_type=device_type).exists()
 
-    @notifications_toggle
     def create_device(self, token, device_type):
         check_device_with_token_and_type_does_not_exist(user=self, device_token=token, device_type=device_type)
         Device = get_device_model()
         return Device.create_device(owner=self, token=token, device_type=device_type)
 
-    @notifications_toggle
     def delete_device_with_token_and_type(self, device_token, device_type):
         check_can_delete_device_with_token_and_type(user=self, device_token=device_token, device_type=device_type)
         device = self.devices.get(token=device_token, device_type=device_type)
@@ -4100,17 +4088,6 @@ class User(ModelWithUUID, AbstractUser):
         check_can_unmute_post_comment(user=self, post_comment=post_comment)
         self.comment_mutes.filter(post_comment_id=post_comment_id).delete()
         return post_comment
-
-    def translate_post_comment_with_id(self, post_comment_id):
-        check_can_translate_comment_with_id(user=self, post_comment_id=post_comment_id)
-        Comment = get_comment_model()
-        post_comment = Comment.objects.get(pk=post_comment_id)
-        result = translation_strategy.translate_text(
-            source_language_code=post_comment.language.code,
-            target_language_code=self.translation_language.code,
-            text=post_comment.text,
-        )
-        return post_comment, result.get("translated_text")
 
     def unsubscribe_from_user_notifications(self, user):
         UserNotificationsSubscription = get_user_notifications_subscription_model()

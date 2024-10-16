@@ -1,3 +1,4 @@
+# ruff: noqa: T201
 from django.core.management import BaseCommand
 import requests
 from openbook.settings import ORY_BASE_URL
@@ -25,7 +26,7 @@ class Command(BaseCommand):
                 {"op": "replace", "path": "/verifiable_addresses/0/status", "value": "completed"},
             ]
             response = requests.patch(
-                f"{ORY_BASE_URL}/admin/identities/{user['id']}", headers=ORY_HEADER, json=body_data
+                f"{ORY_BASE_URL}/admin/identities/{user['id']}", headers=ORY_HEADER, json=body_data, timeout=30
             )
             if response.status_code != http.HTTPStatus.OK:
                 print(get_ory_error_str(response))

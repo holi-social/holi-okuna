@@ -7,8 +7,6 @@ import sentry_sdk
 from django.test import TestCase
 from novu.api import EventApi
 
-from openbook_common.enums import FeatureToggleName, FeatureToggleType
-from openbook_common.models import FeatureToggle as FeatureToggleModel
 from openbook_common.tests.helpers import (
     make_community,
     make_community_post,
@@ -65,10 +63,6 @@ class NotificationTestCase(TestCase):
             payload={"data": {"key": "value"}},
             transaction_id="test-transaction-id",
         )
-        cls.notifications_toggle = FeatureToggleModel.objects.create(
-            name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
-        )
-
         cls.overrides = {
             "type": "data",
             "fcm": {"type": "data", "data": {"key": "value"}},

@@ -9,8 +9,7 @@ from django.test import AsyncClient
 from novu.api import EventApi
 
 from comments.models import Comment
-from openbook_common.enums import FeatureToggleName, FeatureToggleType, VisibilityType
-from openbook_common.models import FeatureToggle as FeatureToggleModel
+from openbook_common.enums import VisibilityType
 from openbook_common.tests.helpers import (
     make_community,
     make_fake_post_text,
@@ -60,14 +59,6 @@ def django_db_setup(django_db_setup, django_db_blocker):
 @pytest.mark.usefixtures("mock_novu_api")
 @pytest.mark.django_db
 class TestPosts(TestCase):
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        notifications_toggle = FeatureToggleModel.objects.create(
-            name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
-        )
-        yield
-        notifications_toggle.delete()
-
     def test_can_fetch_post(self):
         posting_user = make_user()
         post_text = make_fake_post_text()

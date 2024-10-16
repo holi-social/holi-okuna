@@ -1,3 +1,4 @@
+# ruff: noqa: T201
 import http
 
 import requests
@@ -54,7 +55,7 @@ class Command(BaseCommand):
             )
 
         response = requests.patch(
-            f"{ORY_BASE_URL}/admin/identities/{user.username}", headers=ORY_HEADER, json=body_data
+            f"{ORY_BASE_URL}/admin/identities/{user.username}", headers=ORY_HEADER, json=body_data, timeout=30
         )
         match response.status_code:
             case http.HTTPStatus.OK:

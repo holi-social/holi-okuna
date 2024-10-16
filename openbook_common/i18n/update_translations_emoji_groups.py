@@ -1,6 +1,7 @@
+# ruff: noqa: T201
 import json
 import polib
-import os, django
+import os
 from django.conf import settings
 
 CATEGORIES_PATH = os.path.join(settings.BASE_DIR, "openbook_common/fixtures/emoji-groups.json")
@@ -29,7 +30,7 @@ for language in settings.LANGUAGES:
                 emoji["fields"][f"{field}_{language_code}"] = field_locale_value
             except KeyError:
                 print(f"Field {field_value} not found in {language_code}/django.po")
-        # print(emoji['fields']['description_en'])
+        # print(emoji['fields']['description_en'])  # noqa: ERA001
 
     with open(CATEGORIES_PATH, "w") as json_file:
         json.dump(emoji_dict, json_file, ensure_ascii=False)

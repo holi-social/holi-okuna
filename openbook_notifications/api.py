@@ -1,14 +1,16 @@
 from __future__ import annotations
-from typing import List, Optional, TYPE_CHECKING
-from requests.exceptions import HTTPError
-import structlog
 
-from novu.api.message import MessageApi
+from functools import wraps
+from typing import List, Optional, TYPE_CHECKING
+
+import structlog
 from novu.api.event import EventApi
+from novu.api.message import MessageApi
 from novu.api.subscriber import SubscriberApi
 from novu.dto.subscriber import SubscriberDto
+from requests.exceptions import HTTPError
 
-from openbook_notifications.toggles import notifications_toggle
+from openbook.settings import IS_PRODUCTION, IS_STAGING
 from openbook_notifications.enums import NotificationProvider, NotificationChannel
 
 logger = structlog.get_logger(__name__)
@@ -18,9 +20,24 @@ if TYPE_CHECKING:
     from openbook_auth.models import User
 
 
+def noop_when_disabled(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # As long as the old Okuna-based subsystem is not removed, some tests still rely on the code being executed.
+        if NotificationApi.enabled:
+            return func(*args, **kwargs)
+        else:
+            return
+
+    return wrapper
+
+
 class NotificationApi:
+    # translates to practically being disabled in testing and local development, unless overridden by test setup
+    enabled = IS_PRODUCTION or IS_STAGING
+
     @staticmethod
-    @notifications_toggle
+    @noop_when_disabled
     def create_subscriber(user: User, locale: Optional[str]):
         subscriber = SubscriberDto(
             first_name=user.profile.name,
@@ -34,12 +51,12 @@ class NotificationApi:
         return SubscriberApi().create(subscriber)
 
     @staticmethod
-    @notifications_toggle
+    @noop_when_disabled
     def find_subscriber(user_id: str):
         return SubscriberApi().get(subscriber_id=str(user_id))
 
     @staticmethod
-    @notifications_toggle
+    @noop_when_disabled
     def find_or_create_subscriber(user: User, locale: Optional[str]):
         try:
             subscriber = NotificationApi.find_subscriber(user_id=user.username)
@@ -52,7 +69,7 @@ class NotificationApi:
         return subscriber
 
     @staticmethod
-    @notifications_toggle
+    @noop_when_disabled
     def update_subscriber(user: User, locale: Optional[str]):
         subscriber = SubscriberDto(
             subscriber_id=str(user.username),
@@ -67,7 +84,7 @@ class NotificationApi:
         return SubscriberApi().put(subscriber)
 
     @staticmethod
-    @notifications_toggle
+    @noop_when_disabled
     def create_or_update_subscriber(user: User, locale: Optional[str]):
         try:
             subscriber = NotificationApi.update_subscriber(user, locale)
@@ -82,7 +99,7 @@ class NotificationApi:
         return subscriber
 
     @staticmethod
-    @notifications_toggle
+    @noop_when_disabled
     def set_subscriber_credentials(
         subscriber_id: str,
         provider_id: NotificationProvider,
@@ -95,7 +112,7 @@ class NotificationApi:
         return SubscriberApi().credentials(subscriber_id, provider_id.value.value, webhook_url, device_tokens)
 
     @staticmethod
-    @notifications_toggle
+    @noop_when_disabled
     def delete_subscriber(user_id: str):
         try:
             return SubscriberApi().delete(subscriber_id=str(user_id))
@@ -107,12 +124,12 @@ class NotificationApi:
                 raise
 
     @staticmethod
-    @notifications_toggle
+    @noop_when_disabled
     def cancel_workflow(transaction_id: str):
         EventApi().delete(transaction_id=transaction_id)
 
     @staticmethod
-    @notifications_toggle
+    @noop_when_disabled
     def delete_in_app_messages(transaction_id: str, subscriber_id: str | None = None):
         messages = MessageApi().list(
             transaction_id=transaction_id,

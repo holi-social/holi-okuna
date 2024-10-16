@@ -41,7 +41,6 @@ def main():
             "./openbook_devices",
             "./openbook_follows",
             "./openbook_hashtags",
-            "./openbook_importer",
             "./openbook_insights",
             "./openbook_invitations",
             "./openbook_lists",
@@ -49,9 +48,7 @@ def main():
             "./openbook_notifications",
             "./openbook_polls",
             "./openbook_posts",
-            "./openbook_tags",
             "./openbook_terms",
-            "./openbook_translation",
             "./comments",
         ],
     )

@@ -54,14 +54,14 @@ class UserModelTest(TestAssertionsMixin, TransactionTestCase):
         self.assertTrue(membership_requestor.is_member_of_community_with_name(space.name))
         self.assertFalse(membership_requestor.is_membership_requestor_of_community_with_name(space.name))
 
-        self.assertNotification(
+        self.assert_notification(
             membership_requestor.notifications.get(),
             type=Notification.COMMUNITY_MEMBERSHIP_APPROVED,
             user=membership_requestor,
             space=returned_space,
         )
 
-        self.assertNotification(
+        self.assert_notification(
             space_creator.notifications.get(),
             type=Notification.COMMUNITY_MEMBERSHIP_APPROVED,
             user=membership_requestor,

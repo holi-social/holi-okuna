@@ -16,7 +16,7 @@ class MyAdminTestCase(TestAssertionsMixin, TransactionTestCase):
 
     def setUp(self) -> None:
         self.username = "superuser"
-        self.password = "123"
+        self.password = "123"  # noqa: S105
         self.superuser = User.objects.create_superuser(
             username=self.username, email="foo@bar.de", password=self.password, is_staff=True
         )
@@ -61,6 +61,6 @@ class MyAdminTestCase(TestAssertionsMixin, TransactionTestCase):
 
         for user in users:
             self.assertEqual(len(user.notifications.all()), 1)
-            self.assertNotification(
+            self.assert_notification(
                 user.notifications.get(), type=Notification.RELEASE_INFO, post=unsent_notification.post
             )

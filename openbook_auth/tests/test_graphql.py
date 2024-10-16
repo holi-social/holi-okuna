@@ -32,8 +32,6 @@ from openbook_auth.tests.helpers import (
     get_connected_users,
     get_connected_users_raw,
 )
-from openbook_common.enums import FeatureToggleName, FeatureToggleType
-from openbook_common.models import FeatureToggle
 from openbook_common.tests.helpers import (
     assert_is_unauthorized,
     make_authentication_headers_for_user,
@@ -70,51 +68,6 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 @pytest.mark.django_db
 class TestUsers:
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        notifications_toggle = FeatureToggle.objects.create(
-            name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
-        )
-        yield
-        notifications_toggle.delete()
-
-    # TODO HOLI-8088 remove test once get_authenticated_user is removed
-    @pytest.mark.asyncio
-    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
-    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
-    async def test_get_authenticated_user_returns_self_reference(
-        self, mock_create_or_update_subscriber, mock_get_language_from_request, client
-    ):
-        user = await sync_to_async(make_user)(name="John", last_name="Holi")
-        headers = await sync_to_async(make_authentication_headers_for_user)(user)
-        endpoint = reverse("graphql-endpoint")
-        graphql_query = """
-            query {
-                authenticatedUser {
-                    id
-                    fullName
-                    engagementLevel
-                }
-            }
-        """
-        response = await client.post(
-            path=endpoint,
-            data=json.dumps({"query": graphql_query}),
-            content_type="application/json",
-            **headers,
-        )
-
-        assert response.status_code == status.HTTP_200_OK
-
-        authenticated_user = json.loads(response.content)["data"]["authenticatedUser"]
-        assert authenticated_user["id"] == str(user.uuid)
-        assert authenticated_user["fullName"] == user.profile.full_name()
-        assert authenticated_user["engagementLevel"] == user.profile.engagement_level
-
-        mock_create_or_update_subscriber.assert_called_once_with(
-            user=user, locale=mock_get_language_from_request.return_value
-        )
-
     @pytest.mark.asyncio
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
@@ -133,6 +86,7 @@ class TestUsers:
                     trackingConsentAnalytics
                     trackingConsentPersonalization
                     isEmployee
+                    connectionStatusToMyself
                 }
             }
         """
@@ -152,10 +106,7 @@ class TestUsers:
         assert authenticated_user["trackingConsentAnalytics"] == user.tracking_consent_analytics
         assert authenticated_user["trackingConsentPersonalization"] == user.tracking_consent_personalization
         assert authenticated_user["isEmployee"] == user.is_employee
-
-        mock_create_or_update_subscriber.assert_called_once_with(
-            user=user, locale=mock_get_language_from_request.return_value
-        )
+        assert authenticated_user["connectionStatusToMyself"] is None
 
     def test_get_user_by_name_returns_only_matching_users_without_logged_in_user(self):
         user = make_user(name="Peter", last_name="Moser")
@@ -263,96 +214,6 @@ class TestUsers:
         print(response.errors)
         assert response.errors is not None
         assert response.data is None
-
-    # TODO HOLI-8088 remove test once update_authenticated_user is removed
-    @mock.patch("openbook_auth.tasks.requests.patch")
-    @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
-    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
-    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
-    @mock.patch("openbook_auth.schema.mutations.track")
-    def test_can_update_authenticated_user(
-        self,
-        mock_track,
-        mock_create_or_update_subscriber,
-        mock_get_language_from_request,
-        mock_publish_user_name_updated_event,
-        mock_patch,
-    ):
-        response = self.create_response(200)
-        mock_patch.return_value = response
-        user = make_user(name="Fritz", last_name="Meier", identity="fritz")
-        community = make_community()
-        community.add_member(user)
-        pronouns = "She/her"
-        location = "Bremerhaven"
-
-        assert User.objects.get(username=user.username).profile.pronouns != pronouns
-        first_name = "Peter"
-        last_name = "Shaw"
-        engagement_level = EngagementLevelChoice.INITIATOR
-
-        json_body = [
-            {"op": "add", "path": "/traits/given_name", "value": f"{first_name}"},
-            {"op": "add", "path": "/traits/family_name", "value": f"{last_name}"},
-            {"op": "add", "path": "/traits/name", "value": f"{first_name} {last_name}"},
-        ]
-
-        request = HttpRequest()
-        request.COOKIES = {}
-        request.user = user
-
-        executed = async_to_sync(schema.execute)(
-            """
-            mutation test($input: UpdateAuthenticatedUserInput!) {
-                updateAuthenticatedUser(input: $input) {
-                    id
-                    pronouns
-                    location
-                    geolocationId
-                    engagementLevel
-                }
-            }
-            """,
-            context_value=benedict({"request": request}),
-            variable_values={
-                "input": {
-                    "pronouns": pronouns,
-                    "firstName": first_name,
-                    "lastName": last_name,
-                    "location": location,
-                    "geolocation": geolocation,
-                    "engagementLevel": engagement_level,
-                }
-            },
-        )
-
-        assert executed.errors is None
-
-        mock_patch.assert_called_once_with(
-            f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
-            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
-            json=json_body,
-            timeout=30,
-        )
-        updated_user = executed.data["updateAuthenticatedUser"]
-        graphql_pronouns = updated_user["pronouns"]
-        persisted_profile = User.objects.get(username=user.username).profile
-
-        assert graphql_pronouns == persisted_profile.pronouns
-        assert graphql_pronouns == pronouns
-        assert last_name == persisted_profile.last_name
-        assert first_name == persisted_profile.name
-        assert persisted_profile.engagement_level == EngagementLevelChoice.INITIATOR
-        assert location == persisted_profile.location
-        assert geolocation_id == persisted_profile.geolocation_id
-        assert persisted_profile.geolocation is not None
-        assert geos.GEOSGeometry(json.dumps(geolocation_geometry)) == persisted_profile.geolocation
-
-        mock_publish_user_name_updated_event.assert_called_once_with(user=user)
-        mock_create_or_update_subscriber.assert_called_once_with(
-            user=user, locale=mock_get_language_from_request.return_value
-        )
-        mock_track.assert_called_once_with(user, TrackingEvent("userUpdated"))
 
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")

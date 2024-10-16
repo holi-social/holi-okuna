@@ -26,15 +26,3 @@ class NeedUpdateType(TextChoices):
     NO = ("NO",)
     RECOMMENDED = ("RECOMMENDED",)
     MANDATORY = ("MANDATORY",)
-
-
-@strawberry.enum
-class FeatureToggleType(TextChoices):
-    OFF = ("OFF",)
-    PREVIEW = ("PREVIEW",)
-    PRODUCTION = ("PRODUCTION",)
-    MAINTENANCE = ("MAINTENANCE",)
-
-
-class FeatureToggleName(Enum):
-    NOTIFICATIONS = "NOTIFICATIONS"

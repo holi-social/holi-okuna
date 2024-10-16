@@ -1636,14 +1636,6 @@ msgstr "Es existiert kein Hashtag mit dem angegebenen Namen."
 msgid "Hashtags must to be alphanumerical and up to 32 characters."
 msgstr "Hashtags müssen alphanumerisch und bis zu 32 Zeichen lang sein."
 
-#: openbook_importer/views.py:44
-msgid "done"
-msgstr "fertig"
-
-#: openbook_importer/views.py:92 openbook_importer/views.py:98
-msgid "invalid archive"
-msgstr "ungültiges Archiv"
-
 #: openbook_insights/models.py:31
 msgid "header image"
 msgstr ""

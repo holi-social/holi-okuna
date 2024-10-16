@@ -39,11 +39,6 @@ logger = structlog.get_logger(__name__)
 
 @strawberry.type
 class Mutation:
-    # TODO HOLI-8088 remove test once get_authenticated_user is removed
-    @strawberry.mutation(deprecation_reason="Deprecated in favor of 'updatedAuthenticatedUserNew'.")
-    def update_authenticated_user(self, info, input: UpdateAuthenticatedUserInput) -> User:
-        return Mutation().update_authenticated_user_v2(info, input)
-
     @strawberry.mutation
     @sync_to_async
     def update_authenticated_user_v2(self, info, input: UpdateAuthenticatedUserInput) -> AuthenticatedUser:

@@ -1,3 +1,6 @@
+# ruff: noqa: S603
+# ruff: noqa: S607
+
 import random
 import time
 import click
@@ -8,7 +11,8 @@ import os.path
 from shutil import copyfile
 import json
 import atexit
-import os, errno
+import os
+import errno
 
 import requests
 from halo import Halo
@@ -61,7 +65,7 @@ def _generate_random_string(
     The default length of 12 with the a-z, A-Z, 0-9 character set returns
     a 71-bit value. log_2((26+26+10)^12) =~ 71 bits
     """
-    return "".join(random.choice(allowed_chars) for i in range(length))
+    return "".join(random.choice(allowed_chars) for i in range(length))  # noqa: S311
 
 
 def _generate_django_secret_key():
@@ -87,10 +91,10 @@ def _copy_requirements_txt_to_docker_images_dir():
 def _check_okuna_api_is_running(address, port):
     # Create a TCP socket
     try:
-        response = requests.get(f"http://{address}:{port}/health/")
+        response = requests.get(f"http://{address}:{port}/health/")  # noqa: S113
         response_status = response.status_code
         return response_status == 200
-    except requests.ConnectionError as e:
+    except requests.ConnectionError:
         return False
 
 
@@ -131,14 +135,8 @@ def _clean():
     logger.info("✅ Clean up done!")
 
 
-def _docker_name(suffix):
-    # docker uses the convention of prefixing resource names with the name of the current directory
-    cwd = os.path.basename(os.path.dirname(os.path.realpath(__file__)))
-    return f"{cwd}_{suffix}"
-
-
 def _print_okuna_logo():
-    print(
+    print(  # noqa: T201
         r"""
    ____  _                      
   / __ \| |                     
@@ -242,9 +240,9 @@ def _bootstrap(is_local_api):
     logger.info("🚀 Bootstrapping Okuna with some data")
 
     if is_local_api:
-        subprocess.run(["./utils/scripts/bootstrap_development_data.sh"])
+        subprocess.run(["./utils/scripts/bootstrap_development_data.sh"])  # noqa: S603
     else:
-        subprocess.run(
+        subprocess.run(  # noqa: S603
             [
                 "docker",
                 "compose",

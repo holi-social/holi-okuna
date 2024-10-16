@@ -86,19 +86,6 @@ def check_comments_enabled_for_post_with_id(user, post_id):
             raise ValidationError(_("Comments are disabled for this post"))
 
 
-def check_can_translate_post_with_id(user, post_id):
-    Post = get_post_model()
-    post = Post.objects.get(id=post_id)
-    if not post.is_public:
-        raise ValidationError(_("Only public posts can be translated"))
-    if post.text is None:
-        raise ValidationError(_("Post has no text to be translated"))
-    if post.language is None:
-        raise ValidationError(_("Post has no assigned language to be able to translate"))
-    if user.translation_language is None:
-        raise ValidationError(_("User's preferred translation language not set"))
-
-
 def check_can_open_post_with_id(user, post_id):
     Post = get_post_model()
     post = Post.objects.select_related("community").get(id=post_id)
@@ -809,19 +796,6 @@ def check_has_muted_post_comment_with_id(user, post_comment_id):
         raise ValidationError(
             _("Post_comment is not muted"),
         )
-
-
-def check_can_translate_comment_with_id(user, post_comment_id):
-    Comment = get_comment_model()
-    post_comment = Comment.objects.get(pk=post_comment_id)
-    if not post_comment.commentable.is_public:
-        raise ValidationError(_("Only public post comments can be translated"))
-    if post_comment.text is None:
-        raise ValidationError(_("Post comment has no text to be translated"))
-    if post_comment.language is None:
-        raise ValidationError(_("Post comment has no assigned language to be able to translate"))
-    if user.translation_language is None:
-        raise ValidationError(_("User's preferred translation language not set"))
 
 
 def check_has_post(user, post):

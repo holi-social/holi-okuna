@@ -50,7 +50,7 @@ DEBUG = environment_checker.is_debug()
 IS_PRODUCTION = environment_checker.is_production()
 IS_STAGING = environment_checker.is_staging()
 IS_BUILD = environment_checker.is_build()
-TESTING = "pytest" in sys.argv[0]
+TESTING = "pytest" in sys.modules
 
 APP_URL = os.environ.get("APP_URL", "https://staging.dev.holi.social")
 if IS_PRODUCTION:
@@ -94,20 +94,17 @@ INSTALLED_APPS = [
     "openbook_posts",
     "openbook_circles",
     "openbook_connections",
-    "openbook_importer",
     "openbook_insights",
     "openbook_polls",
     "openbook_lists",
     "openbook_follows",
     "openbook_communities",
     "openbook_invitations",
-    "openbook_tags",
     "openbook_hashtags",
     "openbook_categories",
     "openbook_notifications",
     "openbook_devices",
     "openbook_moderation",
-    "openbook_translation",
     "openbook_terms",
     "strawberry.django",
     "sortedm2m",
@@ -233,14 +230,20 @@ CACHES = {
     "default": {
         "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_DEFAULT_CACHE_LOCATION,
-        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",  "REDIS_CLIENT_KWARGS": {"health_check_interval": 30}},
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "REDIS_CLIENT_KWARGS": {"health_check_interval": 30},
+        },
         "KEY_PREFIX": "ob-api-" + ENVIRONMENT_ID + "-",
         "TIMEOUT": 60 * 60,
     },
     USERBLOCK: {
         "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_USERBLOCK_CACHE_LOCATION,
-        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",  "REDIS_CLIENT_KWARGS": {"health_check_interval": 30}},
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "REDIS_CLIENT_KWARGS": {"health_check_interval": 30},
+        },
         "KEY_PREFIX": f"ob-userblock-{ENVIRONMENT_ID}-",
         "TIMEOUT": 60 * 60,  # 1 hour
     },
@@ -250,7 +253,7 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
-             "REDIS_CLIENT_KWARGS": {"health_check_interval": 30}
+            "REDIS_CLIENT_KWARGS": {"health_check_interval": 30},
         },
         "KEY_PREFIX": "response-cache",
         "KEY_FUNCTION": "openbook.utils.unified_api_response_cache_key_function",
@@ -260,19 +263,28 @@ CACHES = {
     RQ_DEFAULT_JOBS: {
         "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_RQ_DEFAULT_JOBS_CACHE_LOCATION,
-        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",  "REDIS_CLIENT_KWARGS": {"health_check_interval": 30}},
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "REDIS_CLIENT_KWARGS": {"health_check_interval": 30},
+        },
         "KEY_PREFIX": "ob-api-rq-default-job-" + ENVIRONMENT_ID + "-",
     },
     RQ_HIGH_JOBS: {
         "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_RQ_HIGH_JOBS_CACHE_LOCATION,
-        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",  "REDIS_CLIENT_KWARGS": {"health_check_interval": 30}},
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "REDIS_CLIENT_KWARGS": {"health_check_interval": 30},
+        },
         "KEY_PREFIX": "ob-api-rq-high-job-" + ENVIRONMENT_ID + "-",
     },
     RQ_LOW_JOBS: {
         "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_RQ_LOW_JOBS_CACHE_LOCATION,
-        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",  "REDIS_CLIENT_KWARGS": {"health_check_interval": 30}},
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "REDIS_CLIENT_KWARGS": {"health_check_interval": 30},
+        },
         "KEY_PREFIX": "ob-api-rq-low-job-" + ENVIRONMENT_ID + "-",
     },
 }
@@ -409,23 +421,6 @@ REST_FRAMEWORK = {
     "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.AcceptHeaderVersioning",
     "DEFAULT_THROTTLE_RATES": {
         "link_preview": "300/hour",
-    },
-}
-
-# AWS Translate
-AWS_TRANSLATE_REGION = os.environ.get("AWS_TRANSLATE_REGION", "eu-central-1")
-AWS_TRANSLATE_MAX_LENGTH = os.environ.get("AWS_TRANSLATE_MAX_LENGTH", 10000)
-OS_TRANSLATION_STRATEGY_NAME = "default"
-OS_TRANSLATION_CONFIG = {
-    "default": {
-        "STRATEGY": "openbook_translation.strategies.amazon.AmazonTranslate",
-        "TEXT_MAX_LENGTH": AWS_TRANSLATE_MAX_LENGTH,
-        "DEFAULT_TRANSLATION_LANGUAGE_CODE": "en",
-    },
-    "testing": {
-        "STRATEGY": "openbook_translation.strategies.tests.MockAmazonTranslate",
-        "TEXT_MAX_LENGTH": 40,
-        "DEFAULT_TRANSLATION_LANGUAGE_CODE": "en",
     },
 }
 

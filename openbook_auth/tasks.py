@@ -79,7 +79,7 @@ def create_matrix_user_account(identity: str):
         # status_code is 200, when the user already exists and 201, when it was created
         return response.status_code == 201
     except RequestException as ex:
-        raise MatrixRequestError("Could not send request to the Matrix Server", str(ex), 0)
+        raise MatrixRequestError("Could not send request to the Matrix Server", str(ex), 0) from None
 
 
 def send_extend_ory_session(session_id: str):

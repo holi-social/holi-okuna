@@ -17,6 +17,6 @@ repos:
     -   id: ruff
         name: ruff
         language: system
-        entry: utils/scripts/ruff-changed.sh
+        entry: utils/scripts/ruff.sh
         pass_filenames: false
         always_run: true

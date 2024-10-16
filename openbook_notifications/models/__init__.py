@@ -1,21 +1,38 @@
-from .notification import Notification
-from .connection_confirmed_notification import ConnectionConfirmedNotification
-from .connection_request_notification import ConnectionRequestNotification
-from .follow_notification import FollowNotification
-from .post_comment_notification import PostCommentNotification
-from .post_comment_reply_notification import PostCommentReplyNotification
-from .post_reaction_notification import PostReactionNotification
-from .community_invite_notification import CommunityInviteNotification
-from .post_comment_reaction_notification import PostCommentReactionNotification
-from .post_comment_user_mention_notification import PostCommentUserMentionNotification
-from .post_user_mention_notification import PostUserMentionNotification
-from .community_new_post_notification import CommunityNewPostNotification
-from .user_new_post_notification import UserNewPostNotification
-from .follow_request_approved_notification import FollowRequestApprovedNotification
-from .follow_request_notification import FollowRequestNotification
-from .community_membership_approved_notification import CommunityMembershipApprovedNotification
-from .community_membership_request_notification import CommunityMembershipRequestNotification
-from .community_membership_revoked_notification import CommunityMembershipRevokedNotification
-from .community_admin_privileges_granted_notification import CommunityAdminPrivilegesGrantedNotification
-from .community_admin_privileges_revoked_notification import CommunityAdminPrivilegesRevokedNotification
-from .community_invite_declined_notification import CommunityInviteDeclinedNotification
+# class are imported with 'import A as A' to instruct Ruff to avoid marking it as unused, see https://docs.astral.sh/ruff/rules/unused-import/
+from .notification import Notification as Notification
+from .connection_confirmed_notification import ConnectionConfirmedNotification as ConnectionConfirmedNotification
+from .connection_request_notification import ConnectionRequestNotification as ConnectionRequestNotification
+from .follow_notification import FollowNotification as FollowNotification
+from .post_comment_notification import PostCommentNotification as PostCommentNotification
+from .post_comment_reply_notification import PostCommentReplyNotification as PostCommentReplyNotification
+from .post_reaction_notification import PostReactionNotification as PostReactionNotification
+from .community_invite_notification import CommunityInviteNotification as CommunityInviteNotification
+from .post_comment_reaction_notification import PostCommentReactionNotification as PostCommentReactionNotification
+from .post_comment_user_mention_notification import (
+    PostCommentUserMentionNotification as PostCommentUserMentionNotification,
+)
+from .post_user_mention_notification import PostUserMentionNotification as PostUserMentionNotification
+from .community_new_post_notification import CommunityNewPostNotification as CommunityNewPostNotification
+from .user_new_post_notification import UserNewPostNotification as UserNewPostNotification
+from .follow_request_approved_notification import (
+    FollowRequestApprovedNotification as FollowRequestApprovedNotification,
+)
+from .follow_request_notification import FollowRequestNotification as FollowRequestNotification
+from .community_membership_approved_notification import (
+    CommunityMembershipApprovedNotification as CommunityMembershipApprovedNotification,
+)
+from .community_membership_request_notification import (
+    CommunityMembershipRequestNotification as CommunityMembershipRequestNotification,
+)
+from .community_membership_revoked_notification import (
+    CommunityMembershipRevokedNotification as CommunityMembershipRevokedNotification,
+)
+from .community_admin_privileges_granted_notification import (
+    CommunityAdminPrivilegesGrantedNotification as CommunityAdminPrivilegesGrantedNotification,
+)
+from .community_admin_privileges_revoked_notification import (
+    CommunityAdminPrivilegesRevokedNotification as CommunityAdminPrivilegesRevokedNotification,
+)
+from .community_invite_declined_notification import (
+    CommunityInviteDeclinedNotification as CommunityInviteDeclinedNotification,
+)

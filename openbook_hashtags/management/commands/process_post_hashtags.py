@@ -1,8 +1,6 @@
 from django.core.management.base import BaseCommand
 import logging
 
-from django.db import transaction
-
 from openbook_common.utils.model_loaders import get_post_model
 from openbook_posts.jobs import _chunked_queryset_iterator
 

@@ -32,12 +32,12 @@ class UserPayload:
 
 
 class SpacePayload:
-    def __init__(self, id: str, name: str, slug: str, avatar: str, avatarDefaultColor: str):
+    def __init__(self, id: str, name: str, slug: str, avatar: str, avatar_default_color: str):
         self.id = id
         self.name = name
         self.avatar = avatar
         self.slug = slug
-        self.avatarDefaultColor = avatarDefaultColor
+        self.avatarDefaultColor = avatar_default_color
 
     def to_dict(self):
         return {
@@ -60,5 +60,5 @@ class SpacePayload:
             name=community.title,
             slug=community.name,
             avatar=avatarUrl,
-            avatarDefaultColor=community.avatar_default_color,
+            avatar_default_color=community.avatar_default_color,
         )

@@ -95,7 +95,7 @@ class OryWebhook(View):
         except HTTPError as http_err:
             if http_err.response.status_code == 404:
                 # We can not create the subscriber in novu, as we don't know the users locale
-                logger.debug(f"Could not update e-mail in novu as the subscriber does not exist yet")
+                logger.debug("Could not update e-mail in novu as the subscriber does not exist yet")
             else:
                 raise http_err
 
