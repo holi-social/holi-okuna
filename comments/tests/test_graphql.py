@@ -268,6 +268,27 @@ class TestPostComments(TestCase):
         assert updated_post_comment["myReaction"]["HEART"] == 0
         assert updated_post_comment["reactions"]["HEART"] == 0
 
+    @patch.object(CommentReactionNotification, "send")
+    def test_should_be_able_to_react_to_own_comment(self, mock_send_comment_reaction_notification):
+        posting_user = make_user()
+        space = make_community(creator=posting_user)
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True, community_id=space.id)
+        comment = post.comment(text="comment text", commenter=posting_user)
+
+        react_to_post_comment(comment, "SET", posting_user)
+
+        mock_send_comment_reaction_notification.assert_not_called()  # we don't send notifications for own reactions
+
+        executed = react_to_post_comment(comment, "SET", posting_user)
+        updated_post_comment = executed.data["updatePostCommentReaction"]
+
+        assert updated_post_comment["myReaction"]["HEART"] == 1
+        assert updated_post_comment["reactions"]["HEART"] == 1
+
 
 @pytest.mark.usefixtures("mock_novu_api")
 @pytest.mark.django_db

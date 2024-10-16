@@ -184,9 +184,10 @@ class Comment(ModelWithUUID):
 
     def react(self, reactor, reaction_type):
         reaction = CommentReaction.create_reaction(reactor=reactor, reaction_type=reaction_type, comment=self)
-        NotificationsService.send_comment_reaction_notification(
-            comment=self, reactor=reactor, recipient=self.commenter
-        )
+        if reactor.id != self.commenter.id:
+            NotificationsService.send_comment_reaction_notification(
+                comment=self, reactor=reactor, recipient=self.commenter
+            )
         return reaction
 
     def clear_reaction(self, reactor, reaction_type):

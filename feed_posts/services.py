@@ -137,9 +137,10 @@ class FeedPostReactionService:
 
     def create_reaction(self, feed_post, reactor, reaction_type):
         reaction = self.repository.create_reaction(feed_post=feed_post, reactor=reactor, reaction_type=reaction_type)
-        NotificationsService.send_post_reaction_notification(
-            post=feed_post, reactor=reactor, recipient=feed_post.creator
-        )
+        if reactor.id != feed_post.creator.id:
+            NotificationsService.send_post_reaction_notification(
+                post=feed_post, reactor=reactor, recipient=feed_post.creator
+            )
         return reaction
 
     def remove_reaction(self, feed_post, reactor, reaction_type):

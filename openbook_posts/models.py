@@ -539,7 +539,8 @@ class Post(CommentNotificationMixin, ModelWithUUID):
 
     def react(self, reactor, reaction_type):
         reaction = PostReaction.create_reaction(reactor=reactor, reaction_type=reaction_type, post=self)
-        NotificationsService.send_post_reaction_notification(post=self, reactor=reactor, recipient=self.creator)
+        if reactor.id != self.creator.id:
+            NotificationsService.send_post_reaction_notification(post=self, reactor=reactor, recipient=self.creator)
         return reaction
 
     def clear_reaction(self, reactor, reaction_type):

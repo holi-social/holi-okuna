@@ -206,23 +206,41 @@ class TestPosts(TestCase):
 
         post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
 
-        react_to_post(post, "SET", posting_user)
+        react_to_post(post, "SET", other_user)
         mock_send_post_reaction_notification.assert_called_once()
-        executed = react_to_post(post, "SET", posting_user)  # setting twice is same as setting once
+        executed = react_to_post(post, "SET", other_user)  # setting twice is same as setting once
         updated_post = executed.data["updatePostReaction"]
 
         assert updated_post["myReaction"]["HEART"] == 1
         assert updated_post["reactions"]["HEART"] == 1
 
-        post_data = get_post_with_id_data(post, other_user)
+        post_data = get_post_with_id_data(post, posting_user)
         assert post_data["myReaction"]["HEART"] == 0
         assert post_data["reactions"]["HEART"] == 1
 
-        react_to_post(post, "REMOVE", posting_user)
-        executed = react_to_post(post, "REMOVE", posting_user)  # setting twice is same as setting once
+        react_to_post(post, "REMOVE", other_user)
+        executed = react_to_post(post, "REMOVE", other_user)  # setting twice is same as setting once
         updated_post = executed.data["updatePostReaction"]
         assert updated_post["myReaction"]["HEART"] == 0
         assert updated_post["reactions"]["HEART"] == 0
+
+    @patch.object(PostReactionNotification, "send")
+    def test_react_to_own_post(self, mock_send_post_reaction_notification: Mock):
+        posting_user = make_user()
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
+
+        react_to_post(post, "SET", posting_user)
+        mock_send_post_reaction_notification.assert_not_called()  # We don't send notifications for own reactions
+
+        executed = react_to_post(post, "SET", posting_user)
+        updated_post = executed.data["updatePostReaction"]
+
+        assert updated_post["myReaction"]["HEART"] == 1
+        assert updated_post["reactions"]["HEART"] == 1
 
     def test_space_user_can_create_space_post(self):
         space_admin = make_user()
