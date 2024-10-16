@@ -139,8 +139,13 @@ resource "google_cloud_run_v2_job" "okuna_migration" {
           value = local.posthog_host
         }
         env {
-          name  = "POSTHOG_API_KEY"
-          value = local.posthog_api_key
+          name = "POSTHOG_API_KEY"
+          value_source {
+            secret_key_ref {
+              secret  = local.environment_name == "production" ? "POSTHOG_API_KEY_PRODUCTION" : "POSTHOG_API_KEY_DEVELOPMENT"
+              version = "latest"
+            }
+          }
         }
         env {
           name  = "SENTRY_DSN"

@@ -9,6 +9,5 @@ locals {
 
   default_region = data.terraform_remote_state.holi_infra_state.outputs.default_region
 
-  posthog_host    = "https://eu.posthog.com"
-  posthog_api_key = local.environment == "production" ? "phc_otDkhAWe558gCziFqIE3XrGla2AvdosZftmhOyjfWAu" : "phc_hjzX978CctzGvUBxYatJkyQDAg9c8ZZyreAXtPn6FJ6"
+  posthog_host = "https://eu.posthog.com"
 }
