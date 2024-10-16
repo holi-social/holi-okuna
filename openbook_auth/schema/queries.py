@@ -8,7 +8,6 @@ import structlog
 from django.db.models import F, Q, Value
 from django.db.models.functions import Concat
 from django.db.models.lookups import IContains
-from django.utils.translation import get_language_from_request
 
 from openbook_auth.models import User as UserModel, UserBlock as UserBlockModel
 from openbook_auth.schema.types import User, AuthenticatedUser
@@ -16,7 +15,6 @@ from openbook_auth.utils import verify_authorized_user, check_max_limit
 from openbook_common.schema.types import Paged
 from openbook_common.validators import string_not_empty
 from openbook_insights.schema.types import Insight
-from openbook_notifications.api import NotificationApi
 
 logger = structlog.get_logger(__name__)
 
@@ -28,12 +26,6 @@ class Query:
         current_user = info.context.request.user
         if current_user.is_anonymous:
             return None
-        locale = get_language_from_request(info.context.request)
-
-        # TODO: This is a hack to make sure that the subscriber is updated with the correct locale.
-        # Remove this when we add a language picker to the user profile.
-        NotificationApi.create_or_update_subscriber(user=current_user, locale=locale)
-
         return current_user
 
     @strawberry_django.field()

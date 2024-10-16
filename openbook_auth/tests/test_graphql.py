@@ -108,10 +108,6 @@ class TestUsers:
         assert authenticated_user["isEmployee"] == user.is_employee
         assert authenticated_user["connectionStatusToMyself"] is None
 
-        mock_create_or_update_subscriber.assert_called_once_with(
-            user=user, locale=mock_get_language_from_request.return_value
-        )
-
     def test_get_user_by_name_returns_only_matching_users_without_logged_in_user(self):
         user = make_user(name="Peter", last_name="Moser")
         user2 = make_user(name="Peter", last_name="Muster")
