@@ -4,10 +4,12 @@ import exec from 'k6/execution'
 
 // You don't need to change anything in this section, it's k6 glue code.
 // See the default function at the end of the file for defining your smoketest.
-// This configuration only executes 1 test, enough for a smoketest.
+// This configuration only executes 1 test, enough for a smoketest. The smoketest will fail on any check failing.
+const allChecksNeedToPassTreshold = { checks: [{ threshold: 'rate==1', abortOnFail: true }] }
 export const options = {
   vus: 1,
   iterations: 1,
+  thresholds: allChecksNeedToPassTreshold,
 }
 
 /**
@@ -21,24 +23,19 @@ function forQuery(query, checkFunction) {
   const response = http.post(`${__ENV.BASE_URL}`, JSON.stringify({ query }), {
     headers: { 'Content-Type': 'application/json' },
   })
-  const testResults = checkFunction(response)
-
-  // fail on any unmet expectations. We need to do this explicitly, because k6 is a load testing tool that continues on errors by default.
-  if (testResults.includes(false)) {
-    exec.test.abort('smoke test failed')
-  }
+  checkFunction(response)
 }
 
 // Define your smoketest(s) here.
 export default () => {
-  forQuery(`query{topics{totalResults}}`, (response) => [
+  forQuery(`query{topics{totalResults}}`, (response) => {
     check(response, {
       'is status 200': (r) => r.status === 200,
-    }),
+    })
     check(JSON.parse(response.body), {
       // there can be multiple tests here, e.g.
       //"contains topics object": (r) => typeof r.data.topics != null,
       'contains totalResults count': (r) => typeof r.data.topics.totalResults == 'number',
-    }),
-  ])
+    })
+  })
 }
