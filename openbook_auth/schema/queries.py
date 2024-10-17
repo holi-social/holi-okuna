@@ -12,8 +12,8 @@ from django.db.models.lookups import IContains
 from openbook_auth.models import User as UserModel, UserBlock as UserBlockModel
 from openbook_auth.schema.types import User, AuthenticatedUser
 from openbook_auth.utils import verify_authorized_user, check_max_limit
-from openbook_common.schema.types import Paged
 from openbook_common.validators import string_not_empty
+from openbook_common.schema.types import Paged
 from openbook_insights.schema.types import Insight
 
 logger = structlog.get_logger(__name__)
@@ -21,6 +21,11 @@ logger = structlog.get_logger(__name__)
 
 @strawberry.type
 class Query:
+    # TODO HOLI-8088 remove test once get_authenticated_user is removed
+    @strawberry_django.field(deprecation_reason="Deprecated in favor of 'authenticatedUserV2'.")
+    def authenticated_user(self, info) -> Optional[User]:
+        return Query.authenticated_user_v2(self, info)
+
     @strawberry_django.field()
     def authenticated_user_v2(self, info) -> Optional[AuthenticatedUser]:
         current_user = info.context.request.user
