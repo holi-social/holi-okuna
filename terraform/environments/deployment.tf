@@ -302,8 +302,13 @@ resource "google_cloud_run_service" "okuna" {
           value = local.posthog_host
         }
         env {
-          name  = "POSTHOG_API_KEY"
-          value = local.posthog_api_key
+          name = "POSTHOG_API_KEY"
+          value_from {
+            secret_key_ref {
+              name = local.environment_name == "production" ? "POSTHOG_API_KEY_PRODUCTION" : "POSTHOG_API_KEY_DEVELOPMENT"
+              key  = "latest"
+            }
+          }
         }
         env {
           name  = "SENTRY_DSN"
