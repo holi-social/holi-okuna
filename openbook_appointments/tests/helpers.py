@@ -1,8 +1,12 @@
 from asgiref.sync import async_to_sync
 from benedict import benedict
+from mixer.backend.django import mixer
+from strawberry import UNSET
 
 from openbook.graphql_schema import schema
 from openbook_appointments.enums import StatusType
+from openbook_appointments.models import Appointment, VideoCallLink
+from openbook_auth.models import User
 
 
 def create_appointment(user, input):
@@ -204,3 +208,12 @@ def update_input_data(appointment_id, input_data):
     data.pop("spaceId", None)
     data["appointmentId"] = appointment_id
     return data
+
+
+def make_appointment(
+    video_call_link: VideoCallLink = UNSET,  # abuse UNSET here, because we also want to be able to pass `None` explicitly
+    creator: User = UNSET,
+) -> Appointment:
+    overrides = {k: v for k, v in locals().items() if v is not UNSET}
+
+    return mixer.blend(Appointment, **overrides)
