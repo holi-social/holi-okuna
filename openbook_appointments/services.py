@@ -12,15 +12,22 @@ from openbook_common.utils.model_loaders import get_community_model, get_user_mo
 from openbook_communities.models import Community
 from openbook_notifications.services import NotificationsService
 from .checkers import AppointmentChecker
+from .models import VideoCallLink
 from .repositories import AppointmentRepository, VideoCallLinkRepository, LocationDetailsRepository
 
 
 class AppointmentService:
-    def __init__(self):
-        self.repository = AppointmentRepository()
-        self.video_call_link_service = VideoCallLinkService()
-        self.location_service = LocationDetailsService()
-        self.checker = AppointmentChecker()
+    def __init__(
+        self,
+        repository: AppointmentRepository = None,
+        video_call_link_service: "VideoCallLinkService" = None,
+        location_service: "LocationDetailsService" = None,
+        checker: AppointmentChecker = None,
+    ):
+        self.repository = repository or AppointmentRepository()
+        self.video_call_link_service = video_call_link_service or VideoCallLinkService()
+        self.location_service = location_service or LocationDetailsService()
+        self.checker = checker or AppointmentChecker()
 
     def create_appointment(
         self,
@@ -236,21 +243,34 @@ class AppointmentService:
 
         return recipients
 
-    def _update_video_call_link(self, appointment, video_call_info, video_call_link):
-        if not video_call_link and appointment.video_call_link:
-            self.video_call_link_service.delete_video_call_link(video_call_link_id=appointment.video_call_link.id)
-            return None
+    def _update_video_call_link(self, appointment, video_call_info, video_call_link) -> VideoCallLink | None:
+        # compare existing video call link vs. video call link from input
+        match (appointment.video_call_link, video_call_link):
+            case (None, None):
+                # both unset, do nothing
+                return None
 
-        if not appointment.video_call_link:
-            return self.video_call_link_service.create_video_call_link(
-                url=video_call_link, additional_info=video_call_info
-            )
+            case (None, _):
+                # the appointment doesn't currently have one, user provides one
+                # -> create it
+                return self.video_call_link_service.create_video_call_link(
+                    url=video_call_link, additional_info=video_call_info
+                )
 
-        return self.video_call_link_service.update_video_call_link(
-            video_call_link_id=appointment.video_call_link.id,
-            url=video_call_link,
-            additional_info=video_call_info,
-        )
+            case (_, None):
+                # the appointment has one, user provides None explicitly
+                # -> delete it
+                self.video_call_link_service.delete_video_call_link(video_call_link_id=appointment.video_call_link.id)
+                return None
+
+            case (_, _):
+                # the appointment has one, user provides a different one
+                # -> update it
+                return self.video_call_link_service.update_video_call_link(
+                    video_call_link_id=appointment.video_call_link.id,
+                    url=video_call_link,
+                    additional_info=video_call_info,
+                )
 
     def _manage_location_details(self, appointment, location_details):
         appointment_location = appointment.location_details
