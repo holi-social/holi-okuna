@@ -1,6 +1,6 @@
 import http from "k6/http";
-import { check, sleep } from "k6";
-import exec from "k6/execution";
+import { check } from 'k6';
+
 
 // This configuration only executes 1 test, enough for a smoketest
 export const options = {
