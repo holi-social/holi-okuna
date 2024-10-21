@@ -90,10 +90,10 @@ class Appointment:
 
 @strawberry.input
 class LocationDetailsInput:
-    complete_address: Optional[str]
-    city: Optional[str]
-    state: Optional[str]
-    country: Optional[str]
+    complete_address: Optional[str] = strawberry.UNSET
+    city: Optional[str] = strawberry.UNSET
+    state: Optional[str] = strawberry.UNSET
+    country: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
 
 

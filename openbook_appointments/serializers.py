@@ -22,7 +22,7 @@ class LocationDetailsSerializer(serializers.Serializer):
     country = serializers.CharField(
         max_length=settings.COUNTRY_MAX_LENGTH, required=False, allow_null=True, allow_blank=True
     )
-    geolocation = GeolocationPointSerializer(required=False)
+    geolocation = GeolocationPointSerializer(required=False, allow_null=True)
 
 
 class CreateAppointmentSerializer(serializers.Serializer):
