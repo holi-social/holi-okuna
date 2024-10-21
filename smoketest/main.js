@@ -1,6 +1,5 @@
 import http from 'k6/http'
-import { check, sleep } from 'k6'
-import exec from 'k6/execution'
+import { check } from 'k6';
 
 // You don't need to change anything in this section, it's k6 glue code.
 // See the default function at the end of the file for defining your smoketest.
