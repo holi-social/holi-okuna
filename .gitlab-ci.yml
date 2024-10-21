@@ -42,7 +42,7 @@ setup:
 unit-test:
   image: "europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/holi-okuna-builder"
   services:
-    - name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/postgis/postgis:12-3.3-alpine'
+    - name: "europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/postgis/postgis:12-3.3-alpine"
       alias: postgres
   stage: "test"
   variables:
@@ -70,8 +70,8 @@ lint:
     - export COMPARISON_SHA=$(git merge-base $CI_COMMIT_REF_NAME origin/$CI_DEFAULT_BRANCH)
     - source venv/bin/activate
   script:
-    - 'ruff check --output-format=gitlab | tee .gl-lint-report.json'
-    - 'ruff format --diff'
+    - "ruff check --output-format=gitlab | tee .gl-lint-report.json"
+    - "ruff format --diff"
   artifacts:
     reports:
       codequality:
@@ -82,10 +82,10 @@ lint:
     - release/*
 
 build_docker:
-  image: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:27'
+  image: "europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:27"
   stage: "build"
   services:
-    - 'docker:27-dind'
+    - "docker:27-dind"
   variables:
     # this could be fetched via terraform output ("gcr_location" in infra project), but then we would need an extra job for terraform
     GCR_IMAGE: europe-north1-docker.pkg.dev/holi-shared/docker/holi-okuna
@@ -124,7 +124,7 @@ build_docker:
 
 .smoketest:
   stage: "smoketest"
-  image: 'europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/holi-k6-builder'
+  image: "europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/holi-k6-builder"
   script:
     - API_DOMAIN=$(cat $API_DOMAIN_PATH)
     - terraform/environments/scripts/wait-for-ssl.sh "https://${API_DOMAIN}"
@@ -153,7 +153,7 @@ review_smoketest:
 review_destroy:
   stage: destroy
   image:
-    name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/hashicorp/terraform:1.6.6'
+    name: "europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/hashicorp/terraform:1.6.6"
     # default entrypoint is terraform command, but we want to run shell scripts
     entrypoint: ["/bin/sh", "-c"]
   variables:
@@ -175,13 +175,17 @@ review_destroy:
     - git clone $CI_REPOSITORY_URL main-clone
     - cd main-clone
     - terraform/environments/scripts/destroy-env.sh $CI_ENVIRONMENT_SLUG
-  # can't use rules here: https://gitlab.com/gitlab-org/gitlab/-/issues/34077
-  when: manual
-  allow_failure: false
-  except:
-    - main
-    - production
-    - /^noenv\/.*/
+
+  rules:
+    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^renovate\//
+      when: on_success
+    - if: $CI_COMMIT_BRANCH =~ /^(main|production|noenv\/.*)$/
+      when: never
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event"
+      # we add the condition to avoid duplicate pipelines: https://docs.gitlab.com/ee/ci/jobs/job_rules.html#avoid-duplicate-pipelines
+      when: manual
+      allow_failure: false
+
   resource_group: $CI_ENVIRONMENT_SLUG # never execute terraform in parallel on the same environment
   interruptible: false
 
@@ -204,8 +208,8 @@ staging_smoketest:
 staging_trigger_unified-api_redeployment:
   stage: downstream
   trigger:
-    project: 'app/holi-unified-api'
-    branch: 'main'
+    project: "app/holi-unified-api"
+    branch: "main"
   only:
     - main
   resource_group: unified-api-staging
@@ -230,8 +234,8 @@ production_smoketest:
 production_trigger_unified-api_redeployment:
   stage: downstream
   trigger:
-    project: 'app/holi-unified-api'
-    branch: 'production'
+    project: "app/holi-unified-api"
+    branch: "production"
   only:
     - production
   resource_group: unified-api-production
