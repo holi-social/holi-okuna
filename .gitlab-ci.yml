@@ -175,13 +175,15 @@ review_destroy:
     - git clone $CI_REPOSITORY_URL main-clone
     - cd main-clone
     - terraform/environments/scripts/destroy-env.sh $CI_ENVIRONMENT_SLUG
-  # can't use rules here: https://gitlab.com/gitlab-org/gitlab/-/issues/34077
-  when: manual
-  allow_failure: false
-  except:
-    - main
-    - production
-    - /^noenv\/.*/
+  rules:
+    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^renovate\//
+      when: on_success
+    - if: $CI_COMMIT_BRANCH =~ /^(main|production|noenv\/.*)$/
+      when: never
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event"
+      # we add the condition to avoid duplicate pipelines: https://docs.gitlab.com/ee/ci/jobs/job_rules.html#avoid-duplicate-pipelines
+      when: manual
+      allow_failure: false
   resource_group: $CI_ENVIRONMENT_SLUG # never execute terraform in parallel on the same environment
   interruptible: false
 
