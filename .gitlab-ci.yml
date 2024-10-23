@@ -177,14 +177,13 @@ review_destroy:
     - terraform/environments/scripts/destroy-env.sh $CI_ENVIRONMENT_SLUG
   # can't use rules here: https://gitlab.com/gitlab-org/gitlab/-/issues/34077
   when: manual
-  allow_failure: false
+  allow_failure: true
   except:
     - main
     - production
     - /^noenv\/.*/
   resource_group: $CI_ENVIRONMENT_SLUG # never execute terraform in parallel on the same environment
   interruptible: false
-  allow_failure: true
 
 staging_deploy:
   extends: .deploy
