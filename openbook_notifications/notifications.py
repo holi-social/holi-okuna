@@ -74,15 +74,16 @@ class Notification:
         self.session = session
         self.transaction_id = transaction_id
 
-        # nested objects are not allowed in novu notifications.
+        # Android notifications only allow for key/value pairs in the data field to be of type string, not objects/JSON
+        # (see https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#androidconfig).
         # That is why we serialize the nested data object to a string and deserialize back to JSON it in the mobile client.
         android_payload = {k: v for k, v in payload.items() if not isinstance(v, dict)}
         android_payload["data"] = json.dumps(payload.get("data"))
+        # iOS allows to use full JSON-serializable objects as payload
+        # (see https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#apnsconfig)
         self.overrides = {
             "type": "data",  # data notification
             "fcm": {"type": "notification", "data": android_payload},
-            # "fcm": {"type": "data"},
-            # "fcm": {"type": "data", "data": flatten_payload(payload)},
             "apns": {"payload": payload},
         }
 
