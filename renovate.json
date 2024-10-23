@@ -37,6 +37,13 @@
       "automerge": true
     },
     {
+      "matchDepNames": [
+        "boto3",
+        "botocore"
+      ],
+      "groupName": "boto3"
+    },
+    {
       "matchDepTypes": [
         "devDependencies"
       ],
