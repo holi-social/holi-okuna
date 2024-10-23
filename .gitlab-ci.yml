@@ -184,6 +184,7 @@ review_destroy:
     - /^noenv\/.*/
   resource_group: $CI_ENVIRONMENT_SLUG # never execute terraform in parallel on the same environment
   interruptible: false
+  allow_failure: true
 
 staging_deploy:
   extends: .deploy

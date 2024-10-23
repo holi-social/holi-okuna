@@ -231,6 +231,7 @@ CACHES = {
         "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_DEFAULT_CACHE_LOCATION,
         "OPTIONS": {
+            "PARSER_CLASS": "redis.connection._HiredisParser",
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "REDIS_CLIENT_KWARGS": {"health_check_interval": 30},
         },
@@ -241,6 +242,7 @@ CACHES = {
         "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_USERBLOCK_CACHE_LOCATION,
         "OPTIONS": {
+            "PARSER_CLASS": "redis.connection._HiredisParser",
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "REDIS_CLIENT_KWARGS": {"health_check_interval": 30},
         },
@@ -251,19 +253,24 @@ CACHES = {
         "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_UNIFIED_API_RESPONSE_CACHE_LOCATION,
         "OPTIONS": {
+            "PARSER_CLASS": "redis.connection._HiredisParser",
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
             "REDIS_CLIENT_KWARGS": {"health_check_interval": 30},
+            "SOCKET_TIMEOUT": 5,
+            "SOCKET_CONNECT_TIMEOUT": 5,
         },
         "KEY_PREFIX": "response-cache",
         "KEY_FUNCTION": "openbook.utils.unified_api_response_cache_key_function",
         "REVERSE_KEY_FUNCTION": "openbook.utils.unified_api_response_cache_reverse_key",
         "TIMEOUT": 60 * 60,
+        "CONNECTION_POOL_CLASS_KWARGS": {"retry_on_timeout": True},
     },
     RQ_DEFAULT_JOBS: {
         "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_RQ_DEFAULT_JOBS_CACHE_LOCATION,
         "OPTIONS": {
+            "PARSER_CLASS": "redis.connection._HiredisParser",
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "REDIS_CLIENT_KWARGS": {"health_check_interval": 30},
         },
@@ -273,6 +280,7 @@ CACHES = {
         "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_RQ_HIGH_JOBS_CACHE_LOCATION,
         "OPTIONS": {
+            "PARSER_CLASS": "redis.connection._HiredisParser",
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "REDIS_CLIENT_KWARGS": {"health_check_interval": 30},
         },
@@ -282,6 +290,7 @@ CACHES = {
         "BACKEND": CACHE_BACKENDS["redis"],
         "LOCATION": REDIS_RQ_LOW_JOBS_CACHE_LOCATION,
         "OPTIONS": {
+            "PARSER_CLASS": "redis.connection._HiredisParser",
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "REDIS_CLIENT_KWARGS": {"health_check_interval": 30},
         },
