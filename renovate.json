@@ -5,18 +5,43 @@
   ],
   "packageRules": [
     {
-      "matchUpdateTypes": ["patch", "pin", "digest"],
+      "matchUpdateTypes": [
+        "patch",
+        "pin",
+        "digest"
+      ],
       "automerge": true
     },
     {
-      "matchManagers": ["pip_requirements"],
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "matchSourceUrls": [
+        "https://github.com/hashicorp/terraform"
+      ],
+      "groupName": "terraform"
+    },
+    {
+      "matchJsonata": [
+        "$match(depName,/python$/)"
+      ],
+      "groupName": "python"
+    },
+    {
+      "matchManagers": [
+        "pip_requirements"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "digest"
+      ],
       "automerge": true
     },
     {
-      "matchDepTypes": ["devDependencies"],
+      "matchDepTypes": [
+        "devDependencies"
+      ],
       "automerge": true
     }
-  ], 
+  ],
   "platformAutomerge": false
 }

@@ -65,7 +65,7 @@ class NotificationTestCase(TestCase):
         )
         cls.overrides = {
             "type": "data",
-            "fcm": {"type": "data", "data": {"key": "value"}},
+            "fcm": {"type": "notification", "data": {"key": "value"}},
             "apns": {"payload": {"data": {"key": "value"}}},
         }
 
