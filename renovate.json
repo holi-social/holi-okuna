@@ -44,7 +44,7 @@
     {
       "matchDepNames": [
         "pydantic",
-        "pydantic-core"
+        "pydantic_core"
       ],
       "groupName": "pydantic"
     },
