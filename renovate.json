@@ -46,7 +46,7 @@
         "pydantic",
         "pydantic-core"
       ],
-      "groupName": "boto3"
+      "groupName": "pydantic"
     },
     {
       "matchDepTypes": [
