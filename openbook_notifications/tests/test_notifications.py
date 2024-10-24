@@ -57,16 +57,20 @@ def mock_novu_api():
 class NotificationTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
+        cls.payload = {"data": {"key": "value", "nested": {"nestedKey": "nestedValue"}}}
         cls.notification_instance = Notification(
             workflow="test-workflow",
             recipients=["user-id"],
-            payload={"data": {"key": "value"}},
+            payload=cls.payload,
             transaction_id="test-transaction-id",
         )
         cls.overrides = {
             "type": "data",
-            "fcm": {"type": "notification", "data": {"key": "value"}},
-            "apns": {"payload": {"data": {"key": "value"}}},
+            "fcm": {
+                "type": "notification",
+                "data": {"data": '{"key": "value", "nested": {"nestedKey": "nestedValue"}}'},
+            },
+            "apns": {"payload": cls.payload},
         }
 
     @patch.object(EventApi, "trigger")
@@ -77,7 +81,7 @@ class NotificationTestCase(TestCase):
         mock_event_api_trigger.assert_called_with(
             name="test-workflow",
             recipients=["user-id"],
-            payload={"data": {"key": "value"}},
+            payload=self.payload,
             overrides=self.overrides,
             transaction_id="test-transaction-id",
         )
