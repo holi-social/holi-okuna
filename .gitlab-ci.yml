@@ -7,7 +7,6 @@ cache:
     files:
       - requirements.txt # hashes this file so cache content depends on files content
   paths:
-    - /root/.cache/pip
     - .cache/pip
     - venv/
 
