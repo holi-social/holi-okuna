@@ -42,6 +42,13 @@
       "groupName": "boto3"
     },
     {
+      "matchDepNames": [
+        "pydantic",
+        "pydantic-core"
+      ],
+      "groupName": "boto3"
+    },
+    {
       "matchDepTypes": [
         "devDependencies"
       ],
