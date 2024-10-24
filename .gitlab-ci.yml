@@ -128,7 +128,7 @@ build_docker:
   script:
     - API_DOMAIN=$(cat $API_DOMAIN_PATH)
     - terraform/environments/scripts/wait-for-ssl.sh "https://${API_DOMAIN}"
-    - BASE_URL="https://${API_DOMAIN}/graphql" /tmp/k6 run smoketest/main.js
+    - BASE_URL="https://${API_DOMAIN}/graphql" k6 run smoketest/main.js
     # TODO should/could we roll back the service to the last working revision on test failure?
 
 review_deploy:
@@ -177,7 +177,7 @@ review_destroy:
     - terraform/environments/scripts/destroy-env.sh $CI_ENVIRONMENT_SLUG
   # can't use rules here: https://gitlab.com/gitlab-org/gitlab/-/issues/34077
   when: manual
-  allow_failure: false
+  allow_failure: true
   except:
     - main
     - production

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import uuid
 from enum import Enum
 from typing import List, Optional
@@ -10,7 +11,6 @@ from requests import Session
 from requests.adapters import HTTPAdapter, Retry
 from requests.exceptions import ConnectionError
 
-from openbook_notifications.helpers import flatten_payload
 from openbook_notifications.payloads import (
     PostCommentAuthorPayload,
     PostCommentMentionPayload,
@@ -74,9 +74,16 @@ class Notification:
         self.session = session
         self.transaction_id = transaction_id
 
+        # Android notifications only allow for key/value pairs in the data field to be of type string, not objects/JSON
+        # (see https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#androidconfig).
+        # That is why we serialize the nested data object to a string and deserialize back to JSON it in the mobile client.
+        android_payload = {k: v for k, v in payload.items() if not isinstance(v, dict)}
+        android_payload["data"] = json.dumps(payload.get("data"))
+        # iOS allows to use full JSON-serializable objects as payload
+        # (see https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#apnsconfig)
         self.overrides = {
             "type": "data",  # data notification
-            "fcm": {"type": "notification", "data": flatten_payload(payload)},
+            "fcm": {"type": "notification", "data": android_payload},
             "apns": {"payload": payload},
         }
 
