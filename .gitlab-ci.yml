@@ -42,7 +42,7 @@ setup:
 unit-test:
   image: "europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/holi-okuna-builder"
   services:
-    - name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/postgis/postgis:16-3.4'
+    - name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/postgis/postgis:17-3.4'
       alias: postgres
   stage: "test"
   variables:
