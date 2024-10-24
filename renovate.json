@@ -49,6 +49,13 @@
       "groupName": "pydantic"
     },
     {
+      "matchDepNames": [
+        "mixer",
+        "faker"
+      ],
+      "groupName": "mixer&faker"
+    },
+    {
       "matchDepTypes": [
         "devDependencies"
       ],
