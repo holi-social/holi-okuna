@@ -102,7 +102,7 @@ pbr~=6.1.0
 pilkit~=3.0
 pillow~=10.4.0
 pinocchio~=0.4.3
-platformdirs~=4.2.0
+platformdirs~=4.3.6
 pluggy~=1.5.0
 posthog==3.7.0
 proto-plus~=1.24.0
