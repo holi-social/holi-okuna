@@ -1,17 +1,15 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:recommended",
+    ":configMigration",
+    ":enableVulnerabilityAlertsWithLabel('renovatebot/security')",
+    ":semanticCommits",
+    ":automergePatch",
+    ":automergeTesters",
+    ":automergeLinters"
   ],
   "packageRules": [
-    {
-      "matchUpdateTypes": [
-        "patch",
-        "pin",
-        "digest"
-      ],
-      "automerge": true
-    },
     {
       "matchSourceUrls": [
         "https://github.com/hashicorp/terraform"
@@ -49,6 +47,5 @@
       ],
       "automerge": true
     }
-  ],
-  "platformAutomerge": false
+  ]
 }
