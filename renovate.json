@@ -3,6 +3,7 @@
   "extends": [
     "config:recommended",
     ":configMigration",
+    ":label('renovatebot')",
     ":enableVulnerabilityAlertsWithLabel('renovatebot/security')",
     ":semanticCommits",
     ":automergePatch",
