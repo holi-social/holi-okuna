@@ -3,9 +3,7 @@ variables:
   API_DOMAIN_PATH: '$CI_PROJECT_DIR/api_domain'
 
 cache:
-  key:
-    files:
-      - requirements.txt # hashes this file so cache content depends on files content
+  key: $CI_COMMIT_REF_SLUG # using requirements.txt hash led to too many cache files
   paths:
     - .cache/pip
     - venv/
