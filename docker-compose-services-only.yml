@@ -2,7 +2,7 @@ version: '3'
 
 services:
   db:
-    image: ${POSTGRES_IMAGE:-postgis/postgis:17-3.4}
+    image: ${POSTGRES_IMAGE:-europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/postgis/postgis:17-3.4}
     container_name: okuna-postgres
     hostname: db.okuna
     volumes:
