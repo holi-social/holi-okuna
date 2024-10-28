@@ -269,6 +269,7 @@ class Query:
         return Paged.of(
             TaskModel.objects.filter(community__id=space_id)
             .filter(TaskModel.is_visible_query(current_user))
+            .distinct()
             .order_by("-created"),
             offset,
             limit,
@@ -292,7 +293,9 @@ class Query:
         current_user = info.context.request.user
         if not current_user or current_user.is_anonymous:
             return Paged.of(
-                TaskModel.objects.filter(TaskModel.is_visible_query(current_user)).order_by("-created"), offset, limit
+                TaskModel.objects.filter(TaskModel.is_visible_query(current_user)).distinct().order_by("-created"),
+                offset,
+                limit,
             )
 
         skills = list(current_user.profile.skills.all())
