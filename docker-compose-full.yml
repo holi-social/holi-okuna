@@ -67,7 +67,7 @@ services:
     env_file:
       - .docker-compose.env
   db:
-    image: postgis/postgis:12-3.3-alpine
+    image: postgis/postgis:17-3.4
     container_name: okuna-postgres
     hostname: db.okuna
     volumes:
