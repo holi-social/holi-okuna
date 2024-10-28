@@ -63,8 +63,8 @@ lint:
     GIT_CHECKOUT: 'false'
   before_script:
     - git fetch --all
-    - git checkout $CI_COMMIT_REF_NAME
-    - export COMPARISON_SHA=$(git merge-base $CI_COMMIT_REF_NAME origin/$CI_DEFAULT_BRANCH)
+    - git checkout "$CI_COMMIT_REF_NAME"
+    - export COMPARISON_SHA=$(git merge-base "$CI_COMMIT_REF_NAME" origin/"$CI_DEFAULT_BRANCH")
     - source venv/bin/activate
   script:
     - 'ruff check --output-format=gitlab | tee .gl-lint-report.json'
@@ -88,11 +88,11 @@ build_docker:
     # this could be fetched via terraform output ("gcr_location" in infra project), but then we would need an extra job for terraform
     GCR_IMAGE: europe-north1-docker.pkg.dev/holi-shared/docker/holi-okuna
   script:
-    - docker pull $GCR_IMAGE || true # Allows us to use --cache-from, we need to tag with latest in the next command for this to work
-    - docker build --cache-from $GCR_IMAGE -t $GCR_IMAGE:latest -t $GCR_IMAGE:$CI_COMMIT_SHA -t $GCR_IMAGE:$CI_COMMIT_REF_SLUG .
-    - docker push $GCR_IMAGE:$CI_COMMIT_SHA # this is the tag that is used for deployment
-    - docker push $GCR_IMAGE:$CI_COMMIT_REF_SLUG # just for easily knowing which is the last image for a branch
-    - docker push $GCR_IMAGE:latest # for caching the build
+    - docker pull "$GCR_IMAGE" || true # Allows us to use --cache-from, we need to tag with latest in the next command for this to work
+    - docker build --cache-from "$GCR_IMAGE" -t "$GCR_IMAGE":latest -t "$GCR_IMAGE":"$CI_COMMIT_SHA" -t "$GCR_IMAGE":"$CI_COMMIT_REF_SLUG" .
+    - docker push "$GCR_IMAGE":"$CI_COMMIT_SHA" # this is the tag that is used for deployment
+    - docker push "$GCR_IMAGE":"$CI_COMMIT_REF_SLUG" # just for easily knowing which is the last image for a branch
+    - docker push "$GCR_IMAGE":latest # for caching the build
   tags:
     - 4cpu-4gb # more cpu, quicker image build
 
@@ -115,9 +115,9 @@ build_docker:
   cache: [] # explicitly disable cache
   script:
     # gcloud auth is needed for the migration, triggered via gcloud command
-    - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-    - terraform/environments/scripts/create-or-update-env.sh $ENVIRONMENT_ID $CI_COMMIT_SHA
-    - echo "$(terraform/environments/scripts/get-output.sh api_domain)" > $API_DOMAIN_PATH
+    - gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
+    - terraform/environments/scripts/create-or-update-env.sh "$ENVIRONMENT_ID" "$CI_COMMIT_SHA"
+    - echo "$(terraform/environments/scripts/get-output.sh api_domain)" > "$API_DOMAIN_PATH"
   resource_group: $ENVIRONMENT_ID # never execute terraform in parallel on the same environment
   interruptible: false
 
@@ -126,7 +126,7 @@ build_docker:
   image: 'europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/holi-k6-builder'
   cache: [] # explicitly disable cache
   script:
-    - API_DOMAIN=$(cat $API_DOMAIN_PATH)
+    - API_DOMAIN=$(cat "$API_DOMAIN_PATH")
     - terraform/environments/scripts/wait-for-ssl.sh "https://${API_DOMAIN}"
     - BASE_URL="https://${API_DOMAIN}/graphql" k6 run smoketest/main.js
     # TODO should/could we roll back the service to the last working revision on test failure?
@@ -173,9 +173,9 @@ review_destroy:
     expire_in: 1 week
   script:
     # branch may have been deleted, so we clone and checkout main
-    - git clone $CI_REPOSITORY_URL main-clone
+    - git clone "$CI_REPOSITORY_URL" main-clone
     - cd main-clone
-    - terraform/environments/scripts/destroy-env.sh $CI_ENVIRONMENT_SLUG
+    - terraform/environments/scripts/destroy-env.sh "$CI_ENVIRONMENT_SLUG"
   # can't use rules here: https://gitlab.com/gitlab-org/gitlab/-/issues/34077
   when: manual
   allow_failure: true
