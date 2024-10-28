@@ -33,7 +33,7 @@
         "pin",
         "digest"
       ],
-      "automerge": true
+      "automerge": false
     },
     {
       "matchDepNames": [
