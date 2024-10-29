@@ -419,7 +419,7 @@ class Space:
     @strawberry_django.field()
     def tasks(self, info: Info) -> list[Task]:
         current_user: UserModel = info.context.request.user
-        return TaskModel.objects.filter(community=self).filter(TaskModel.is_visible_query(current_user))
+        return TaskModel.objects.filter(community=self).filter(TaskModel.is_visible_query(current_user)).distinct()
 
 
 @strawberry.type
