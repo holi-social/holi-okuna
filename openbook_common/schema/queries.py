@@ -29,4 +29,6 @@ class Query:
         data = serializer.validated_data
 
         logger.info(f"App version {version} not found. Creating a new App Version.")
-        return AppVersionModel.objects.create(version=data["version"], build_number=data["build_number"])
+        # we create the AppVersion without a build_number, so it's effective for Android and iOS
+        # See: build_number is null in the query above
+        return AppVersionModel.objects.create(version=data["version"])
