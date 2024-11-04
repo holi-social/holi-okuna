@@ -33,7 +33,8 @@
         "pin",
         "digest"
       ],
-      "automerge": false
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true
     },
     {
       "matchDepNames": [
