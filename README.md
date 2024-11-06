@@ -136,12 +136,9 @@ Use `python3 okuna-cli.py clean` to reset all local state, including database an
    You can generate more test data with a custom command:
 
    ```bash
-   python3 manage.py generate_dummy_data --user 20 --post 10 --post_with_comment 20 --post_with_comment_and_reaction 20 --insight 10
+   python3 manage.py generate_dummy_data --users 10 --spaces 5 --space_updates 3 --feed_posts 2 --insights 5
    ```
-
-   All parameters are optional.
-   Users for posts, comments and insights are chosen at random.
-   Insights get some random posts assigned as well.
+   Be aware, you need users to create the other entities with. The script uses them randomly.
 
    Afterwards, you're ready to start the backend API service:
 

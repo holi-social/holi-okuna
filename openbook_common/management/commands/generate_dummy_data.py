@@ -1,15 +1,19 @@
 # ruff: noqa: T201
+# ruff: noqa: S311
 import io
 import random
 import sys
 from contextlib import contextmanager
 from urllib import request
 
+from django.contrib.auth.backends import UserModel
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.management import BaseCommand, CommandError
 from django.utils.timezone import now
 from faker import Faker
 
+from feed_posts.enums import VisibilityLevel
+from feed_posts.models import FeedPost
 from openbook import settings
 from openbook.helpers import publish_user_name_updated_event
 from openbook_auth.models import User
@@ -19,10 +23,14 @@ from openbook_common.tests.helpers import (
     make_fake_post_title,
     make_users,
 )
-from openbook_common.enums import ReactionType
-from openbook_insights.models import Insight
+from openbook_common.enums import ReactionType, VisibilityType
+from openbook_communities.models import Community
+from openbook_insights.models import Insight, Discussion
+from openbook_polls.models import Poll, Choice
 from openbook_posts.models import Post
-from openbook_terms.models import Topic
+from openbook_terms.models import Topic, FeedPostCategory
+
+from unittest import mock
 
 fake = Faker()
 prefix = "generate_"
@@ -49,6 +57,13 @@ class Command(BaseCommand):
 
     help = """Generate dummy data. Check help options for the type of objects that can be created, like --user, --post, ..."""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        mock.patch("openbook_notifications.services.NotificationsService", spec=True).start()
+        mock.patch("openbook_auth.tasks.update_ory_user_identity").start()
+        mock.patch("openbook_auth.tasks.update_ory").start()
+        mock.patch("openbook_auth.tasks.update_ory_user_names").start()
+
     def add_arguments(self, parser):
         for g in [key[len(prefix) :] for key in dir(Command) if key.startswith(prefix)]:
             parser.add_argument(f"--{g}", nargs=1, type=int)
@@ -62,69 +77,72 @@ class Command(BaseCommand):
 
     @staticmethod
     def _get_random_users(nr_of_users):
-        return User.objects.filter(profile__isnull=False).all()[: max(10, nr_of_users)]
+        return User.objects.filter(UserModel.is_visible_ignore_blocked_query()).all()[: max(10, nr_of_users)]
 
     @staticmethod
-    def generate_user(nr):
+    def _get_random_space():
+        return random.choice(Community.objects.all())
+
+    @staticmethod
+    def _generate_reactions(obj, users):
+        for user in users:
+            if random.choice([False, True]):
+                obj.react(user, random.choice([_ for _ in ReactionType]))
+
+    @staticmethod
+    def generate_users(nr):
         print(f"generate {nr} users")
         users = make_users(nr)
         for user in users:
             generate_identity_when_needed(user)
             publish_user_name_updated_event(user=user)
 
-    def generate_post(self, nr):
-        print(f"generate {nr} posts")
+    def generate_feed_posts(self, nr):
+        print(f"generate {nr} feed posts with comments")
         users = self._get_random_users(int(nr / 1.5))
         if not users:
             raise CommandError(NO_USERS_AVAILABLE)
         for _ in range(nr):
             with image_fetcher() as image_file:
-                random.choice(users).create_post(  # noqa: S311
+                user = random.choice(users)
+                category = FeedPostCategory.objects.get(slug="topic-for-conversation")
+                feed_post = FeedPost.objects.create(
+                    title=make_fake_post_title(),
+                    visibility=VisibilityLevel.PUBLIC,
+                    description=fake.text(max_nb_chars=100),
+                    image=image_file,
+                    category=category,
+                    creator=user,
+                )
+                comment_count = random.randint(1, 5)
+                for _ in range(comment_count):
+                    feed_post.comment_on(random.choice(users), fake.text(max_nb_chars=300), language="en")
+
+    def generate_space_updates(self, nr):
+        print(f"generate {nr} space updates with comments and reactions")
+        users = self._get_random_users(int(nr / 1.5))
+        if not users:
+            raise CommandError(NO_USERS_AVAILABLE)
+        for _ in range(nr):
+            with image_fetcher() as image_file:
+                space = self._get_random_space()
+
+                post = space.creator.create_post(
                     is_public=True,
                     title=make_fake_post_title(),
                     text=fake.text(max_nb_chars=300),
                     image=image_file,
-                )
-
-    def generate_post_with_comment(self, nr):
-        print(f"generate {nr} posts with comments")
-        users = self._get_random_users(int(nr / 1.5))
-        if not users:
-            raise CommandError(NO_USERS_AVAILABLE)
-        for _ in range(nr):
-            with image_fetcher() as image_file:
-                post = random.choice(users).create_post(  # noqa: S311
-                    is_public=True, title=make_fake_post_title(), text=fake.text(max_nb_chars=300), image=image_file
-                )
-                comment_count = random.randint(1, 5)  # noqa: S311
-                for _ in range(comment_count):
-                    post.comment(fake.text(max_nb_chars=300), random.choice(users))  # noqa: S311
-
-    @staticmethod
-    def _generate_reactions(obj, users):
-        for user in users:
-            if random.choice([False, True]):  # noqa: S311
-                obj.react(user, random.choice([_ for _ in ReactionType]))  # noqa: S311
-
-    def generate_post_with_comment_and_reaction(self, nr):
-        print(f"generate {nr} posts with comments and reactions")
-        users = self._get_random_users(int(nr / 1.5))
-        if not users:
-            raise CommandError(NO_USERS_AVAILABLE)
-        for _ in range(nr):
-            with image_fetcher() as image_file:
-                post = random.choice(users).create_post(  # noqa: S311
-                    is_public=True, title=make_fake_post_title(), text=fake.text(max_nb_chars=300), image=image_file
+                    community_id=space.id,
                 )
                 self._generate_reactions(post, users)
-                comment_count = random.randint(1, 5)  # noqa: S311
+                comment_count = random.randint(1, 5)
                 for _ in range(comment_count):
-                    post_comment = post.comment(fake.text(max_nb_chars=300), random.choice(users))  # noqa: S311
-                    if random.random() < 0.2:  # noqa: S311
+                    post_comment = post.comment(fake.text(max_nb_chars=300), random.choice(users))
+                    if random.random() < 0.2:
                         self._generate_reactions(post_comment, users)
 
-    def generate_insight(self, nr):
-        print(f"generate {nr} insights")
+    def generate_insights(self, nr):
+        print(f"generate {nr} insights with poll and discussion")
         users = self._get_random_users(int(nr / 1.5))
         if not users:
             raise CommandError(NO_USERS_AVAILABLE)
@@ -133,18 +151,22 @@ class Command(BaseCommand):
             raise CommandError(NO_POSTS_AVAILABLE)
         for _ in range(nr):
             with image_fetcher() as image_file:
+                creator = random.choice(users)
                 insight = Insight.objects.create(
-                    creator=random.choice(users),  # noqa: S311
+                    creator=creator,
                     title=make_fake_post_title(),
                     description=fake.text(max_nb_chars=300),
                     date_published=now(),
                     header_image=image_file,
                 )
-                for _ in range(random.randint(1, 8)):  # noqa: S311
-                    insight.posts.add(random.choice(posts))  # noqa: S311
+                poll = Poll.create_poll(question_text="How are you feeling?", creator=creator, is_public=True)
+                Choice.objects.create(poll_id=poll.id, choice_text="Great")
+                insight.polls.set([poll])
+                discussion = Discussion.objects.create(insight_id=insight.id, question="What do you think?")
+                insight.discussions.set([discussion])
 
-    def generate_space(self, nr):
-        print(f"generate {nr} spaces")
+    def generate_spaces(self, nr):
+        print(f"generate {nr} spaces with task")
         users = self._get_random_users(int(nr / 1.5))
         if not users:
             raise CommandError(NO_USERS_AVAILABLE)
@@ -153,12 +175,23 @@ class Command(BaseCommand):
             raise CommandError(NO_TOPICS_AVAILABLE)
         for _ in range(nr):
             with image_fetcher() as image_file:
-                random.choice(users).create_community(  # noqa: S311
+                creator = random.choice(users)
+                community = creator.create_community(
                     title=make_community_title(),
                     type="P",
                     description=fake.text(max_nb_chars=300),
                     avatar=image_file,
                     cover=image_file,
-                    topic_ids=[random.choice(topic_ids)],  # noqa: S311
+                    topic_ids=[random.choice(topic_ids)],
                     location="Germany",
+                )
+                creator.create_task(
+                    space_id=community.id,
+                    name=fake.text(max_nb_chars=20),
+                    description=fake.catch_phrase(),
+                    visibility=VisibilityType.PUBLIC,
+                    location_type="REMOTE",
+                    contact_email=fake.email(),
+                    slots_available=10,
+                    regularity="REGULARLY",
                 )
