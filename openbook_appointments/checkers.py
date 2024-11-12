@@ -1,5 +1,5 @@
+from django.core.exceptions import PermissionDenied
 from django.utils.translation import gettext_lazy as _
-from rest_framework.exceptions import ValidationError
 
 from openbook_appointments.enums import PermissionType
 
@@ -13,7 +13,7 @@ class AppointmentChecker:
 
     def _check_space_membership(self, user, space_id, action):
         if not user.is_member_of_community_with_id(community_id=space_id):
-            raise ValidationError(_(f"You cannot {action} appointments of a space you are not a member of"))
+            raise PermissionDenied(_(f"You cannot {action} appointments of a space you are not a member of"))
 
     def _check_permission(self, user, appointment):
         creator_id = appointment.creator.id if appointment.creator else None
@@ -33,7 +33,7 @@ class AppointmentChecker:
         self._check_space_membership(user=user, space_id=space_id, action="create")
 
         if not user.is_administrator_of_community_with_id(community_id=space_id) and not invite_only:
-            raise ValidationError(
+            raise PermissionDenied(
                 _("You cannot create a public appointment if you are not an administrator of a space"),
             )
 
@@ -43,7 +43,7 @@ class AppointmentChecker:
         if appointment.invite_only and (
             user.is_anonymous or not user.is_member_of_community_with_id(community_id=space_id)
         ):
-            raise ValidationError(
+            raise PermissionDenied(
                 _("You cannot query invite only appointments of a space you are not a member of"),
             )
 
@@ -54,7 +54,7 @@ class AppointmentChecker:
         has_permission = self._check_permission(user, appointment)
 
         if not has_permission:
-            raise ValidationError(_("You do not have the permission to delete the appointment"))
+            raise PermissionDenied(_("You do not have the permission to delete the appointment"))
 
     def check_can_update_appointment(self, user, appointment):
         space_id = appointment.space.id
@@ -63,4 +63,4 @@ class AppointmentChecker:
         has_permission = self._check_permission(user, appointment)
 
         if not has_permission:
-            raise ValidationError(_("You do not have the permission to update the appointment"))
+            raise PermissionDenied(_("You do not have the permission to update the appointment"))
