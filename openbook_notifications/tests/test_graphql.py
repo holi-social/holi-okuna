@@ -117,7 +117,7 @@ class TestNotifications:
         notification = response["data"][0]
 
         assert notification["notificationType"] == "CAPG"
-        assert notification["options"]["space"]["title"] == space.name
+        assert notification["options"]["space"]["title"] == space.title
         assert notification["options"]["user"]["fullName"] == space_user.profile.full_name()
 
         creator_user.remove_administrator_with_username_from_community_with_name(space_user.username, space.name)
@@ -127,7 +127,7 @@ class TestNotifications:
 
         notification = response["data"][0]
         assert notification["notificationType"] == "CAPR"
-        assert notification["options"]["space"]["title"] == space.name
+        assert notification["options"]["space"]["title"] == space.title
         assert notification["options"]["user"]["fullName"] == space_user.profile.full_name()
 
     def test_has_new_notifications(self):

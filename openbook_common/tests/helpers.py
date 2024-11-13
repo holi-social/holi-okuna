@@ -263,7 +263,7 @@ def make_community_name():
 
 
 def make_community_title():
-    return fake.user_name()
+    return fake.bs()
 
 
 def make_category():
