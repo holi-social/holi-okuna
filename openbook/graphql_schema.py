@@ -87,24 +87,6 @@ Query = merge_types(
     ),
 )
 
-Mutation = merge_types(
-    "Mutation",
-    (
-        auth_mutations.Mutation,
-        connections_mutations.Mutation,
-        posts_mutations.Mutation,
-        polls_mutations.Mutation,
-        communities_mutations.Mutation,
-        notifications_mutations.Mutation,
-        moderation_mutations.Mutation,
-        appointments_mutations.Mutation,
-        insights_mutations.Mutation,
-        favorites_mutations.Mutation,
-        comments_mutations.Mutation,
-        feed_posts_mutations.Mutation,
-    ),
-)
-
 
 @strawberry.type
 class ImageKitAuthParams:
@@ -114,7 +96,7 @@ class ImageKitAuthParams:
 
 
 @strawberry.type
-class Mutation:
+class ImageKitMutations:
     @strawberry.mutation
     def get_imagekit_auth_params(self) -> ImageKitAuthParams:
         private_key = settings.IMAGEKIT_PRIVATE_KEY
@@ -130,6 +112,25 @@ class Mutation:
             token=auth_params["token"], signature=auth_params["signature"], expire=auth_params["expire"]
         )
 
+
+Mutation = merge_types(
+    "Mutation",
+    (
+        auth_mutations.Mutation,
+        connections_mutations.Mutation,
+        posts_mutations.Mutation,
+        polls_mutations.Mutation,
+        communities_mutations.Mutation,
+        notifications_mutations.Mutation,
+        moderation_mutations.Mutation,
+        appointments_mutations.Mutation,
+        insights_mutations.Mutation,
+        favorites_mutations.Mutation,
+        comments_mutations.Mutation,
+        feed_posts_mutations.Mutation,
+        ImageKitMutations,
+    ),
+)
 
 schema = HoliSchema(
     query=Query,
