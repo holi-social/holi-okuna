@@ -6,6 +6,7 @@ from graphql import GraphQLError
 from strawberry.tools import merge_types
 from strawberry.types import ExecutionContext
 from strawberry_django.optimizer import DjangoOptimizerExtension
+from openbook import settings
 
 from comments.schema import mutations as comments_mutations
 from comments.schema import queries as comments_queries
@@ -34,6 +35,8 @@ from openbook_polls.schema import queries as polls_queries
 from openbook_terms.schema import queries as terms_queries
 from feed_posts.schema import mutations as feed_posts_mutations
 from feed_posts.schema import queries as feed_posts_queries
+from imagekitio import ImageKit
+import time
 
 logger = structlog.get_logger(__name__)
 
@@ -101,6 +104,31 @@ Mutation = merge_types(
         feed_posts_mutations.Mutation,
     ),
 )
+
+
+@strawberry.type
+class ImageKitAuthParams:
+    token: str
+    signature: str
+    expire: str
+
+
+@strawberry.type
+class Mutation:
+    @strawberry.mutation
+    def get_imagekit_auth_params(self) -> ImageKitAuthParams:
+        private_key = settings.IMAGEKIT_PRIVATE_KEY
+        token = str(int(time.time() + 3600))
+
+        imagekit = ImageKit(
+            private_key=private_key, public_key=settings.IMAGEKIT_PUBLIC_KEY, url_endpoint=settings.IMAGEKIT_URL
+        )
+
+        auth_params = imagekit.get_authentication_parameters(token)
+
+        return ImageKitAuthParams(
+            token=auth_params["token"], signature=auth_params["signature"], expire=auth_params["expire"]
+        )
 
 
 schema = HoliSchema(
