@@ -34,6 +34,7 @@ from openbook_polls.schema import queries as polls_queries
 from openbook_terms.schema import queries as terms_queries
 from feed_posts.schema import mutations as feed_posts_mutations
 from feed_posts.schema import queries as feed_posts_queries
+from feed_posts.schema import feed_queries
 
 logger = structlog.get_logger(__name__)
 
@@ -81,6 +82,7 @@ Query = merge_types(
         favorites_queries.Query,
         comments_queries.Query,
         feed_posts_queries.Query,
+        feed_queries.Query,
     ),
 )
 

@@ -1,5 +1,4 @@
 import uuid
-
 import strawberry
 import strawberry_django
 
