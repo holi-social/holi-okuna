@@ -15,6 +15,7 @@ from feed_posts.models import (
 from feed_posts.services import FeedPostReactionService, FeedPostMentionService
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import ReactionCounts, Paged, GeolocationPointInput, GeolocationPoint
+from openbook_insights.schema.types import Insight
 from openbook_posts.schema.types import LinkPreview, Post
 from openbook_terms.schema.types import Topic, FeedPostCategory
 from comments.models import Comment as CommentModel
@@ -153,3 +154,10 @@ class UpdateFeedPostInput:
 
 
 GenericPost = strawberry.union("GenericPost", (FeedPost, Post))
+
+
+@strawberry.type
+class FeedItem:
+    feed_post: Optional[FeedPost]
+    insight: Optional[Insight]
+    space_post: Optional[Post]
