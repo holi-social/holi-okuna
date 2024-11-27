@@ -1210,11 +1210,6 @@ class TestTaskRecommendations:
         # member only tasks are not visible to non-members
         self.create_task(skills=[skill1.id], location_type="REMOTE", visibility=VisibilityType.MEMBERS)
 
-        # print tasks with IDs to better debug test results
-        # for name, value in locals().items():
-        #     if name.startswith("task_"):
-        #         print(f"{name}: {value}")
-
         # when the user has no profile information, the last five tasks are returned
         self.assert_filtered_tasks(
             {},
