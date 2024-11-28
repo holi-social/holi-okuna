@@ -14,6 +14,7 @@ from openbook_appointments.schema.types import Appointment
 from openbook_auth.models import User as UserModel
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import GeolocationPoint, GeolocationPointInput, Paged, GeoJSON
+from openbook_communities.helpers import get_space_representatives
 from openbook_communities.models import (
     CollaborationTool as CollaborationToolModel,
     Community,
@@ -277,6 +278,10 @@ class Space:
             )[offset : offset + limit],
             self.memberships.count(),
         )
+
+    @strawberry_django.field(description="A list of space members that can be contacted for information.")
+    def representatives(self) -> list[SpaceMember]:
+        return list(get_space_representatives(self))
 
     @strawberry_django.field(
         description="A list of all active membership requests", prefetch_related="membership_requests__user__profile"
