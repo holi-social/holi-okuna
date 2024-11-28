@@ -1238,7 +1238,7 @@ class TestTaskRecommendations:
                 # only skill matches
                 task_outside_onsite_skill_2,
                 # only geo matches
-                # NOT task_onsite_skill_1_and_other_skill, since it's already in the first group
+                # NOT task_onsite_skill_1_and_other_skill, since it's already found in skill matches and geo matches and there should be no duplicates
                 task_onsite_other_skill,
                 # everything else
                 task_remote_other_skill,
