@@ -1192,6 +1192,9 @@ class TestTaskRecommendations:
         task_onsite_other_skill = self.create_task(
             skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation1
         )
+        task_onsite_skill_1_and_other_skill = self.create_task(
+            skills=[skill1.id, other_skill.id], location_type="ONSITE", geolocation=geolocation1
+        )
         task_outside_onsite_other_skill = self.create_task(
             skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation3
         )
@@ -1207,14 +1210,15 @@ class TestTaskRecommendations:
         # member only tasks are not visible to non-members
         self.create_task(skills=[skill1.id], location_type="REMOTE", visibility=VisibilityType.MEMBERS)
 
+        # when the user has no profile information, the last five tasks are returned
         self.assert_filtered_tasks(
             {},
             [
                 task_remote_other_skill,
                 task_outside_onsite_other_skill,
+                task_onsite_skill_1_and_other_skill,
                 task_onsite_other_skill,
                 task_outside_onsite_skill_2,
-                task_remote_skill_2,
             ],
         )
 
@@ -1226,6 +1230,7 @@ class TestTaskRecommendations:
             {"limit": 10},
             [
                 # skill matches and geo matches or remote
+                task_onsite_skill_1_and_other_skill,
                 task_remote_skill_2,
                 task_onsite_skill_1,
                 task_onsite_2_skills,
@@ -1233,6 +1238,7 @@ class TestTaskRecommendations:
                 # only skill matches
                 task_outside_onsite_skill_2,
                 # only geo matches
+                # NOT task_onsite_skill_1_and_other_skill, since it's already found in skill matches and geo matches and there should be no duplicates
                 task_onsite_other_skill,
                 # everything else
                 task_remote_other_skill,

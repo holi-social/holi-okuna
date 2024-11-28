@@ -5,7 +5,7 @@ import strawberry
 import strawberry_django
 from asgiref.sync import async_to_sync
 from django.core.exceptions import PermissionDenied
-from django.db.models import Count, Prefetch, F, Q, Case, When, Value, IntegerField
+from django.db.models import Count, Prefetch, F, Q, Case, When, Value, IntegerField, OuterRef, Exists
 from django.db.models.lookups import IContains
 from django.utils.translation import gettext_lazy as _
 from strawberry.django.context import StrawberryDjangoContext
@@ -32,6 +32,7 @@ from openbook_communities.schema.types import (
     Space,
     Task,
 )
+from openbook_terms.models import Skill as SkillModel
 
 Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
 
@@ -241,10 +242,11 @@ class Query:
         is_member = False
         is_anonymous = user.is_anonymous
 
-        if not is_anonymous and is_uuid(id_or_name):
-            is_member = user.is_member_of_community_with_id(community_id=id_or_name)
-        elif not is_anonymous:
-            is_member = user.is_member_of_community_with_name(community_name=id_or_name)
+        if not is_anonymous:
+            if is_uuid(id_or_name):
+                is_member = user.is_member_of_community_with_id(community_id=id_or_name)
+            else:
+                is_member = user.is_member_of_community_with_name(community_name=id_or_name)
 
         query = Q(id=uuid.UUID(id_or_name)) if is_uuid(id_or_name) else Q(name=id_or_name)
 
@@ -302,13 +304,18 @@ class Query:
         whens = []
 
         locations_match = Q(geolocation__within=current_user.profile.geolocation)
+        # We need to use a skill exists query, because we want to check that at least one skill from the user profile exists for the task.
+        skill_exists_subquery = SkillModel.objects.filter(id__in=[skill.id for skill in skills], tasks=OuterRef("id"))
 
         if skills and current_user.profile.geolocation:
-            whens.append(When(Q(skills__in=skills) & (locations_match | Q(location_type="REMOTE")), then=Value(10)))
+            whens.append(
+                When(Q(Exists(skill_exists_subquery)) & (locations_match | Q(location_type="REMOTE")), then=Value(10))
+            )
         if skills:
             whens.append(When(skills__in=skills, then=Value(20)))
         if current_user.profile.geolocation:
             whens.append(When(locations_match, then=Value(30)))
+
         return Paged.of(
             TaskModel.objects.annotate(
                 custom_order=Case(
