@@ -176,10 +176,7 @@ class TestAppointments(TestCase):
         assert response.errors is not None
         assert response.data is None
 
-        assert (
-            "You cannot create appointments of a space you are not a member of"
-            in response.errors[0].extensions["errors"]
-        )
+        assert response.errors[0].extensions["code"] == "FORBIDDEN"
 
     def test_can_create_public_appointment_if_admin(self):
         response = create_appointment(self.admin, self.public_appointment_input_data)
@@ -245,10 +242,7 @@ class TestAppointments(TestCase):
         assert response.errors is not None
         assert response.data is None
 
-        assert (
-            "You cannot create a public appointment if you are not an administrator of a space"
-            in response.errors[0].extensions["errors"]
-        )
+        assert response.errors[0].extensions["code"] == "FORBIDDEN"
 
     def test_can_create_invite_only_appointment_if_member(self):
         response = create_appointment(self.user_member, self.invite_only_appointment_input_data)
@@ -407,10 +401,7 @@ class TestAppointments(TestCase):
         assert query_response.errors is not None
         assert query_response.data is None
 
-        assert (
-            "You cannot query invite only appointments of a space you are not a member of"
-            in query_response.errors[0].extensions["errors"]
-        )
+        assert query_response.errors[0].extensions["code"] == "FORBIDDEN"
 
     def test_can_not_query_invite_only_appointment_if_not_member(self):
         mutation_response = create_appointment(self.admin, self.invite_only_appointment_input_data)
@@ -423,10 +414,7 @@ class TestAppointments(TestCase):
         assert query_response.errors is not None
         assert query_response.data is None
 
-        assert (
-            "You cannot query invite only appointments of a space you are not a member of"
-            in query_response.errors[0].extensions["errors"]
-        )
+        assert query_response.errors[0].extensions["code"] == "FORBIDDEN"
 
     def test_can_query_public_appointment_if_anonymous(self):
         mutation_response = create_appointment(self.admin, self.public_appointment_input_data)
@@ -535,10 +523,7 @@ class TestAppointments(TestCase):
         assert delete_mutation_response.errors is not None
         assert delete_mutation_response.data is None
 
-        assert (
-            "You cannot delete appointments of a space you are not a member of"
-            in delete_mutation_response.errors[0].extensions["errors"]
-        )
+        assert delete_mutation_response.errors[0].extensions["code"] == "FORBIDDEN"
 
     def test_can_not_delete_appointment_with_admins_permission_if_participant(self):
         create_mutation_response = create_appointment(self.user_member, self.invite_only_appointment_input_data)
@@ -551,10 +536,7 @@ class TestAppointments(TestCase):
         assert delete_mutation_response.errors is not None
         assert delete_mutation_response.data is None
 
-        assert (
-            "You do not have the permission to delete the appointment"
-            in delete_mutation_response.errors[0].extensions["errors"]
-        )
+        assert delete_mutation_response.errors[0].extensions["code"] == "FORBIDDEN"
 
     def test_can_not_delete_appointment_with_participants_permission_if_not_participant(self):
         create_mutation_response = create_appointment(
@@ -569,10 +551,7 @@ class TestAppointments(TestCase):
         assert delete_mutation_response.errors is not None
         assert delete_mutation_response.data is None
 
-        assert (
-            "You do not have the permission to delete the appointment"
-            in delete_mutation_response.errors[0].extensions["errors"]
-        )
+        assert delete_mutation_response.errors[0].extensions["code"] == "FORBIDDEN"
 
     def test_can_not_update_appointment_if_not_member(self):
         create_mutation_response = create_appointment(self.user_member, self.invite_only_appointment_input_data)
@@ -589,10 +568,7 @@ class TestAppointments(TestCase):
         assert update_mutation_response.errors is not None
         assert update_mutation_response.data is None
 
-        assert (
-            "You cannot update appointments of a space you are not a member of"
-            in update_mutation_response.errors[0].extensions["errors"]
-        )
+        assert update_mutation_response.errors[0].extensions["code"] == "FORBIDDEN"
 
     def test_can_not_update_appointment_with_admins_permission_if_participant(self):
         create_mutation_response = create_appointment(self.user_member, self.invite_only_appointment_input_data)
@@ -609,10 +585,7 @@ class TestAppointments(TestCase):
         assert update_mutation_response.errors is not None
         assert update_mutation_response.data is None
 
-        assert (
-            "You do not have the permission to update the appointment"
-            in update_mutation_response.errors[0].extensions["errors"]
-        )
+        assert update_mutation_response.errors[0].extensions["code"] == "FORBIDDEN"
 
     def test_can_not_update_appointment_with_participants_permission_if_not_participant(self):
         create_mutation_response = create_appointment(
@@ -631,10 +604,7 @@ class TestAppointments(TestCase):
         assert update_mutation_response.errors is not None
         assert update_mutation_response.data is None
 
-        assert (
-            "You do not have the permission to update the appointment"
-            in update_mutation_response.errors[0].extensions["errors"]
-        )
+        assert update_mutation_response.errors[0].extensions["code"] == "FORBIDDEN"
 
     def test_can_update_public_appointment_if_admin(self):
         create_mutation_response = create_appointment(self.admin, self.public_appointment_input_data)
