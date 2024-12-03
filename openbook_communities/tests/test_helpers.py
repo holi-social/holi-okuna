@@ -1,6 +1,10 @@
-from openbook_common.tests.helpers import make_community
+from django.db.models import QuerySet
+
+from openbook_auth.models import UserRole
+from openbook_common.tests.helpers import make_community, make_user
 from openbook_common.tests.models import OpenbookAPITestCase
-from openbook_communities.helpers import create_community_name_from_title_and_hash
+from openbook_communities.helpers import create_community_name_from_title_and_hash, get_space_representatives
+from openbook_communities.models import CommunityMembership
 
 
 class CommunitiesHelperTests(OpenbookAPITestCase):
@@ -27,3 +31,48 @@ class CommunitiesHelperTests(OpenbookAPITestCase):
         with self.assertRaises(Exception) as context:
             create_community_name_from_title_and_hash("bar", "")
         self.assertTrue("Community name already taken." in str(context.exception))
+
+    def test_space_representatives_filters_internal_users(self) -> None:
+        """
+        Given: a space with a mix of internal and external admins
+        When: requesting the space representatives
+        Then: only external users are returned
+        """
+
+        external_user = make_user()
+        internal_role_user = make_user(role=UserRole.INTERNAL)
+        employee_user = make_user(is_employee=True)
+
+        space = make_community(
+            creator=external_user,
+            admins=[employee_user, internal_role_user],  # admins are *in addition* to the creator
+        )
+
+        representatives: QuerySet[CommunityMembership] = get_space_representatives(space)
+
+        self.assertEqual(representatives.count(), 1)
+        self.assertEqual(representatives.first().user.pk, external_user.pk)
+
+    def test_space_representatives_uses_internal_users_as_fallback(self) -> None:
+        """
+        Given: a space with only internal users as admins
+        When: requesting the space representatives
+        Then: internal admins are returned
+        """
+
+        creator = make_user(role=UserRole.INTERNAL)
+        admin1 = make_user(role=UserRole.INTERNAL, is_employee=True)
+        admin2 = make_user(is_employee=True)
+
+        space = make_community(
+            creator=creator,
+            admins=[admin1, admin2],
+        )
+
+        representatives: QuerySet[CommunityMembership] = get_space_representatives(space)
+
+        self.assertEqual(representatives.count(), 3)
+        self.assertEqual(
+            list(representatives.values_list("user__pk", flat=True)),
+            [creator.pk, admin1.pk, admin2.pk],
+        )

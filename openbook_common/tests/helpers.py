@@ -15,7 +15,7 @@ from mixer.backend.django import mixer
 from comments.models import Comment
 from feed_posts.models import FeedPost
 from openbook.graphql_schema import schema
-from openbook_auth.models import EngagementLevelChoice, User, UserProfile
+from openbook_auth.models import EngagementLevelChoice, User, UserProfile, UserRole
 from openbook_categories.models import Category
 from openbook_circles.models import Circle
 from openbook_common.enums import VisibilityType
@@ -83,6 +83,8 @@ def make_user(
     email=None,
     tracking_consent_analytics=False,
     tracking_consent_personalization=False,
+    role: UserRole = UserRole.REGULAR,
+    is_employee: bool = False,
 ) -> User:
     defined_arguments = {k: v for k, v in locals().items() if v is not None}
     defined_arguments.setdefault("username", str(uuid.uuid4()))
