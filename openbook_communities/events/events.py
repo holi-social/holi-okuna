@@ -5,13 +5,15 @@ from openbook_communities.events.payloads import SpacePayload, UserPayload
 
 
 class EventType(Enum):
-    SPACE_CREATED = "SpaceCreated"
-    SPACE_UPDATED = "SpaceUpdated"
-    SPACE_USER_ADDED = "SpaceUserAdded"
     USER_NAME_UPDATED = "UserNameUpdated"
     USER_EMAIL_UPDATED = "UserEmailUpdated"
-    SPACE_DELETED = "SpaceDeleted"
     USER_DELETED = "UserDeleted"
+
+    SPACE_CREATED = "SpaceCreated"
+    SPACE_UPDATED = "SpaceUpdated"
+    SPACE_DELETED = "SpaceDeleted"
+
+    SPACE_USER_ADDED = "SpaceUserAdded"
     SPACE_USER_LEFT = "SpaceUserLeft"
     SPACE_USER_REMOVED = "SpaceUserRemoved"
 
