@@ -72,7 +72,7 @@ class UserEmailUpdatedEvent(Event):
 
 
 class SpaceDeletedEvent(Event):
-    EVENT_VERSION = "1.0.0"
+    EVENT_VERSION = "1.1.0"
 
     def __init__(self, space: SpacePayload):
         super().__init__(
