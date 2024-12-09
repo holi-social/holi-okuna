@@ -48,7 +48,7 @@ class FeedPost:
     ]  # This field is deprecated. Please use the new images field instead. Remove it after version 1.30.x
     visibility: VisibilityLevel
     topics: Optional[List[Topic]]
-    category: FeedPostCategory
+    category: Optional[FeedPostCategory]
     creator: Optional[User]
 
     @strawberry_django.field()
@@ -120,7 +120,7 @@ class CreateFeedPostInput:
     )  # This field is deprecated. Please use the new images field instead. Remove it after version 1.30.x
     visibility: VisibilityLevel
     topic_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
-    category_id: uuid.UUID
+    category_id: Optional[uuid.UUID] = strawberry.UNSET
     language: Optional[str] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
