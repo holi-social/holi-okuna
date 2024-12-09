@@ -1,15 +1,27 @@
-from openbook_communities.models import Community
+from typing import Optional
+
 from openbook_auth.models import User
+from openbook_communities.models import Community
 
 
 class UserPayload:
-    def __init__(self, id: str, name: str, email: str, identity: str, avatar: str = "", about_me=""):
+    def __init__(
+        self,
+        id: str,
+        name: str,
+        email: str,
+        identity: str,
+        avatar: Optional[str] = None,
+        about_me: Optional[str] = None,
+        location: Optional[str] = None,
+    ):
         self.id = id
         self.name = name
         self.email = email
         self.identity = identity
         self.avatar = avatar
         self.about_me = about_me
+        self.location = location
 
     def to_dict(self):
         return {
@@ -19,6 +31,7 @@ class UserPayload:
             "identity": self.identity,
             "avatar": self.avatar,
             "about_me": self.about_me,
+            "location": self.location,
         }
 
     @classmethod
@@ -31,6 +44,7 @@ class UserPayload:
             identity=user.identity,
             avatar=avatar_url,
             about_me=user.profile.about_me,
+            location=user.profile.geolocation.name if user.profile.geolocation else None,
         )
 
 
