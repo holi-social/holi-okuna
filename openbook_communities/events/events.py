@@ -17,7 +17,7 @@ class EventType(Enum):
 
 
 class SpaceCreatedEvent(Event):
-    EVENT_VERSION = "1.0.0"
+    EVENT_VERSION = "1.1.0"
 
     def __init__(self, creator: UserPayload, space: SpacePayload):
         super().__init__(
@@ -28,7 +28,7 @@ class SpaceCreatedEvent(Event):
 
 
 class SpaceUpdatedEvent(Event):
-    EVENT_VERSION = "1.0.0"
+    EVENT_VERSION = "1.1.0"
 
     def __init__(self, creator: UserPayload, space: SpacePayload):
         super().__init__(
@@ -39,7 +39,7 @@ class SpaceUpdatedEvent(Event):
 
 
 class SpaceUserAddedEvent(Event):
-    EVENT_VERSION = "1.0.0"
+    EVENT_VERSION = "1.1.0"
 
     def __init__(self, user: UserPayload, space: SpacePayload):
         super().__init__(
@@ -50,7 +50,7 @@ class SpaceUserAddedEvent(Event):
 
 
 class UserNameUpdatedEvent(Event):
-    EVENT_VERSION = "1.0.0"
+    EVENT_VERSION = "1.1.0"
 
     def __init__(self, user: UserPayload):
         super().__init__(
@@ -61,7 +61,7 @@ class UserNameUpdatedEvent(Event):
 
 
 class UserEmailUpdatedEvent(Event):
-    EVENT_VERSION = "1.0.0"
+    EVENT_VERSION = "1.1.0"
 
     def __init__(self, user: UserPayload):
         super().__init__(
@@ -83,7 +83,7 @@ class SpaceDeletedEvent(Event):
 
 
 class UserDeletedEvent(Event):
-    EVENT_VERSION = "1.0.0"
+    EVENT_VERSION = "1.1.0"
 
     def __init__(self, user: UserPayload):
         super().__init__(
@@ -94,7 +94,7 @@ class UserDeletedEvent(Event):
 
 
 class SpaceUserLeftEvent(Event):
-    EVENT_VERSION = "1.0.0"
+    EVENT_VERSION = "1.1.0"
 
     def __init__(self, user: UserPayload, space: SpacePayload):
         super().__init__(
@@ -105,7 +105,7 @@ class SpaceUserLeftEvent(Event):
 
 
 class SpaceUserRemovedEvent(Event):
-    EVENT_VERSION = "1.0.0"
+    EVENT_VERSION = "1.1.0"
 
     def __init__(self, user: UserPayload, space: SpacePayload):
         super().__init__(

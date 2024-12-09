@@ -3,12 +3,13 @@ from openbook_auth.models import User
 
 
 class UserPayload:
-    def __init__(self, id: str, name: str, email: str, identity: str, avatar: str = ""):
+    def __init__(self, id: str, name: str, email: str, identity: str, avatar: str = "", about_me=""):
         self.id = id
         self.name = name
         self.email = email
         self.identity = identity
         self.avatar = avatar
+        self.about_me = about_me
 
     def to_dict(self):
         return {
@@ -17,6 +18,7 @@ class UserPayload:
             "email": self.email,
             "identity": self.identity,
             "avatar": self.avatar,
+            "about_me": self.about_me,
         }
 
     @classmethod
@@ -28,6 +30,7 @@ class UserPayload:
             email=user.email,
             identity=user.identity,
             avatar=avatar_url,
+            about_me=user.profile.about_me,
         )
 
 
