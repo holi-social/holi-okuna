@@ -2,11 +2,11 @@ import uuid
 
 from feed_posts.checkers import FeedPostChecker
 from feed_posts.models import FeedPostMention
-from feed_posts.repositories import FeedPostRepository, FeedPostReactionRepository
+from feed_posts.repositories import FeedPostReactionRepository, FeedPostRepository
 from openbook_auth.models import User
 from openbook_common.helpers import extract_urls_from_string
 from openbook_common.models import LinkPreview
-from openbook_common.tracking import track, TrackingEvent
+from openbook_common.tracking import TrackingEvent, track
 from openbook_common.utils.helpers import extract_usernames_from_string
 from openbook_notifications.services import NotificationsService
 from openbook_terms.models import FeedPostCategory, Topic
@@ -55,7 +55,19 @@ class FeedPostService:
 
         self.mention_service.add_mentions(post_id=post.id, description=description, creator=creator)
 
-        track(creator, TrackingEvent("feedPostCreated", {"postId": str(post.id)}))
+        track(
+            creator,
+            TrackingEvent(
+                "feedPostCreated",
+                {
+                    "postId": str(post.id),
+                    "locations": 0 if geolocation is None else 1,
+                    "categories": 0 if category is None else 1,
+                    "images": 0 if images is None else len(images),
+                    "topics": 0 if topic_ids is None else len(topic_ids),
+                },
+            ),
+        )
 
         return post
 
