@@ -88,8 +88,6 @@ class Query:
             .distinct()
         )
 
-        insight_posts = InsightModel.objects.all()
-
         if user.is_anonymous:
             feed_posts = (
                 FeedPostModel.objects.filter(visibility=VisibilityLevel.PUBLIC)
@@ -106,7 +104,7 @@ class Query:
                 key=lambda post: (-int(getattr(post, "has_priority", False)),),
             )
 
-            posts = list(sorted_posts) + list(space_posts) + list(insight_posts)
+            posts = list(sorted_posts) + list(space_posts)
             feed_items = [map_to_feed_item(post) for post in posts]
             return paginate_posts(feed_items, offset, limit)
 
@@ -198,7 +196,6 @@ class Query:
             latest_space_posts,
             feed_posts,
             space_posts,
-            insight_posts,
         ]:
             for post in post_list:
                 all_posts[post] = None
