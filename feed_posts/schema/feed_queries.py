@@ -6,12 +6,13 @@ import strawberry_django
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Count, OuterRef, Subquery
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from comments.models import Comment
 from feed_posts.enums import VisibilityLevel
 from feed_posts.schema.types import FeedItem
-from feed_posts.models import FeedPost as FeedPostModel
+from feed_posts.models import FeedPost as FeedPostModel, FeedConfig
 from openbook_auth.models import UserRole
 from openbook_common.schema.types import Paged
 from openbook_insights.models import Insight as InsightModel
@@ -88,8 +89,6 @@ class Query:
             .distinct()
         )
 
-        insight_posts = InsightModel.objects.all()
-
         if user.is_anonymous:
             feed_posts = (
                 FeedPostModel.objects.filter(visibility=VisibilityLevel.PUBLIC)
@@ -106,16 +105,19 @@ class Query:
                 key=lambda post: (-int(getattr(post, "has_priority", False)),),
             )
 
-            posts = list(sorted_posts) + list(space_posts) + list(insight_posts)
+            posts = list(sorted_posts) + list(space_posts)
             feed_items = [map_to_feed_item(post) for post in posts]
             return paginate_posts(feed_items, offset, limit)
 
         # Authenticated users
 
+        feed_config = FeedConfig.objects.first()
+        priority_duration = timedelta(days=feed_config.priority_duration) if feed_config else timedelta(days=7)
+
         feed_posts = (
             FeedPostModel.objects.annotate(
                 reaction_count=Count("reactions"),
-                total_comments=Subquery(feed_post_comments_subquery, output_field=models.IntegerField()),
+                total_comments=Coalesce(Subquery(feed_post_comments_subquery, output_field=models.IntegerField()), 0),
             )
             .order_by("-reaction_count", "-total_comments", "-created_at")
             .all()
@@ -150,24 +152,35 @@ class Query:
         ]
 
         # User connections posts
-        user_connections_feed_posts = feed_posts.filter(creator__id__in=user_connections).all()
+        user_connections_feed_posts = feed_posts.filter(
+            creator__id__in=user_connections, created_at__gte=current_time - priority_duration
+        ).all()
 
         # Space posts in spaces that the user is collaborator
-        space_posts_user_is_contributor = space_posts.filter(community__memberships__user=user).all()
+        space_posts_user_is_contributor = space_posts.filter(
+            community__memberships__user=user, created__gte=current_time - priority_duration
+        ).all()
 
         space_posts_user_is_follower = space_posts.filter(
             community__notifications_subscriptions__subscriber=user,
             community__notifications_subscriptions__new_post_notifications=True,
+            created__gte=current_time - priority_duration,
         ).all()
 
         # Feed posts matching user's topics
-        matching_interest_feed_posts = feed_posts.filter(topics__id__in=user_interests).all()
+        matching_interest_feed_posts = feed_posts.filter(
+            topics__id__in=user_interests, created_at__gte=current_time - priority_duration
+        ).all()
 
         # Space posts matching user's topics
-        matching_interest_space_posts = space_posts.filter(community__topics__id__in=user_interests).all()
+        matching_interest_space_posts = space_posts.filter(
+            community__topics__id__in=user_interests, created__gte=current_time - priority_duration
+        ).all()
 
         # Editors posts
-        editors_feed_posts = feed_posts.filter(creator__role=UserRole.EDITOR).all()
+        editors_feed_posts = feed_posts.filter(
+            creator__role=UserRole.EDITOR, created_at__gte=current_time - priority_duration
+        ).all()
 
         # Latest feed posts
         latest_feed_posts = feed_posts.filter(creator=user, created_at__gte=current_time - timedelta(days=1)).all()
@@ -198,7 +211,6 @@ class Query:
             latest_space_posts,
             feed_posts,
             space_posts,
-            insight_posts,
         ]:
             for post in post_list:
                 all_posts[post] = None
