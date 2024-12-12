@@ -183,3 +183,18 @@ class FeedPostImage(ModelWithUUID):
 
     def delete(self, *args, **kwargs):
         delete_file_field(self.image)
+
+
+class FeedConfig(models.Model):
+    priority_duration = models.PositiveIntegerField(
+        default=7, help_text="Specifies how many days the posts will be prioritized."
+    )
+
+    class Meta:
+        verbose_name = "Feed Configuration"
+        verbose_name_plural = "Feed Configurations"
+
+    def save(self, *args, **kwargs):
+        if not self.pk and FeedConfig.objects.exists():
+            raise ValueError("Only one feed configuration allowed")
+        super().save(*args, **kwargs)
