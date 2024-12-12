@@ -6,6 +6,7 @@ import strawberry_django
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Count, OuterRef, Subquery
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from comments.models import Comment
@@ -116,7 +117,7 @@ class Query:
         feed_posts = (
             FeedPostModel.objects.annotate(
                 reaction_count=Count("reactions"),
-                total_comments=Subquery(feed_post_comments_subquery, output_field=models.IntegerField()),
+                total_comments=Coalesce(Subquery(feed_post_comments_subquery, output_field=models.IntegerField()), 0),
             )
             .order_by("-reaction_count", "-total_comments", "-created_at")
             .all()
