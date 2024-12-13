@@ -3,6 +3,7 @@
 import json
 import logging
 import sys
+import uuid
 from datetime import datetime, timedelta
 from unittest import mock
 from unittest.mock import call
@@ -137,6 +138,84 @@ class TestUsers:
         assert authenticated_user["trackingConsentPersonalization"] == user.tracking_consent_personalization
         assert authenticated_user["isEmployee"] == user.is_employee
         assert authenticated_user["connectionStatusToMyself"] is None
+
+    @pytest.mark.asyncio
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
+    async def test_creates_user_if_not_exists(
+        self, mock_create_or_update_subscriber, mock_get_language_from_request, client
+    ):
+        username = uuid.uuid4()
+        email = "test@example.com"
+        ory_user = benedict({"username": username, "email": email})
+        headers = await sync_to_async(make_authentication_headers_for_user)(ory_user)
+        endpoint = reverse("graphql-endpoint")
+        graphql_query = """
+            query {
+                authenticatedUserV2 {
+                    id
+                }
+            }
+        """
+
+        # Ensure user does not exist yet
+        result = await sync_to_async(User.objects.filter)(username=username)
+        assert await sync_to_async(result.exists)() is False
+
+        response = await client.post(
+            path=endpoint,
+            data=json.dumps({"query": graphql_query}),
+            content_type="application/json",
+            **headers,
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        authenticated_user = json.loads(response.content)["data"]["authenticatedUserV2"]
+        assert authenticated_user["id"] == str(username)
+
+        # Ensure user was created
+        user = await sync_to_async(User.objects.get)(username=username)
+        assert user.email == email
+
+    @pytest.mark.asyncio
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
+    async def test_creates_user_with_invalid_email(
+        self, mock_create_or_update_subscriber, mock_get_language_from_request, client
+    ):
+        username = uuid.uuid4()
+        email = "invalid address"
+        ory_user = benedict({"username": username, "email": email})
+        headers = await sync_to_async(make_authentication_headers_for_user)(ory_user)
+        endpoint = reverse("graphql-endpoint")
+        graphql_query = """
+            query {
+                authenticatedUserV2 {
+                    id
+                }
+            }
+        """
+
+        # Ensure user does not exist yet
+        result = await sync_to_async(User.objects.filter)(username=username)
+        assert await sync_to_async(result.exists)() is False
+
+        response = await client.post(
+            path=endpoint,
+            data=json.dumps({"query": graphql_query}),
+            content_type="application/json",
+            **headers,
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        authenticated_user = json.loads(response.content)["data"]["authenticatedUserV2"]
+        assert authenticated_user["id"] == str(username)
+
+        # Ensure user was created
+        user = await sync_to_async(User.objects.get)(username=username)
+        assert user.email == email
 
     def test_get_user_by_name_returns_only_matching_users_without_logged_in_user(self):
         user = make_user(name="Peter", last_name="Moser")
