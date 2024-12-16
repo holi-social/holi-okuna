@@ -97,7 +97,7 @@ class TestPayloads(TestCase):
 
     def test_space_data_to_dict(self):
         space_data = SpaceData(
-            id="test-space-id",
+            id=self.space.id,
             name="test-space",
             title="Test Space",
             avatar="avatar.jpg",
@@ -109,12 +109,13 @@ class TestPayloads(TestCase):
         self.assertEqual(
             result,
             {
-                "id": "test-space-id",
+                "id": self.space.id,
                 "name": "test-space",
                 "title": "Test Space",
                 "avatar": "avatar.jpg",
                 "avatarBlurhash": "test-blurhash",
                 "avatarDefaultColor": "#FFF000",
+                "link": f"/spaces/{self.space.id}",
             },
         )
 
@@ -131,6 +132,7 @@ class TestPayloads(TestCase):
                 "avatar": "",
                 "avatarBlurhash": "",
                 "avatarDefaultColor": self.space.avatar_default_color,
+                "link": f"/spaces/{self.space.id}",
             },
         )
 

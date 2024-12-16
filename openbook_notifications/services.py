@@ -27,6 +27,7 @@ from openbook_notifications.notifications import (
     PollUpdatesNotification,
     CommentReactionNotification,
     PostReactionNotification,
+    WelcomeEmailSeriesNotification,
 )
 from openbook_notifications.payloads import (
     SpaceMembershipRequestPayload,
@@ -46,6 +47,7 @@ from openbook_notifications.payloads import (
     PollUpdatesPayload,
     PostReactionPayload,
     CommentReactionPayload,
+    WelcomeEmailSeriesPayload,
 )
 
 if TYPE_CHECKING:
@@ -356,5 +358,13 @@ class NotificationsService:
         notification = CommentReactionNotification(
             commenter=str(recipient.username),
             payload=CommentReactionPayload(reactor=reactor, comment=comment, context_id=context_id),
+        )
+        notification.send()
+
+    @staticmethod
+    def send_welcome_email_series_notification(user: User, spaces, insights):
+        notification = WelcomeEmailSeriesNotification(
+            user=str(user.username),
+            payload=WelcomeEmailSeriesPayload(user=user, spaces=spaces, insights=insights),
         )
         notification.send()

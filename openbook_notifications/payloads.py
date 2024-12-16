@@ -36,6 +36,7 @@ class NotificationType(Enum):
     POLL_UPDATES = "POLL_UPDATES"
     POST_REACTION = "POST_REACTION"
     COMMENT_REACTION = "COMMENT_REACTION"
+    WELCOME_EMAIL_SERIES = "WELCOME_EMAIL_SERIES"
 
 
 class UserData:
@@ -93,6 +94,7 @@ class SpaceData:
         self.avatar = avatar
         self.avatar_blurhash = avatar_blurhash
         self.avatar_default_color = avatar_default_color
+        self.link = f"/spaces/{self.id}"
 
     def to_dict(self):
         return {
@@ -102,6 +104,7 @@ class SpaceData:
             "avatar": self.avatar,
             "avatarBlurhash": self.avatar_blurhash,
             "avatarDefaultColor": self.avatar_default_color,
+            "link": self.link,
         }
 
     @classmethod
@@ -224,6 +227,36 @@ class PostData:
             community=post.community if hasattr(post, "community") else None,
             is_public=post.is_public if hasattr(post, "is_public") else None,
             description=post.description if hasattr(post, "description") else None,
+        )
+
+
+class InsightData:
+    def __init__(
+        self,
+        id: str,
+        title: str,
+        cover: str,
+    ):
+        self.id = id
+        self.title = title
+        self.cover = cover
+        self.link = f"/insights/{self.id}"
+
+    def to_dict(self):
+        data = {
+            "id": self.id,
+            "title": self.title,
+            "cover": self.cover,
+            "link": self.link,
+        }
+        return data
+
+    @classmethod
+    def from_insight(cls, insight):
+        return cls(
+            id=str(insight.id),
+            title=insight.title,
+            cover=insight.header_image.url,
         )
 
 
@@ -555,4 +588,19 @@ class CommentReactionPayload(Payload):
             },
             notification_type=NotificationType.COMMENT_REACTION.value,
             notification_version=CommentReactionPayload.NOTIFICATION_VERSION,
+        )
+
+
+class WelcomeEmailSeriesPayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, user: User, spaces, insights):
+        super().__init__(
+            data={
+                "user": UserData.from_user(user).to_dict(),
+                "recommendedSpaces": [SpaceData.from_community(space).to_dict() for space in spaces],
+                "recommendedInsights": [InsightData.from_insight(insight).to_dict() for insight in insights],
+            },
+            notification_type=NotificationType.WELCOME_EMAIL_SERIES.value,
+            notification_version=WelcomeEmailSeriesPayload.NOTIFICATION_VERSION,
         )
