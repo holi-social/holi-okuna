@@ -28,6 +28,7 @@ from openbook_notifications.payloads import (
     PollUpdatesPayload,
     PostReactionPayload,
     CommentReactionPayload,
+    WelcomeEmailSeriesPayload,
 )
 
 
@@ -51,6 +52,7 @@ class Workflow(Enum):
     POLL_UPDATES = "poll-updates"
     POST_REACTIONS = "post-reactions"
     COMMENT_REACTIONS = "comment-reactions"
+    WELCOME_EMAIL_SERIES = "welcome-email-series"
 
 
 # INTERNAL USE ONLY, use NotificationsService  to trigger notifications
@@ -381,4 +383,18 @@ class CommentReactionNotification(Notification):
             recipients=commenter,
             payload=payload.to_dict(),
             transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
+        )
+
+
+class WelcomeEmailSeriesNotification(Notification):
+    def __init__(
+        self,
+        user: str,
+        payload: WelcomeEmailSeriesPayload,
+    ):
+        super().__init__(
+            workflow=Workflow.WELCOME_EMAIL_SERIES.value,
+            recipients=user,
+            payload=payload.to_dict(),
+            transaction_id=user,  # user id is used as transaction id so that we can easily unsubscribe from the email series
         )
