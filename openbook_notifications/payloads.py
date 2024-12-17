@@ -39,11 +39,15 @@ class NotificationType(Enum):
     WELCOME_EMAIL_SERIES = "WELCOME_EMAIL_SERIES"
 
 
+app_url = settings.APP_URL
+
+
 class UserData:
     def __init__(
         self,
         id: str,
         full_name: str,
+        profile_link: str,
         avatar_blurhash: Optional[str] = "",
         avatar_default_color: Optional[str] = "",
         avatar: Optional[str] = "",
@@ -55,6 +59,7 @@ class UserData:
         self.avatar_blurhash = avatar_blurhash
         self.avatar_default_color = avatar_default_color
         self.avatar_label = avatar_label
+        self.profile_link = profile_link
 
     def to_dict(self):
         return {
@@ -64,6 +69,7 @@ class UserData:
             "avatarBlurhash": self.avatar_blurhash,
             "avatarDefaultColor": self.avatar_default_color,
             "avatarLabel": self.avatar_label,
+            "profileLink": self.profile_link,
         }
 
     @classmethod
@@ -75,6 +81,7 @@ class UserData:
             avatar_blurhash=user.profile.avatar_blurhash if user.profile.avatar_blurhash else "",
             avatar_default_color=str(user.avatar_default_color) if user.avatar_default_color else "",
             avatar_label=user.avatar_label,
+            profile_link=f"{app_url}/profile/{user.username}",
         )
 
 
@@ -84,6 +91,8 @@ class SpaceData:
         id: str,
         title: str,
         name: str,
+        goal: str,
+        link: str,
         avatar_blurhash: str = "",
         avatar_default_color: str = "",
         avatar: Optional[str] = "",
@@ -91,16 +100,18 @@ class SpaceData:
         self.id = id
         self.name = name
         self.title = title
+        self.goal = goal
         self.avatar = avatar
         self.avatar_blurhash = avatar_blurhash
         self.avatar_default_color = avatar_default_color
-        self.link = f"/spaces/{self.id}"
+        self.link = link
 
     def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,
             "title": self.title,
+            "goal": self.goal,
             "avatar": self.avatar,
             "avatarBlurhash": self.avatar_blurhash,
             "avatarDefaultColor": self.avatar_default_color,
@@ -113,9 +124,11 @@ class SpaceData:
             id=str(community.id),
             name=community.name,
             title=community.title,
+            goal=community.description,
             avatar=community.avatar.url if community.avatar else "",
             avatar_blurhash=community.avatar_blurhash if community.avatar_blurhash else "",
             avatar_default_color=str(community.avatar_default_color) if community.avatar_default_color else "",
+            link=f"{app_url}/spaces/{community.name}",
         )
 
 
@@ -236,11 +249,12 @@ class InsightData:
         id: str,
         title: str,
         cover: str,
+        link: str,
     ):
         self.id = id
         self.title = title
         self.cover = cover
-        self.link = f"/insights/{self.id}"
+        self.link = link
 
     def to_dict(self):
         data = {
@@ -257,6 +271,7 @@ class InsightData:
             id=str(insight.id),
             title=insight.title,
             cover=insight.header_image.url,
+            link=f"{app_url}/insights/{insight.id}",
         )
 
 
