@@ -85,7 +85,7 @@ class Query:
                 reaction_count=Count("reactions"),
                 total_comments=Subquery(space_comments_subquery, output_field=models.IntegerField()),
             )
-            .order_by("-reaction_count", "-total_comments", "-created")
+            .order_by("-created", "-reaction_count", "-total_comments")
             .distinct()
         )
 
@@ -96,7 +96,7 @@ class Query:
                     reaction_count=Count("reactions"),
                     total_comments=Subquery(feed_post_comments_subquery, output_field=models.IntegerField()),
                 )
-                .order_by("-reaction_count", "-total_comments", "-created_at")
+                .order_by("-created_at", "-reaction_count", "-total_comments")
                 .all()
             )
 
@@ -119,7 +119,7 @@ class Query:
                 reaction_count=Count("reactions"),
                 total_comments=Coalesce(Subquery(feed_post_comments_subquery, output_field=models.IntegerField()), 0),
             )
-            .order_by("-reaction_count", "-total_comments", "-created_at")
+            .order_by("-created_at", "-reaction_count", "-total_comments")
             .all()
         )
 
