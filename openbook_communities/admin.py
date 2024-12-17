@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from openbook.helpers import publish_space_created_event, publish_space_user_added_event, publish_space_updated_event
+from openbook.events import publish_space_created_event, publish_space_user_added_event, publish_space_updated_event
 from openbook_communities.models import (
     CollaborationTool,
     Community,
