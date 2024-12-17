@@ -31,7 +31,7 @@ class SpaceCreatedEventTestCase(testcases.TestCase):
 
         event_dict = event.to_dict()
 
-        eventPayload = {"eventType": "SpaceCreated", "eventVersion": "1.0.0", "data": encoded_data}
+        eventPayload = {"eventType": "SpaceCreated", "eventVersion": "1.1.0", "data": encoded_data}
 
         self.assertEqual(eventPayload, event_dict)
 
@@ -52,7 +52,7 @@ class SpaceUserAddedEventTestCase(testcases.TestCase):
 
         event_dict = event.to_dict()
 
-        eventPayload = {"eventType": "SpaceUserAdded", "eventVersion": "1.0.0", "data": encoded_data}
+        eventPayload = {"eventType": "SpaceUserAdded", "eventVersion": "1.1.0", "data": encoded_data}
 
         self.assertEqual(eventPayload, event_dict)
 
@@ -71,7 +71,7 @@ class UserNameUpdatedEventTestCase(testcases.TestCase):
 
         event_dict = event.to_dict()
 
-        eventPayload = {"eventType": "UserNameUpdated", "eventVersion": "1.0.0", "data": encoded_data}
+        eventPayload = {"eventType": "UserNameUpdated", "eventVersion": "1.1.0", "data": encoded_data}
 
         self.assertEqual(eventPayload, event_dict)
 
@@ -90,7 +90,7 @@ class SpaceDeletedEventTestCase(testcases.TestCase):
 
         event_dict = event.to_dict()
 
-        eventPayload = {"eventType": "SpaceDeleted", "eventVersion": "1.0.0", "data": encoded_data}
+        eventPayload = {"eventType": "SpaceDeleted", "eventVersion": "1.1.0", "data": encoded_data}
 
         self.assertEqual(eventPayload, event_dict)
 
@@ -109,7 +109,7 @@ class UserDeletedEventTestCase(testcases.TestCase):
 
         event_dict = event.to_dict()
 
-        eventPayload = {"eventType": "UserDeleted", "eventVersion": "1.0.0", "data": encoded_data}
+        eventPayload = {"eventType": "UserDeleted", "eventVersion": "1.1.0", "data": encoded_data}
 
         self.assertEqual(eventPayload, event_dict)
 
@@ -130,7 +130,7 @@ class SpaceUserLeftEventTestCase(testcases.TestCase):
 
         event_dict = event.to_dict()
 
-        eventPayload = {"eventType": "SpaceUserLeft", "eventVersion": "1.0.0", "data": encoded_data}
+        eventPayload = {"eventType": "SpaceUserLeft", "eventVersion": "1.1.0", "data": encoded_data}
 
         self.assertEqual(eventPayload, event_dict)
 
@@ -151,6 +151,6 @@ class SpaceUserRemovedEventTestCase(testcases.TestCase):
 
         event_dict = event.to_dict()
 
-        eventPayload = {"eventType": "SpaceUserRemoved", "eventVersion": "1.0.0", "data": encoded_data}
+        eventPayload = {"eventType": "SpaceUserRemoved", "eventVersion": "1.1.0", "data": encoded_data}
 
         self.assertEqual(eventPayload, event_dict)
