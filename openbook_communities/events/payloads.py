@@ -32,7 +32,7 @@ class UserPayload:
             "email": self.email,
             "identity": self.identity,
             "avatar": self.avatar,
-            "about_me": self.about_me,
+            "aboutMe": self.about_me,
             "location": self.location,
         }
 
@@ -80,7 +80,7 @@ class SpacePayload:
             "avatarDefaultColor": self.avatarDefaultColor,
             "description": self.description,
             "location": self.location,
-            "location_lat_lng": (
+            "locationLatLng": (
                 {
                     "latitude": self.location_lat_lng.x,
                     "longitude": self.location_lat_lng.y,
