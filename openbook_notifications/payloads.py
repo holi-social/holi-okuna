@@ -93,6 +93,7 @@ class SpaceData:
         name: str,
         goal: str,
         link: str,
+        cover: str,
         avatar_blurhash: str = "",
         avatar_default_color: str = "",
         avatar: Optional[str] = "",
@@ -105,6 +106,7 @@ class SpaceData:
         self.avatar_blurhash = avatar_blurhash
         self.avatar_default_color = avatar_default_color
         self.link = link
+        self.cover = cover
 
     def to_dict(self):
         return {
@@ -116,6 +118,7 @@ class SpaceData:
             "avatarBlurhash": self.avatar_blurhash,
             "avatarDefaultColor": self.avatar_default_color,
             "link": self.link,
+            "cover": self.cover,
         }
 
     @classmethod
@@ -129,6 +132,7 @@ class SpaceData:
             avatar_blurhash=community.avatar_blurhash if community.avatar_blurhash else "",
             avatar_default_color=str(community.avatar_default_color) if community.avatar_default_color else "",
             link=f"{app_url}/spaces/{community.name}",
+            cover=community.cover.url if community.cover else "",
         )
 
 

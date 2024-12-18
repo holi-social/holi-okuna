@@ -109,6 +109,7 @@ class TestPayloads(TestCase):
             avatar_default_color="#FFF000",
             goal="test-goal",
             link=f"{settings.APP_URL}/spaces/{self.space.id}",
+            cover="cover.jpg",
         )
         result = space_data.to_dict()
 
@@ -123,6 +124,7 @@ class TestPayloads(TestCase):
                 "avatarDefaultColor": "#FFF000",
                 "goal": "test-goal",
                 "link": f"{settings.APP_URL}/spaces/{self.space.id}",
+                "cover": "cover.jpg",
             },
         )
 
@@ -141,6 +143,7 @@ class TestPayloads(TestCase):
                 "avatarDefaultColor": self.space.avatar_default_color,
                 "goal": self.space.description,
                 "link": f"{settings.APP_URL}/spaces/{self.space.name}",
+                "cover": self.space.cover.url if self.space.cover else "",
             },
         )
 
