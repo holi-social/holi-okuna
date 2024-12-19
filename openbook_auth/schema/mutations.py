@@ -15,7 +15,7 @@ from graphql import GraphQLError
 from rest_framework.exceptions import ValidationError
 
 from openbook_common.tracking import track, TrackingEvent
-from openbook.helpers import (
+from openbook.events import (
     publish_space_deleted_event,
     publish_user_deleted_event,
     publish_user_name_updated_event,
