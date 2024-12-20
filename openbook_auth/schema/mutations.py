@@ -137,7 +137,7 @@ class Mutation:
                 )
                 .filter(custom_order__isnull=False, is_deleted=False)
                 .distinct()
-                .order_by("custom_order", "-created")[:3]
+                .order_by("custom_order", "-created")[:4]
             )
 
             insights = insight_model.objects.order_by("-date_published")[:3]
