@@ -46,7 +46,7 @@ class UserPayload:
             identity=user.identity,
             avatar=avatar_url,
             about_me=user.profile.about_me,
-            location=user.profile.geolocation.name if user.profile.geolocation else None,
+            location=user.profile.location,
         )
 
 

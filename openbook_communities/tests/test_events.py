@@ -27,7 +27,7 @@ def expected_user_payload(user: User) -> dict[str, Any]:
         "identity": user.identity,
         "avatar": user.profile.avatar.url if user.profile.avatar else None,
         "aboutMe": user.profile.about_me,
-        "location": user.profile.geolocation.name if user.profile.geolocation else None,
+        "location": user.profile.location,
     }
 
 
