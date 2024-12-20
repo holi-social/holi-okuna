@@ -3,7 +3,7 @@ import traceback
 from django.contrib import admin
 from rangefilter.filters import DateRangeQuickSelectListFilterBuilder
 
-from openbook.events import publish_user_name_updated_event
+from openbook.helpers import publish_user_name_updated_event
 from openbook_auth.forms import UserProfileFormSet
 from openbook_auth.models import User, UserProfile
 import structlog
