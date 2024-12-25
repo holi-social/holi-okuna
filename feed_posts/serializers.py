@@ -58,9 +58,7 @@ class CreateFeedPostSerializer(serializers.Serializer):
         child=serializers.UUIDField(validators=[validate_topic_exists_by_id]),
     )
 
-    category_id = serializers.UUIDField(
-        required=False, allow_null=True, validators=[validate_feed_post_category_exists_by_id]
-    )
+    category_id = serializers.UUIDField(required=True, validators=[validate_feed_post_category_exists_by_id])
 
     image = RestrictedImageFileSizeField(
         allow_empty_file=False,
@@ -108,9 +106,7 @@ class UpdateFeedPostSerializer(serializers.Serializer):
         child=serializers.UUIDField(validators=[validate_topic_exists_by_id]),
     )
 
-    category_id = serializers.UUIDField(
-        required=False, allow_null=True, validators=[validate_feed_post_category_exists_by_id]
-    )
+    category_id = serializers.UUIDField(required=False, validators=[validate_feed_post_category_exists_by_id])
 
     image = RestrictedImageFileSizeField(
         allow_empty_file=False,

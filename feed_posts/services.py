@@ -23,16 +23,16 @@ class FeedPostService:
         title,
         visibility,
         description,
+        category_id,
         creator,
         image,
-        category_id=None,
         topic_ids=None,
         language=None,
         location=None,
         geolocation=None,
         images=None,
     ):
-        category = FeedPostCategory.objects.get(id=category_id) if category_id else None
+        category = FeedPostCategory.objects.get(id=category_id)
 
         urls = extract_urls_from_string(description)
 
@@ -103,7 +103,7 @@ class FeedPostService:
 
         self.checker.check_can_update_feed_post(user=user, post=post)
 
-        category = FeedPostCategory.objects.get(id=category_id) if category_id else None
+        category = FeedPostCategory.objects.get(id=category_id)
 
         topics = Topic.objects.filter(id__in=topic_ids) if topic_ids else None
 
