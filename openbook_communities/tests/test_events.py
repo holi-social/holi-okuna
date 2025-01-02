@@ -38,7 +38,6 @@ def expected_space_payload(community: Community) -> dict[str, Any]:
         "name": community.title,
         "slug": community.name,
         "avatar": community.avatar.url if community.avatar else None,
-        "avatarDefaultColor": community.avatar_default_color,
         "description": community.description,
         "location": community.location,
         "locationLatLng": (

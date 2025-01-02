@@ -57,7 +57,6 @@ class SpacePayload:
         name: str,
         slug: str,
         avatar: str,
-        avatar_default_color: str,
         description: Optional[str] = None,
         location: Optional[str] = None,
         location_lat_lng: Optional[Point] = None,
@@ -66,7 +65,6 @@ class SpacePayload:
         self.name = name
         self.avatar = avatar
         self.slug = slug
-        self.avatarDefaultColor = avatar_default_color
         self.description = description
         self.location = location
         self.location_lat_lng = location_lat_lng
@@ -77,7 +75,6 @@ class SpacePayload:
             "name": self.name,
             "slug": self.slug,
             "avatar": self.avatar,
-            "avatarDefaultColor": self.avatarDefaultColor,
             "description": self.description,
             "location": self.location,
             "locationLatLng": (
@@ -102,7 +99,6 @@ class SpacePayload:
             name=community.title,
             slug=community.name,
             avatar=avatarUrl,
-            avatar_default_color=community.avatar_default_color,
             description=community.description,
             location=community.location,
             location_lat_lng=community.geolocation,
