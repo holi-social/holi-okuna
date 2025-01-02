@@ -94,31 +94,18 @@ class UserDeletedEvent(Event):
 
 
 def publish_user_deleted_event(user: User):
-    try:
-        deleted_user = UserPayload.from_user(user)
-        event = UserDeletedEvent(deleted_user)
-        publish_event(event=event, topic=Topic.OKUNA.value)
-    except Exception as e:
-        logger.error(__generate_publish_failure_message(UserDeletedEvent), str(e))
+    deleted_user = UserPayload.from_user(user)
+    event = UserDeletedEvent(deleted_user)
+    publish_event(event=event, topic=Topic.OKUNA.value)
 
 
 def publish_user_name_updated_event(user: User):
-    try:
-        updated_user = UserPayload.from_user(user)
-        event = UserNameUpdatedEvent(updated_user)
-        publish_event(event=event, topic=Topic.OKUNA.value)
-    except Exception as e:
-        logger.error(__generate_publish_failure_message(UserNameUpdatedEvent), str(e))
+    updated_user = UserPayload.from_user(user)
+    event = UserNameUpdatedEvent(updated_user)
+    publish_event(event=event, topic=Topic.OKUNA.value)
 
 
 def publish_user_email_updated_event(user: User):
-    try:
-        updated_user = UserPayload.from_user(user)
-        event = UserEmailUpdatedEvent(updated_user)
-        publish_event(event=event, topic=Topic.OKUNA.value)
-    except Exception as e:
-        logger.error(__generate_publish_failure_message(UserEmailUpdatedEvent), str(e))
-
-
-def __generate_publish_failure_message(cls):
-    return f"Failed to publish {cls.__name__} event: %s"
+    updated_user = UserPayload.from_user(user)
+    event = UserEmailUpdatedEvent(updated_user)
+    publish_event(event=event, topic=Topic.OKUNA.value)
