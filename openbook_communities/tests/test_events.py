@@ -13,6 +13,7 @@ from openbook_communities.events import (
     SpaceDeletedEvent,
     SpaceUserAddedEvent,
     SpaceCreatedEvent,
+    SpaceUpdatedEvent,
 )
 from openbook_communities.models import Community
 
@@ -73,20 +74,22 @@ def test_serialization_space_created_event():
 
 
 @pytest.mark.django_db
-def test_serialization_space_user_added_event():
+def test_serialization_space_updated_event():
     # GIVEN
     user = make_user()
-    space = make_community()
+    space = make_community(creator=user)
 
     # WHEN
-    event = SpaceUserAddedEvent(UserPayload.from_user(user), SpacePayload.from_community(space))
+    event = SpaceUpdatedEvent(UserPayload.from_user(user), SpacePayload.from_community(space))
 
     # THEN
     expected_event_dict = {
-        "eventType": "SpaceUserAdded",
+        "eventType": "SpaceUpdated",
         "eventVersion": "1.1.0",
         "data": (
-            json.dumps({"user": expected_user_payload(user), "space": expected_space_payload(space)}).encode("utf-8")
+            json.dumps({"creator": expected_user_payload(user), "space": expected_space_payload(space)}).encode(
+                "utf-8"
+            )
         ),
     }
     assert event.to_dict() == expected_event_dict
@@ -105,6 +108,26 @@ def test_serialization_space_deleted_event():
         "eventType": "SpaceDeleted",
         "eventVersion": "1.1.0",
         "data": (json.dumps({"space": expected_space_payload(space)}).encode("utf-8")),
+    }
+    assert event.to_dict() == expected_event_dict
+
+
+@pytest.mark.django_db
+def test_serialization_space_user_added_event():
+    # GIVEN
+    user = make_user()
+    space = make_community()
+
+    # WHEN
+    event = SpaceUserAddedEvent(UserPayload.from_user(user), SpacePayload.from_community(space))
+
+    # THEN
+    expected_event_dict = {
+        "eventType": "SpaceUserAdded",
+        "eventVersion": "1.1.0",
+        "data": (
+            json.dumps({"user": expected_user_payload(user), "space": expected_space_payload(space)}).encode("utf-8")
+        ),
     }
     assert event.to_dict() == expected_event_dict
 
