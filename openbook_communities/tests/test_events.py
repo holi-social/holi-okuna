@@ -1,20 +1,19 @@
 import json
-import pytest
-
 from typing import Any
 
+import pytest
+
+from openbook_auth.events import UserPayload
 from openbook_auth.models import User
 from openbook_common.tests.helpers import make_community, make_user
-from openbook_communities.events.events import (
-    SpaceCreatedEvent,
+from openbook_communities.events import (
+    SpacePayload,
+    SpaceUserRemovedEvent,
+    SpaceUserLeftEvent,
     SpaceDeletedEvent,
     SpaceUserAddedEvent,
-    SpaceUserLeftEvent,
-    SpaceUserRemovedEvent,
-    UserDeletedEvent,
-    UserNameUpdatedEvent,
+    SpaceCreatedEvent,
 )
-from openbook_communities.events.payloads import SpacePayload, UserPayload
 from openbook_communities.models import Community
 
 
@@ -88,23 +87,6 @@ def test_should_create_space_user_added_event():
 
 
 @pytest.mark.django_db
-def test_should_create_user_name_updated_event():
-    # GIVEN
-    user = make_user()
-
-    # WHEN
-    event = UserNameUpdatedEvent(UserPayload.from_user(user))
-    event_dict = event.to_dict()
-
-    # THEN
-    data = {"user": expected_user_payload(user)}
-    encoded_data = json.dumps(data).encode("utf-8")
-    expected_event_dict = {"eventType": "UserNameUpdated", "eventVersion": "1.1.0", "data": encoded_data}
-
-    assert expected_event_dict == event_dict
-
-
-@pytest.mark.django_db
 def test_should_create_space_deleted_event():
     # GIVEN
     space = make_community()
@@ -117,23 +99,6 @@ def test_should_create_space_deleted_event():
     data = {"space": expected_space_payload(space)}
     encoded_data = json.dumps(data).encode("utf-8")
     expected_event_dict = {"eventType": "SpaceDeleted", "eventVersion": "1.1.0", "data": encoded_data}
-
-    assert expected_event_dict == event_dict
-
-
-@pytest.mark.django_db
-def test_should_create_user_deleted_event():
-    # GIVEN
-    user = make_user()
-
-    # WHEN
-    event = UserDeletedEvent(UserPayload.from_user(user))
-    event_dict = event.to_dict()
-
-    # THEN
-    data = {"user": expected_user_payload(user)}
-    encoded_data = json.dumps(data).encode("utf-8")
-    expected_event_dict = {"eventType": "UserDeleted", "eventVersion": "1.1.0", "data": encoded_data}
 
     assert expected_event_dict == event_dict
 

@@ -15,11 +15,8 @@ from graphql import GraphQLError
 from rest_framework.exceptions import ValidationError
 
 from openbook_common.tracking import track, TrackingEvent
-from openbook.events import (
-    publish_space_deleted_event,
-    publish_user_deleted_event,
-    publish_user_name_updated_event,
-)
+from openbook_communities.events import publish_space_deleted_event
+from openbook_auth.events import publish_user_deleted_event, publish_user_name_updated_event
 from openbook.utils import invalidate_discover_spaces_query_cache
 from openbook_auth.models import User as UserModel
 from favorites.models import UserFavorite
