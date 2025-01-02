@@ -22,34 +22,34 @@ def expected_user_payload(user: User) -> dict[str, Any]:
 
 
 @pytest.mark.django_db
-def test_should_create_user_name_updated_event():
+def test_serialization_user_name_updated_event():
     # GIVEN
     user = make_user()
 
     # WHEN
     event = UserNameUpdatedEvent(UserPayload.from_user(user))
-    event_dict = event.to_dict()
 
     # THEN
-    data = {"user": expected_user_payload(user)}
-    encoded_data = json.dumps(data).encode("utf-8")
-    expected_event_dict = {"eventType": "UserNameUpdated", "eventVersion": "1.1.0", "data": encoded_data}
-
-    assert expected_event_dict == event_dict
+    expected_event_dict = {
+        "eventType": "UserNameUpdated",
+        "eventVersion": "1.1.0",
+        "data": (json.dumps({"user": expected_user_payload(user)}).encode("utf-8")),
+    }
+    assert event.to_dict() == expected_event_dict
 
 
 @pytest.mark.django_db
-def test_should_create_user_deleted_event():
+def test_serialization_user_deleted_event():
     # GIVEN
     user = make_user()
 
     # WHEN
     event = UserDeletedEvent(UserPayload.from_user(user))
-    event_dict = event.to_dict()
 
     # THEN
-    data = {"user": expected_user_payload(user)}
-    encoded_data = json.dumps(data).encode("utf-8")
-    expected_event_dict = {"eventType": "UserDeleted", "eventVersion": "1.1.0", "data": encoded_data}
-
-    assert expected_event_dict == event_dict
+    expected_event_dict = {
+        "eventType": "UserDeleted",
+        "eventVersion": "1.1.0",
+        "data": (json.dumps({"user": expected_user_payload(user)}).encode("utf-8")),
+    }
+    assert event.to_dict() == expected_event_dict
