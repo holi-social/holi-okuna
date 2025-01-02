@@ -327,6 +327,7 @@ class TestUsers:
     # TODO HOLI-8088 remove test once update_authenticated_user is removed
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_updated_event")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     @mock.patch("openbook_auth.schema.mutations.track")
@@ -336,10 +337,11 @@ class TestUsers:
         mock_create_or_update_subscriber,
         mock_get_language_from_request,
         mock_publish_user_name_updated_event,
-        mock_patch,
+        mock_publish_user_updated_event,
+        mock_ory_patch,
     ):
-        response = self.create_response(200)
-        mock_patch.return_value = response
+        mock_ory_patch.return_value = self.create_response(200)
+
         user = make_user(name="Fritz", last_name="Meier", identity="fritz")
         community = make_community()
         community.add_member(user)
@@ -350,12 +352,6 @@ class TestUsers:
         first_name = "Peter"
         last_name = "Shaw"
         engagement_level = EngagementLevelChoice.INITIATOR
-
-        json_body = [
-            {"op": "add", "path": "/traits/given_name", "value": f"{first_name}"},
-            {"op": "add", "path": "/traits/family_name", "value": f"{last_name}"},
-            {"op": "add", "path": "/traits/name", "value": f"{first_name} {last_name}"},
-        ]
 
         request = HttpRequest()
         request.COOKIES = {}
@@ -388,7 +384,12 @@ class TestUsers:
 
         assert executed.errors is None
 
-        mock_patch.assert_called_once_with(
+        json_body = [
+            {"op": "add", "path": "/traits/given_name", "value": f"{first_name}"},
+            {"op": "add", "path": "/traits/family_name", "value": f"{last_name}"},
+            {"op": "add", "path": "/traits/name", "value": f"{first_name} {last_name}"},
+        ]
+        mock_ory_patch.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
             json=json_body,
@@ -409,6 +410,7 @@ class TestUsers:
         assert geos.GEOSGeometry(json.dumps(geolocation_geometry)) == persisted_profile.geolocation
 
         mock_publish_user_name_updated_event.assert_called_once_with(user=user)
+        mock_publish_user_updated_event.assert_called_once_with(user=user)
         mock_create_or_update_subscriber.assert_called_once_with(
             user=user, locale=mock_get_language_from_request.return_value
         )
@@ -416,6 +418,7 @@ class TestUsers:
 
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_updated_event")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     @mock.patch("openbook_auth.schema.mutations.track")
@@ -425,6 +428,7 @@ class TestUsers:
         mock_create_or_update_subscriber,
         mock_get_language_from_request,
         mock_publish_user_name_updated_event,
+        mock_publish_user_updated_event,
         mock_patch,
     ):
         response = self.create_response(200)
@@ -507,6 +511,7 @@ class TestUsers:
         assert geos.GEOSGeometry(json.dumps(geolocation_geometry)) == persisted_user.profile.geolocation
 
         mock_publish_user_name_updated_event.assert_called_once_with(user=user)
+        mock_publish_user_updated_event.assert_called_once_with(user=user)
         mock_create_or_update_subscriber.assert_called_once_with(
             user=user, locale=mock_get_language_from_request.return_value
         )
