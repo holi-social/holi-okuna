@@ -146,64 +146,42 @@ class SpaceEventType(Enum):
 
 
 def publish_space_created_event(community: Community):
-    try:
-        creator = UserPayload.from_user(community.creator)
-        space = SpacePayload.from_community(community)
-        event = SpaceCreatedEvent(creator, space)
-        publish_event(event=event, topic=PubSubTopic.OKUNA.value)
-    except Exception as e:
-        logger.error(__generate_publish_failure_message(SpaceCreatedEvent), str(e))
+    creator = UserPayload.from_user(community.creator)
+    space = SpacePayload.from_community(community)
+    event = SpaceCreatedEvent(creator, space)
+    publish_event(event=event, topic=PubSubTopic.OKUNA.value)
 
 
 def publish_space_updated_event(community: Community):
-    try:
-        creator = UserPayload.from_user(community.creator)
-        space = SpacePayload.from_community(community)
-        event = SpaceUpdatedEvent(creator, space)
-        publish_event(event=event, topic=PubSubTopic.OKUNA.value)
-    except Exception as e:
-        logger.error(__generate_publish_failure_message(SpaceUpdatedEvent), str(e))
+    creator = UserPayload.from_user(community.creator)
+    space = SpacePayload.from_community(community)
+    event = SpaceUpdatedEvent(creator, space)
+    publish_event(event=event, topic=PubSubTopic.OKUNA.value)
 
 
 def publish_space_user_added_event(username: str, community: Community):
-    try:
-        space_member: User = User.objects.get(username=username)
-        user = UserPayload.from_user(space_member)
-        space = SpacePayload.from_community(community)
-        event = SpaceUserAddedEvent(user, space)
-        publish_event(event=event, topic=PubSubTopic.OKUNA.value)
-    except Exception as e:
-        logger.error(__generate_publish_failure_message(SpaceUserAddedEvent), str(e))
+    space_member: User = User.objects.get(username=username)
+    user = UserPayload.from_user(space_member)
+    space = SpacePayload.from_community(community)
+    event = SpaceUserAddedEvent(user, space)
+    publish_event(event=event, topic=PubSubTopic.OKUNA.value)
 
 
 def publish_space_deleted_event(community: Community):
-    try:
-        space = SpacePayload.from_community(community)
-        event = SpaceDeletedEvent(space)
-        publish_event(event=event, topic=PubSubTopic.OKUNA.value)
-    except Exception as e:
-        logger.error(__generate_publish_failure_message(SpaceDeletedEvent), str(e))
+    space = SpacePayload.from_community(community)
+    event = SpaceDeletedEvent(space)
+    publish_event(event=event, topic=PubSubTopic.OKUNA.value)
 
 
 def publish_space_user_left_event(user: User, community: Community):
-    try:
-        user = UserPayload.from_user(user)
-        space = SpacePayload.from_community(community)
-        event = SpaceUserLeftEvent(user, space)
-        publish_event(event=event, topic=PubSubTopic.OKUNA.value)
-    except Exception as e:
-        logger.error(__generate_publish_failure_message(SpaceUserLeftEvent), str(e))
+    user = UserPayload.from_user(user)
+    space = SpacePayload.from_community(community)
+    event = SpaceUserLeftEvent(user, space)
+    publish_event(event=event, topic=PubSubTopic.OKUNA.value)
 
 
 def publish_space_user_removed_event(user: User, community: Community):
-    try:
-        user = UserPayload.from_user(user)
-        space = SpacePayload.from_community(community)
-        event = SpaceUserRemovedEvent(user, space)
-        publish_event(event=event, topic=PubSubTopic.OKUNA.value)
-    except Exception as e:
-        logger.error(__generate_publish_failure_message(SpaceUserRemovedEvent), str(e))
-
-
-def __generate_publish_failure_message(cls):
-    return f"Failed to publish {cls.__name__} event: %s"
+    user = UserPayload.from_user(user)
+    space = SpacePayload.from_community(community)
+    event = SpaceUserRemovedEvent(user, space)
+    publish_event(event=event, topic=PubSubTopic.OKUNA.value)

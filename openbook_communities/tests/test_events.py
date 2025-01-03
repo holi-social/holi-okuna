@@ -13,6 +13,7 @@ from openbook_communities.events import (
     SpaceDeletedEvent,
     SpaceUserAddedEvent,
     SpaceCreatedEvent,
+    SpaceUpdatedEvent,
 )
 from openbook_communities.models import Community
 
@@ -51,89 +52,121 @@ def expected_space_payload(community: Community) -> dict[str, Any]:
 
 
 @pytest.mark.django_db
-def test_should_create_space_created_event():
+def test_serialization_space_created_event():
     # GIVEN
     user = make_user()
     space = make_community(creator=user)
 
     # WHEN
     event = SpaceCreatedEvent(UserPayload.from_user(user), SpacePayload.from_community(space))
-    event_dict = event.to_dict()
 
     # THEN
-    data = {"creator": expected_user_payload(user), "space": expected_space_payload(space)}
-    encoded_data = json.dumps(data).encode("utf-8")
-    expected_event_dict = {"eventType": "SpaceCreated", "eventVersion": "1.1.0", "data": encoded_data}
-
-    assert expected_event_dict == event_dict
+    expected_event_dict = {
+        "eventType": "SpaceCreated",
+        "eventVersion": "1.1.0",
+        "data": (
+            json.dumps({"creator": expected_user_payload(user), "space": expected_space_payload(space)}).encode(
+                "utf-8"
+            )
+        ),
+    }
+    assert event.to_dict() == expected_event_dict
 
 
 @pytest.mark.django_db
-def test_should_create_space_user_added_event():
+def test_serialization_space_updated_event():
+    # GIVEN
+    user = make_user()
+    space = make_community(creator=user)
+
+    # WHEN
+    event = SpaceUpdatedEvent(UserPayload.from_user(user), SpacePayload.from_community(space))
+
+    # THEN
+    expected_event_dict = {
+        "eventType": "SpaceUpdated",
+        "eventVersion": "1.1.0",
+        "data": (
+            json.dumps({"creator": expected_user_payload(user), "space": expected_space_payload(space)}).encode(
+                "utf-8"
+            )
+        ),
+    }
+    assert event.to_dict() == expected_event_dict
+
+
+@pytest.mark.django_db
+def test_serialization_space_deleted_event():
+    # GIVEN
+    space = make_community()
+
+    # WHEN
+    event = SpaceDeletedEvent(SpacePayload.from_community(space))
+
+    # THEN
+    expected_event_dict = {
+        "eventType": "SpaceDeleted",
+        "eventVersion": "1.1.0",
+        "data": (json.dumps({"space": expected_space_payload(space)}).encode("utf-8")),
+    }
+    assert event.to_dict() == expected_event_dict
+
+
+@pytest.mark.django_db
+def test_serialization_space_user_added_event():
     # GIVEN
     user = make_user()
     space = make_community()
 
     # WHEN
     event = SpaceUserAddedEvent(UserPayload.from_user(user), SpacePayload.from_community(space))
-    event_dict = event.to_dict()
 
     # THEN
-    data = {"user": expected_user_payload(user), "space": expected_space_payload(space)}
-    encoded_data = json.dumps(data).encode("utf-8")
-    expected_event_dict = {"eventType": "SpaceUserAdded", "eventVersion": "1.1.0", "data": encoded_data}
-
-    assert expected_event_dict == event_dict
+    expected_event_dict = {
+        "eventType": "SpaceUserAdded",
+        "eventVersion": "1.1.0",
+        "data": (
+            json.dumps({"user": expected_user_payload(user), "space": expected_space_payload(space)}).encode("utf-8")
+        ),
+    }
+    assert event.to_dict() == expected_event_dict
 
 
 @pytest.mark.django_db
-def test_should_create_space_deleted_event():
-    # GIVEN
-    space = make_community()
-
-    # WHEN
-    event = SpaceDeletedEvent(SpacePayload.from_community(space))
-    event_dict = event.to_dict()
-
-    # THEN
-    data = {"space": expected_space_payload(space)}
-    encoded_data = json.dumps(data).encode("utf-8")
-    expected_event_dict = {"eventType": "SpaceDeleted", "eventVersion": "1.1.0", "data": encoded_data}
-
-    assert expected_event_dict == event_dict
-
-
-@pytest.mark.django_db
-def test_should_create_space_user_left_event():
+def test_serialization_space_user_left_event():
     # GIVEN
     user = make_user()
     space = make_community()
 
     # WHEN
     event = SpaceUserLeftEvent(UserPayload.from_user(user), SpacePayload.from_community(space))
-    event_dict = event.to_dict()
 
     # THEN
-    data = {"user": expected_user_payload(user), "space": expected_space_payload(space)}
-    encoded_data = json.dumps(data).encode("utf-8")
-    expected_event_dict = {"eventType": "SpaceUserLeft", "eventVersion": "1.1.0", "data": encoded_data}
-
-    assert expected_event_dict == event_dict
+    expected_event_dict = {
+        "eventType": "SpaceUserLeft",
+        "eventVersion": "1.1.0",
+        "data": (
+            json.dumps({"user": expected_user_payload(user), "space": expected_space_payload(space)}).encode("utf-8")
+        ),
+    }
+    assert event.to_dict() == expected_event_dict
 
 
 @pytest.mark.django_db
-def test_should_create_space_user_removed_event():
+def test_serialization_space_user_removed_event():
     # GIVEN
     user = make_user()
     space = make_community()
 
     # WHEN
     event = SpaceUserRemovedEvent(UserPayload.from_user(user), SpacePayload.from_community(space))
-    event_dict = event.to_dict()
 
     # THEN
-    data = {"user": expected_user_payload(user), "space": expected_space_payload(space)}
-    encoded_data = json.dumps(data).encode("utf-8")
-    expected_event_dict = {"eventType": "SpaceUserRemoved", "eventVersion": "1.1.0", "data": encoded_data}
-
-    assert expected_event_dict == event_dict
+    expected_event_dict = {
+        "eventType": "SpaceUserRemoved",
+        "eventVersion": "1.1.0",
+        "data": (
+            json.dumps({"user": expected_user_payload(user), "space": expected_space_payload(space)}).encode("utf-8")
+        ),
+    }
+    assert event.to_dict() == expected_event_dict
