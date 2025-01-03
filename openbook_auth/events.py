@@ -57,7 +57,19 @@ class UserPayload:
 class UserEventType(Enum):
     USER_NAME_UPDATED = "UserNameUpdated"
     USER_EMAIL_UPDATED = "UserEmailUpdated"
+    USER_UPDATED = "UserUpdated"
     USER_DELETED = "UserDeleted"
+
+
+class UserUpdatedEvent(Event):
+    EVENT_VERSION = "1.1.0"
+
+    def __init__(self, user: UserPayload):
+        super().__init__(
+            data={"user": user.to_dict()},
+            event_type=UserEventType.USER_UPDATED.value,
+            event_version=UserUpdatedEvent.EVENT_VERSION,
+        )
 
 
 class UserNameUpdatedEvent(Event):
@@ -102,6 +114,12 @@ def publish_user_deleted_event(user: User):
 def publish_user_name_updated_event(user: User):
     updated_user = UserPayload.from_user(user)
     event = UserNameUpdatedEvent(updated_user)
+    publish_event(event=event, topic=Topic.OKUNA.value)
+
+
+def publish_user_updated_event(user: User):
+    updated_user = UserPayload.from_user(user)
+    event = UserUpdatedEvent(updated_user)
     publish_event(event=event, topic=Topic.OKUNA.value)
 
 

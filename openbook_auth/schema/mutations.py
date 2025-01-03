@@ -16,7 +16,11 @@ from rest_framework.exceptions import ValidationError
 
 from openbook_common.tracking import track, TrackingEvent
 from openbook_communities.events import publish_space_deleted_event
-from openbook_auth.events import publish_user_deleted_event, publish_user_name_updated_event
+from openbook_auth.events import (
+    publish_user_deleted_event,
+    publish_user_name_updated_event,
+    publish_user_updated_event,
+)
 from openbook.utils import invalidate_discover_spaces_query_cache
 from openbook_auth.models import User as UserModel
 from favorites.models import UserFavorite
@@ -92,6 +96,8 @@ class Mutation:
         if input.first_name or input.last_name or input.avatar or remove_avatar:
             update_ory_user_names(current_user.id)
             publish_user_name_updated_event(user=current_user)
+
+        publish_user_updated_event(user=current_user)
 
         locale = get_language_from_request(info.context.request)
         NotificationApi.create_or_update_subscriber(user=current_user, locale=locale)
