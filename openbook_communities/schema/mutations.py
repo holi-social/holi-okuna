@@ -8,11 +8,11 @@ from django.db import transaction
 from graphql import GraphQLError
 
 from openbook.graphql_errors import GraphQLErrorCodes
-from openbook.helpers import (
+from openbook_communities.events import (
     publish_space_created_event,
     publish_space_updated_event,
-    publish_space_deleted_event,
     publish_space_user_added_event,
+    publish_space_deleted_event,
     publish_space_user_left_event,
     publish_space_user_removed_event,
 )

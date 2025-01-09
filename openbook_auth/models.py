@@ -196,7 +196,14 @@ class User(ModelWithUUID, AbstractUser):
         related_name="translation_users",
     )
 
-    email = models.EmailField(_("email address"), unique=True, null=False, blank=False)
+    email = models.CharField(
+        _("email address"),
+        max_length=settings.USER_EMAIL_MAX_LENGTH,
+        unique=True,
+        null=False,
+        blank=False,
+    )
+
     connections_circle = models.ForeignKey(
         "openbook_circles.Circle",
         on_delete=models.CASCADE,

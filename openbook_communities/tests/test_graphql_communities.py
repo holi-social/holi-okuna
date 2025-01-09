@@ -17,6 +17,7 @@ from django.test import AsyncClient
 from requests.models import Response
 
 from openbook.graphql_schema import schema
+from openbook.settings import COMMUNITY_TITLE_MAX_LENGTH, COMMUNITY_DESCRIPTION_MAX_LENGTH
 from openbook.tests.test_data import geolocation, geolocation_geometry
 from openbook_common.enums import VisibilityType
 from openbook_common.tests.helpers import (
@@ -2549,10 +2550,14 @@ class TestCommunities(TestCase):
             {"field": "title", "value": "", "expected_code": "blank"},
             {"field": "title", "value": "  ", "expected_code": "blank"},
             {"field": "title", "value": "f", "expected_code": "min_length"},
-            {"field": "title", "value": "f" * 61, "expected_code": "max_length"},
+            {"field": "title", "value": "f" * (COMMUNITY_TITLE_MAX_LENGTH + 1), "expected_code": "max_length"},
             {"field": "description", "value": None, "expected_code": "null"},
             {"field": "description", "value": "", "expected_code": "blank"},
-            {"field": "description", "value": "f" * 601, "expected_code": "max_length"},
+            {
+                "field": "description",
+                "value": "f" * (COMMUNITY_DESCRIPTION_MAX_LENGTH + 1),
+                "expected_code": "max_length",
+            },
             {"field": "topics", "value": None, "expected_code": "null"},
             {"field": "topics", "value": [], "expected_code": "min_length"},
             {"field": "topics", "value": topic_ids, "expected_code": "max_length"},
@@ -2709,10 +2714,14 @@ class TestCommunities(TestCase):
             {"field": "title", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "title", "value": "", "expected_code": "blank"},
             {"field": "title", "value": "f", "expected_code": "min_length"},
-            {"field": "title", "value": "f" * 61, "expected_code": "max_length"},
+            {"field": "title", "value": "f" * (COMMUNITY_TITLE_MAX_LENGTH + 1), "expected_code": "max_length"},
             {"field": "description", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "description", "value": "", "expected_code": "blank"},
-            {"field": "description", "value": "f" * 601, "expected_code": "max_length"},
+            {
+                "field": "description",
+                "value": "f" * (COMMUNITY_DESCRIPTION_MAX_LENGTH + 1),
+                "expected_code": "max_length",
+            },
             {"field": "topics", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "topics", "value": [], "expected_code": "min_length"},
             {"field": "topics", "value": topic_ids, "expected_code": "max_length"},
@@ -2848,9 +2857,13 @@ class TestCommunities(TestCase):
             {"field": "id", "value": invalid_uuid, "expected_error": "No community with the provided id exists."},
             {"field": "title", "value": "", "expected_code": "blank"},
             {"field": "title", "value": "f", "expected_code": "min_length"},
-            {"field": "title", "value": "f" * 61, "expected_code": "max_length"},
+            {"field": "title", "value": "f" * (COMMUNITY_TITLE_MAX_LENGTH + 1), "expected_code": "max_length"},
             {"field": "description", "value": "", "expected_code": "blank"},
-            {"field": "description", "value": "f" * 601, "expected_code": "max_length"},
+            {
+                "field": "description",
+                "value": "f" * (COMMUNITY_DESCRIPTION_MAX_LENGTH + 1),
+                "expected_code": "max_length",
+            },
             {"field": "topics", "value": [], "expected_code": "min_length"},
             {"field": "topics", "value": topic_ids, "expected_code": "max_length"},
             {

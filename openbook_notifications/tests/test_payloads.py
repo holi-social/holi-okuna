@@ -4,6 +4,7 @@ import pytest
 from django.test import TestCase
 from novu.api import EventApi
 
+from openbook import settings
 from openbook_common.tests.helpers import (
     make_community,
     make_community_post,
@@ -64,6 +65,7 @@ class TestPayloads(TestCase):
             avatar_blurhash="test_blurhash",
             avatar_default_color="#FFF000",
             avatar_label="TU",
+            profile_link=f"{settings.APP_URL}/profile/test-user-id",
         )
         result = user_data.to_dict()
 
@@ -76,6 +78,7 @@ class TestPayloads(TestCase):
                 "avatarBlurhash": "test_blurhash",
                 "avatarDefaultColor": "#FFF000",
                 "avatarLabel": "TU",
+                "profileLink": f"{settings.APP_URL}/profile/test-user-id",
             },
         )
 
@@ -92,29 +95,36 @@ class TestPayloads(TestCase):
                 "avatarBlurhash": "",
                 "avatarDefaultColor": self.user.avatar_default_color,
                 "avatarLabel": self.user.avatar_label,
+                "profileLink": f"{settings.APP_URL}/profile/{self.user.username}",
             },
         )
 
     def test_space_data_to_dict(self):
         space_data = SpaceData(
-            id="test-space-id",
+            id=self.space.id,
             name="test-space",
             title="Test Space",
             avatar="avatar.jpg",
             avatar_blurhash="test-blurhash",
             avatar_default_color="#FFF000",
+            goal="test-goal",
+            link=f"{settings.APP_URL}/spaces/{self.space.id}",
+            cover="cover.jpg",
         )
         result = space_data.to_dict()
 
         self.assertEqual(
             result,
             {
-                "id": "test-space-id",
+                "id": self.space.id,
                 "name": "test-space",
                 "title": "Test Space",
                 "avatar": "avatar.jpg",
                 "avatarBlurhash": "test-blurhash",
                 "avatarDefaultColor": "#FFF000",
+                "goal": "test-goal",
+                "link": f"{settings.APP_URL}/spaces/{self.space.id}",
+                "cover": "cover.jpg",
             },
         )
 
@@ -131,6 +141,9 @@ class TestPayloads(TestCase):
                 "avatar": "",
                 "avatarBlurhash": "",
                 "avatarDefaultColor": self.space.avatar_default_color,
+                "goal": self.space.description,
+                "link": f"{settings.APP_URL}/spaces/{self.space.name}",
+                "cover": self.space.cover.url if self.space.cover else "",
             },
         )
 

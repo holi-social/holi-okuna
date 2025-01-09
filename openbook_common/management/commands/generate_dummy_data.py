@@ -15,7 +15,7 @@ from faker import Faker
 from feed_posts.enums import VisibilityLevel
 from feed_posts.models import FeedPost
 from openbook import settings
-from openbook.helpers import publish_user_name_updated_event
+from openbook_auth.events import publish_user_name_updated_event
 from openbook_auth.models import User
 from openbook_auth.tasks import generate_identity_when_needed
 from openbook_common.tests.helpers import (
