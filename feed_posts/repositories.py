@@ -26,7 +26,7 @@ class FeedPostRepository:
         geolocation,
         images,
     ):
-        if creator.role == UserRole.CO_FOUNDER and category.slug == "founder-update":
+        if creator.role == UserRole.CO_FOUNDER and category is not None and category.slug == "founder-update":
             priority_duration = 2
         else:
             priority_duration = 0
