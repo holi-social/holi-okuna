@@ -38,6 +38,23 @@ resource "google_pubsub_topic" "okuna_staging" {
   depends_on = [google_kms_crypto_key_iam_member.pubsub_okuna, google_kms_crypto_key_iam_member.pubsub_okuna_old]
 }
 
+resource "google_pubsub_topic" "okuna_staging_dlq" {
+  project      = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
+  name         = "okuna_staging_dlq"
+  kms_key_name = google_kms_crypto_key.pubsub_okuna.id
+
+  message_retention_duration = "2592000s" # 30 days
+
+  message_storage_policy {
+    allowed_persistence_regions = [local.default_region]
+  }
+}
+
+resource "google_pubsub_subscription" "okuna_staging_dlq" {
+  topic = google_pubsub_topic.okuna_staging_dlq.name
+  name  = "okuna_staging_dlq_sub"
+}
+
 resource "google_pubsub_topic" "okuna_production" {
   project      = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
   name         = "okuna_production"
@@ -47,10 +64,35 @@ resource "google_pubsub_topic" "okuna_production" {
   }
 }
 
+resource "google_pubsub_topic" "okuna_production_dlq" {
+  project      = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
+  name         = "okuna_production_dlq"
+  kms_key_name = google_kms_crypto_key.pubsub_okuna.id
+
+  message_retention_duration = "2592000s" # 30 days
+
+  message_storage_policy {
+    allowed_persistence_regions = [local.default_region]
+  }
+}
+
+resource "google_pubsub_subscription" "okuna_production_dlq" {
+  topic = google_pubsub_topic.okuna_production_dlq.name
+  name  = "okuna_production_dlq_sub"
+}
+
 output "google_pubsub_topic_okuna_staging" {
   value = google_pubsub_topic.okuna_staging.id
 }
 
+output "google_pubsub_topic_okuna_staging_dlq" {
+  value = google_pubsub_topic.okuna_staging_dlq.id
+}
+
 output "google_pubsub_topic_okuna_production" {
   value = google_pubsub_topic.okuna_production.id
+}
+
+output "google_pubsub_topic_okuna_production_dlq" {
+  value = google_pubsub_topic.okuna_production_dlq.id
 }
