@@ -1,4 +1,5 @@
 from django.contrib import admin
+from rangefilter.filters import DateRangeQuickSelectListFilterBuilder
 
 from openbook_communities.events import (
     publish_space_created_event,
@@ -103,8 +104,8 @@ class CommunityAdmin(admin.ModelAdmin):
 
 @admin.register(CommunityMembership)
 class CommunityMembershipAdmin(admin.ModelAdmin):
-    list_display = ("id", "community", "user", "is_administrator")
-    list_filter = ("is_administrator",)
+    list_display = ("id", "community", "user", "is_administrator", "created")
+    list_filter = ("is_administrator", ("created", DateRangeQuickSelectListFilterBuilder(title="Created")))
     search_fields = ("community__title", "community__creator__email", "user__email")
 
 
