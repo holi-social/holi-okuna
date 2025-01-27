@@ -207,6 +207,9 @@ staging_trigger_unified-api_redeployment:
   trigger:
     project: 'app/holi-unified-api'
     branch: 'main'
+    forward:
+      yaml_variables: false
+      pipeline_variables: false
   only:
     - main
   resource_group: unified-api-staging
@@ -233,6 +236,9 @@ production_trigger_unified-api_redeployment:
   trigger:
     project: 'app/holi-unified-api'
     branch: 'production'
+    forward:
+      yaml_variables: false
+      pipeline_variables: false
   only:
     - production
   resource_group: unified-api-production
