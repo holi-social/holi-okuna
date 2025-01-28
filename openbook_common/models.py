@@ -1,25 +1,26 @@
 from __future__ import annotations
+
 import uuid
+from typing import List
 from urllib.parse import urlparse, urljoin, urlsplit
 
+import requests
+import tldextract
+from bs4 import BeautifulSoup
 from django.conf import settings
-from django.core.validators import RegexValidator
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Q
+from django.core.validators import RegexValidator
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from ordered_model.models import OrderedModel
 from requests import RequestException
 
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
-from openbook_common.helpers import extract_urls_from_string, attr_filled
 from openbook_common.enums import NeedUpdateType
+from openbook_common.helpers import extract_urls_from_string, attr_filled
 from openbook_common.utils.helpers import normalize_url
 from openbook_common.validators import hex_color_validator
-import tldextract
-import requests
-from bs4 import BeautifulSoup
-from typing import List
 
 
 class ModelWithUUID(models.Model):
@@ -172,20 +173,24 @@ class LinkPreview(ModelWithUUID):
         if link_urls:
             for link_url in link_urls:
                 preview = cls.from_url(link_url)
-                if preview.has_data():
+                if preview and preview.has_data():
                     previews.append(preview)
         return previews
 
     @classmethod
     def from_url(cls, url):
         normalized_url = normalize_url(url)
-        preview, created = cls.objects.get_or_create(requested_url=normalized_url)
-        if not created and preview.fetched_at > timezone.now() - timezone.timedelta(
+        preview = cls.objects.filter(requested_url=normalized_url).first()
+        if preview and preview.fetched_at > timezone.now() - timezone.timedelta(
             hours=settings.LINK_PREVIEW_CACHE_TIME_H
         ):
             return preview
 
         html = LinkPreview._fetch_html_of_url(normalized_url)
+        if not html:
+            return None
+
+        preview = cls.objects.create()
         og = cls.get_opengraph(html, url=normalized_url)
         preview.fetched_at = timezone.now()
 
@@ -201,13 +206,18 @@ class LinkPreview(ModelWithUUID):
 
     @staticmethod
     def _fetch_html_of_url(url: str) -> BeautifulSoup:
-        response = requests.get(url=url, timeout=10)
-        if hasattr(response, "apparent_encoding") and response.apparent_encoding:
-            response.encoding = response.apparent_encoding
-        else:
-            response.encoding = "utf-8"  # Set to utf-8 by default if apparent_encoding is not found
+        try:
+            response = requests.get(url=url, timeout=10)
+            if not response.ok:
+                return None
+            if hasattr(response, "apparent_encoding") and response.apparent_encoding:
+                response.encoding = response.apparent_encoding
+            else:
+                response.encoding = "utf-8"  # Set to utf-8 by default if apparent_encoding is not found
 
-        return BeautifulSoup(response.text, "html.parser")
+            return BeautifulSoup(response.text, "html.parser")
+        except requests.exceptions.RequestException:
+            return None
 
     @classmethod
     def get_opengraph(cls, html: BeautifulSoup, url: str) -> dict[str, str]:

@@ -2,6 +2,7 @@ from unittest import mock
 
 from django.test import TestCase
 from django.utils import timezone
+from requests import RequestException
 
 from openbook_common.models import LinkPreview
 from openbook_common.utils.test import MockResponse
@@ -129,3 +130,20 @@ class LinkPreviewTestCase(TestCase):
         self.assertEqual(preview2.description, "MySecondDescription")
         self.assertEqual(preview2.type, "other")
         self.assertEqual(preview2.image, "https://mysecond.url/secondimage.jpg")
+
+    @mock.patch("requests.get")
+    def test_unsuccessfull_response(self, mock_get):
+        mock_get.return_value = MockResponse(
+            "",
+            False,
+        )
+        previews = LinkPreview.parse_text("www.my.de")
+        self.assertIn(mock.call(url="http://www.my.de/", timeout=10), mock_get.call_args_list)
+        self.assertEqual(0, len(previews))
+
+    @mock.patch("requests.get")
+    def test_no_response(self, mock_get):
+        mock_get.side_effect = RequestException()
+        previews = LinkPreview.parse_text("www.my.de")
+        self.assertIn(mock.call(url="http://www.my.de/", timeout=10), mock_get.call_args_list)
+        self.assertEqual(0, len(previews))
