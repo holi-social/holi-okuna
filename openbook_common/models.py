@@ -180,17 +180,18 @@ class LinkPreview(ModelWithUUID):
     @classmethod
     def from_url(cls, url):
         normalized_url = normalize_url(url)
-        preview = cls.objects.filter(requested_url=normalized_url).first()
-        if preview and preview.fetched_at > timezone.now() - timezone.timedelta(
+        preview, created = cls.objects.get_or_create(requested_url=normalized_url)
+        if not created and preview.fetched_at > timezone.now() - timezone.timedelta(
             hours=settings.LINK_PREVIEW_CACHE_TIME_H
         ):
             return preview
 
         html = LinkPreview._fetch_html_of_url(normalized_url)
         if not html:
+            if preview:
+                preview.delete()
             return None
 
-        preview = cls.objects.create()
         og = cls.get_opengraph(html, url=normalized_url)
         preview.fetched_at = timezone.now()
 

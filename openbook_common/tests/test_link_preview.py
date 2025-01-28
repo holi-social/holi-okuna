@@ -1,5 +1,6 @@
 from unittest import mock
 
+from django.conf import settings
 from django.test import TestCase
 from django.utils import timezone
 from requests import RequestException
@@ -133,10 +134,7 @@ class LinkPreviewTestCase(TestCase):
 
     @mock.patch("requests.get")
     def test_unsuccessfull_response(self, mock_get):
-        mock_get.return_value = MockResponse(
-            "",
-            False,
-        )
+        mock_get.return_value = MockResponse("", False)
         previews = LinkPreview.parse_text("www.my.de")
         self.assertIn(mock.call(url="http://www.my.de/", timeout=10), mock_get.call_args_list)
         self.assertEqual(0, len(previews))
@@ -144,6 +142,32 @@ class LinkPreviewTestCase(TestCase):
     @mock.patch("requests.get")
     def test_no_response(self, mock_get):
         mock_get.side_effect = RequestException()
+        previews = LinkPreview.parse_text("www.my.de")
+        self.assertIn(mock.call(url="http://www.my.de/", timeout=10), mock_get.call_args_list)
+        self.assertEqual(0, len(previews))
+
+    @mock.patch("requests.get")
+    def test_previous_preview_no_longer_exists(self, mock_get):
+        mock_get.return_value = MockResponse(
+            """
+            <html><head>
+            <meta property="og:url" content="https://my.url/xyz" />
+            <meta property="og:type" content="website" />
+            <meta property="og:title" content="MyTitle" />
+            <meta property="og:site_name" content="MySite" />
+            <meta property="og:description" content="MyDescription" />
+            <meta property="og:image" content="https://www.my.url/image.jpg" />
+            </head></html>
+            """
+        )
+        previews = LinkPreview.parse_text("www.my.de")
+        self.assertIn(mock.call(url="http://www.my.de/", timeout=10), mock_get.call_args_list)
+        self.assertEqual(1, len(previews))
+        preview = previews[0]
+        preview.fetched_at = timezone.now() - timezone.timedelta(hours=(settings.LINK_PREVIEW_CACHE_TIME_H + 1))
+        preview.save()
+
+        mock_get.return_value = MockResponse("", False)
         previews = LinkPreview.parse_text("www.my.de")
         self.assertIn(mock.call(url="http://www.my.de/", timeout=10), mock_get.call_args_list)
         self.assertEqual(0, len(previews))
