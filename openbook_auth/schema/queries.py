@@ -10,6 +10,7 @@ from django.db.models.functions import Concat
 from django.db.models.lookups import IContains
 
 from openbook_auth.models import User as UserModel, UserBlock as UserBlockModel
+from openbook_auth.schema.helpers import get_ordered_user_connections
 from openbook_auth.schema.types import User, AuthenticatedUser
 from openbook_auth.utils import verify_authorized_user, check_max_limit
 from openbook_common.validators import string_not_empty
@@ -115,6 +116,17 @@ class Query:
         current_user = verify_authorized_user(info)
 
         return Paged.of(current_user.connected_users(), offset, limit)
+
+    @strawberry_django.field()
+    def my_connections(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
+        current_user = verify_authorized_user(info)
+        return get_ordered_user_connections(circle_id=current_user.connections_circle_id, offset=offset, limit=limit)
+
+    @strawberry_django.field()
+    def connections_by_user_id(self, info, user_id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[User]:
+        verify_authorized_user(info)
+        user = UserModel.objects.get(id=user_id)
+        return get_ordered_user_connections(circle_id=user.connections_circle_id, offset=offset, limit=limit)
 
     @strawberry_django.field(
         deprecation_reason="This query is deprecated. Please switch to using the 'favorites' query instead."
