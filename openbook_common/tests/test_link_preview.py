@@ -153,10 +153,10 @@ class LinkPreviewTestCase(TestCase):
 
     def parse_empty_response(self, url, mock_get):
         previews = LinkPreview.parse_text(url)
-        self.assertIn(mock.call(url="http://www.my.de/", timeout=10), mock_get.call_args_list)
+        self.assertIn(mock.call(url=f"http://{url}/", timeout=10), mock_get.call_args_list)
         self.assertEqual(1, len(previews))
         preview = previews[0]
-        self.assertEqual(preview.requested_url, "http://www.my.de/")
+        self.assertEqual(preview.requested_url, f"http://{url}/")
         self.assertEqual(preview.url, "")
         self.assertEqual(preview.title, "")
         self.assertEqual(preview.description, "")
