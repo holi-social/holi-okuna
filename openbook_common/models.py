@@ -188,11 +188,7 @@ class LinkPreview(ModelWithUUID):
 
         preview.fetched_at = timezone.now()
         html = LinkPreview._fetch_html_of_url(normalized_url)
-        if not html:
-            if not created:
-                for field in cls.fields:
-                    setattr(preview, field[3:], "")
-        else:
+        if html:
             og = cls.get_opengraph(html, url=normalized_url)
 
             for field in cls.fields:
@@ -201,6 +197,10 @@ class LinkPreview(ModelWithUUID):
                     setattr(preview, field[3:], value)
 
             preview.icon = LinkPreview._fetch_icon(html, url=normalized_url)
+        else:
+            if not created:
+                for field in cls.fields:
+                    setattr(preview, field[3:], "")
 
         preview.save()
         return preview
