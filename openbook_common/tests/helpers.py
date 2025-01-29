@@ -85,6 +85,7 @@ def make_user(
     tracking_consent_personalization=False,
     role: UserRole = UserRole.REGULAR,
     is_employee: bool = False,
+    engagement_level=None,
 ) -> User:
     defined_arguments = {k: v for k, v in locals().items() if v is not None}
     defined_arguments.setdefault("username", str(uuid.uuid4()))
@@ -272,11 +273,11 @@ def make_category():
     return mixer.blend(Category)
 
 
-def make_topic(is_discover_spaces_default=False):
+def make_topic(is_discover_spaces_default=False) -> Topic:
     return mixer.blend(Topic, is_discover_spaces_default=is_discover_spaces_default)
 
 
-def make_sdg():
+def make_sdg() -> SDG:
     return mixer.blend(SDG)
 
 
@@ -290,7 +291,7 @@ def make_community_topics():
     return community_topics
 
 
-def make_skill():
+def make_skill() -> Skill:
     return mixer.blend(Skill)
 
 
