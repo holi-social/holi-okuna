@@ -45,14 +45,23 @@ class LinkPreviewTestCase(TestCase):
         self.assertTrue(timezone.now() - timezone.timedelta(seconds=3) <= preview.fetched_at <= timezone.now())
 
     @mock.patch("requests.get")
-    def test_preview_without_data_is_note_returned(self, mock_get):
+    def test_preview_without_data_gives_empty_preview(self, mock_get):
         mock_get.return_value = MockResponse("<html>no opengraph</html>")
         previews = LinkPreview.parse_text("www.abcd.de")
         previews2 = LinkPreview.parse_text("www.abcd.de")
         self.assertIn(mock.call(url="http://www.abcd.de/", timeout=10), mock_get.call_args_list)
         self.assertEqual(1, len(mock_get.call_args_list))
         self.assertEqual(previews, previews2)
-        self.assertEqual(previews, [])
+        self.assertEqual(1, len(previews))
+        preview = previews[0]
+        self.assertEqual(preview.has_data(), False)
+        self.assertEqual(preview.requested_url, "http://www.abcd.de/")
+        self.assertEqual(preview.url, "")
+        self.assertEqual(preview.title, "")
+        self.assertEqual(preview.description, "")
+        self.assertEqual(preview.type, "")
+        self.assertEqual(preview.image, "")
+        self.assertTrue(timezone.now() - timezone.timedelta(seconds=3) <= preview.fetched_at <= timezone.now())
 
     @mock.patch("requests.get")
     def test_page_with_opengraph_gives_preview(self, mock_get):
@@ -135,16 +144,24 @@ class LinkPreviewTestCase(TestCase):
     @mock.patch("requests.get")
     def test_unsuccessfull_response(self, mock_get):
         mock_get.return_value = MockResponse("", False)
-        previews = LinkPreview.parse_text("www.my.de")
-        self.assertIn(mock.call(url="http://www.my.de/", timeout=10), mock_get.call_args_list)
-        self.assertEqual(0, len(previews))
+        self.parse_empty_response("www.my.de", mock_get)
 
     @mock.patch("requests.get")
     def test_no_response(self, mock_get):
         mock_get.side_effect = RequestException()
-        previews = LinkPreview.parse_text("www.my.de")
+        self.parse_empty_response("www.my.de", mock_get)
+
+    def parse_empty_response(self, url, mock_get):
+        previews = LinkPreview.parse_text(url)
         self.assertIn(mock.call(url="http://www.my.de/", timeout=10), mock_get.call_args_list)
-        self.assertEqual(0, len(previews))
+        self.assertEqual(1, len(previews))
+        preview = previews[0]
+        self.assertEqual(preview.requested_url, "http://www.my.de/")
+        self.assertEqual(preview.url, "")
+        self.assertEqual(preview.title, "")
+        self.assertEqual(preview.description, "")
+        self.assertEqual(preview.type, "")
+        self.assertEqual(preview.image, "")
 
     @mock.patch("requests.get")
     def test_previous_preview_no_longer_exists(self, mock_get):
@@ -168,6 +185,4 @@ class LinkPreviewTestCase(TestCase):
         preview.save()
 
         mock_get.return_value = MockResponse("", False)
-        previews = LinkPreview.parse_text("www.my.de")
-        self.assertIn(mock.call(url="http://www.my.de/", timeout=10), mock_get.call_args_list)
-        self.assertEqual(0, len(previews))
+        self.parse_empty_response("www.my.de", mock_get)
