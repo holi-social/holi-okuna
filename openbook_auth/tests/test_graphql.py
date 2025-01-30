@@ -562,6 +562,7 @@ class TestUsers:
         self._validate_tracking_event_user_updated(mock_track, {})
         mock_track.reset_mock()
 
+        # should not contain updated_fields if field values didn't change
         update_user({"firstName": "John", "lastName": "Doe"})
         self._validate_tracking_event_user_updated(mock_track, {})
         mock_track.reset_mock()

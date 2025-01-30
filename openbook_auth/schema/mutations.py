@@ -58,7 +58,7 @@ def _capture_user_fields(user: UserModel) -> Dict[str, str]:
         "interests": set(user.profile.interests.values_list("id", flat=True)),
         "sdgs": set(user.profile.sdgs.values_list("id", flat=True)),
         "skills": set(user.profile.skills.values_list("id", flat=True)),
-        "avatar": user.profile.avatar.url,
+        "avatar": user.profile.avatar.url if user.profile.avatar else None,
     }
 
 
