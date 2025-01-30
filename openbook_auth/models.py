@@ -670,11 +670,6 @@ class User(ModelWithUUID, AbstractUser):
         verify_token = self._make_email_verification_token_for_email(new_email=email)
         return verify_token
 
-    # engagement_level may only be set once
-    def update_engagement_level(self, engagement_level):
-        self.profile.engagement_level = engagement_level
-        self.profile.save()
-
     def verify_email_with_token(self, token):
         new_email = check_email_verification_token_is_valid_for_email(user=self, email_verification_token=token)
         self.email = new_email
@@ -854,7 +849,7 @@ class User(ModelWithUUID, AbstractUser):
         if pronouns is not None:
             self.profile.pronouns = pronouns
         if engagement_level:
-            self.update_engagement_level(engagement_level)
+            self.profile.engagement_level = engagement_level
         if interests is not None:
             self.profile.interests.set(interests)
         if sdgs is not None:
