@@ -112,3 +112,48 @@ def get_connected_users_raw(calling_user=None):
         """,
         context_value=benedict({"request": {"user": calling_user or AnonymousUser}}),
     )
+
+
+def get_my_connections(current_user=None):
+    response = get_my_connections_query(current_user)
+    assert response.errors is None
+    return response.data["myConnections"]
+
+
+def get_my_connections_query(current_user=None):
+    return async_to_sync(schema.execute)(
+        """
+        query {
+            myConnections {
+                totalResults
+                data {
+                    id
+                }
+            }
+        }
+        """,
+        context_value=benedict({"request": {"user": current_user or AnonymousUser}}),
+    )
+
+
+def get_connections_by_user_id(user_id, current_user=None):
+    response = get_connections_by_user_id_query(user_id, current_user)
+    assert response.errors is None
+    return response.data["connectionsByUserId"]
+
+
+def get_connections_by_user_id_query(user_id, current_user=None):
+    return async_to_sync(schema.execute)(
+        """
+        query ConnectionsByUserId($userId: UUID!) {
+            connectionsByUserId(userId: $userId) {
+                totalResults
+                data {
+                    id
+                }
+            }
+        }
+        """,
+        variable_values={"userId": str(user_id)},
+        context_value=benedict({"request": {"user": current_user or AnonymousUser}}),
+    )
