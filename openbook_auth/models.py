@@ -805,6 +805,8 @@ class User(ModelWithUUID, AbstractUser):
 
         if name:
             self.profile.name = normalize_spaces(name)
+        if last_name is not None:
+            self.profile.last_name = normalize_spaces(last_name)
 
         if update_location:
             if geolocation:
@@ -844,8 +846,6 @@ class User(ModelWithUUID, AbstractUser):
         if tracking_consent_personalization is not None:
             self.tracking_consent_personalization = tracking_consent_personalization
 
-        if last_name is not None:
-            self.profile.last_name = normalize_spaces(last_name)
         if pronouns is not None:
             self.profile.pronouns = pronouns
         if engagement_level:
