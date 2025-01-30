@@ -32,6 +32,10 @@ from openbook_auth.tests.helpers import (
     get_users_by_chat_identities,
     get_connected_users,
     get_connected_users_raw,
+    get_my_connections,
+    get_my_connections_query,
+    get_connections_by_user_id,
+    get_connections_by_user_id_query,
 )
 from openbook_common.tests.helpers import (
     assert_is_unauthorized,
@@ -1396,3 +1400,51 @@ class TestUsers:
         assert response.errors is None
         assert response.data["userSuggestions"]["totalResults"] == 25
         assert len(response.data["userSuggestions"]["data"]) == 5
+
+    def test_my_connections(self):
+        user1 = make_user(name="First", last_name="User")
+        user2 = make_user(name="Second", last_name="User")
+        user3 = make_user(name="Third", last_name="User")
+
+        connect_to_user(user1, user2)
+        connect_to_user(user2, user1)
+        connect_to_user(user1, user3)
+        connect_to_user(user3, user1)
+
+        connected_users = get_my_connections(current_user=user1)
+        assert connected_users["totalResults"] == 2
+        assert connected_users["data"][0]["id"] == str(user3.id)
+        assert connected_users["data"][1]["id"] == str(user2.id)
+
+    def test_cannot_retrieve_my_connections_if_anonymous_user(self):
+        response = get_my_connections_query()
+        assert_is_unauthorized(response)
+
+    def test_connections_by_user_id(self):
+        user1 = make_user(name="First", last_name="User")
+        user2 = make_user(name="Second", last_name="User")
+        user3 = make_user(name="Third", last_name="User")
+
+        connect_to_user(user1, user2)
+        connect_to_user(user2, user1)
+        connect_to_user(user1, user3)
+        connect_to_user(user3, user1)
+
+        connected_users = get_connections_by_user_id(user_id=user1.id, current_user=user2)
+
+        assert connected_users["totalResults"] == 2
+        assert connected_users["data"][0]["id"] == str(user3.id)
+        assert connected_users["data"][1]["id"] == str(user2.id)
+
+    def test_cannot_retrieve_connections_by_user_id_if_anonymous_user(self):
+        user1 = make_user(name="First", last_name="User")
+        user2 = make_user(name="Second", last_name="User")
+        user3 = make_user(name="Third", last_name="User")
+
+        connect_to_user(user1, user2)
+        connect_to_user(user2, user1)
+        connect_to_user(user1, user3)
+        connect_to_user(user3, user1)
+
+        response = get_connections_by_user_id_query(user_id=user1.id)
+        assert_is_unauthorized(response)
