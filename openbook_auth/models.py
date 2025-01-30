@@ -32,10 +32,7 @@ from openbook_common.tracking import track, TrackingEvent
 from openbook.settings import USERBLOCK
 from openbook.utils import DEFAULT_EMAIL_LANGUAGE, get_supported_language_for_email
 from openbook_auth.checkers import *
-from openbook_auth.helpers import (
-    upload_to_user_avatar_directory,
-    upload_to_user_cover_directory,
-)
+from openbook_auth.helpers import upload_to_user_avatar_directory
 from openbook_auth.utils import normalize_spaces
 from openbook_common.enums import VisibilityType
 from openbook_common.helpers import ExifRotate, generate_blurhash, PrefixedQ
@@ -647,22 +644,6 @@ class User(ModelWithUUID, AbstractUser):
         self.is_deleted = False
         self.save()
 
-    def _update_profile_cover(self, cover, save=True):
-        if cover is None:
-            self._delete_profile_cover(save=False)
-        else:
-            self.profile.cover = cover
-            self.profile.cover_blurhash = generate_blurhash(cover)
-
-        if save:
-            self.profile.save()
-
-    def _delete_profile_cover(self, save=True):
-        delete_file_field(self.profile.cover)
-        self.profile.cover = None
-        self.profile.cover_blurhash = None
-        self.profile.cover.delete(save=save)
-
     def _update_profile_avatar(self, avatar, save=True):
         if self.profile.avatar:
             self._delete_profile_avatar(save=False)
@@ -677,11 +658,6 @@ class User(ModelWithUUID, AbstractUser):
         self.profile.avatar = None
         self.profile.avatar_blurhash = None
         self.profile.avatar.delete(save=save)
-
-    def update_username(self, username):
-        check_username_not_taken(user=self, username=username)
-        self.username = username
-        self.save()
 
     def update_password(self, password):
         self.set_password(password)
@@ -805,7 +781,6 @@ class User(ModelWithUUID, AbstractUser):
 
     def update(
         self,
-        username=None,
         name=None,
         location=None,
         geolocation=None,
@@ -815,8 +790,6 @@ class User(ModelWithUUID, AbstractUser):
         community_posts_visible=None,
         visibility=None,
         avatar=None,
-        cover=None,
-        remove_cover=False,
         last_name=None,
         pronouns=None,
         engagement_level=None,
@@ -829,9 +802,6 @@ class User(ModelWithUUID, AbstractUser):
         tracking_consent_analytics=None,
         tracking_consent_personalization=None,
     ) -> None:
-        if username:
-            self.update_username(username)
-
         if url is not None:
             if len(url) == 0:
                 self.profile.url = None
@@ -896,11 +866,6 @@ class User(ModelWithUUID, AbstractUser):
             self._delete_profile_avatar(save=False)
         elif avatar:
             self._update_profile_avatar(avatar, save=False)
-
-        if remove_cover:
-            self._delete_profile_cover(save=False)
-        elif cover:
-            self._update_profile_cover(cover, save=False)
 
         if save:
             self.profile.save()
@@ -5257,22 +5222,6 @@ class UserProfile(ModelWithUUID):
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     avatar_blurhash = models.CharField(max_length=50, blank=True, null=True)
-    cover = ProcessedImageField(
-        verbose_name=_("cover"),
-        blank=False,
-        null=True,
-        upload_to=upload_to_user_cover_directory,
-        processors=[
-            ExifRotate(),
-            ResizeToFit(
-                width=settings.CONTENT_IMAGE_MAX_DIMENSION,
-                height=settings.CONTENT_IMAGE_MAX_DIMENSION,
-                upscale=False,
-            ),
-        ],
-        max_length=settings.IMAGE_URL_MAX_LENGTH,
-    )
-    cover_blurhash = models.CharField(max_length=50, blank=True, null=True)
     about_me = models.TextField(
         _("about me"),
         max_length=settings.PROFILE_ABOUT_ME_MAX_LENGTH,
