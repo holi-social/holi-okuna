@@ -1,10 +1,10 @@
 # ruff: noqa
-
+import os
 import json
 import logging
-import sys
 import uuid
 from datetime import datetime, timedelta
+from typing import Dict
 from unittest import mock
 from unittest.mock import call
 
@@ -15,6 +15,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis import geos
 from django.core.management import call_command
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import HttpRequest
 from django.test import AsyncClient
 from django.urls import reverse
@@ -46,6 +47,9 @@ from openbook_common.tests.helpers import (
     make_user,
     assert_paged_results_equal,
     assert_is_forbidden,
+    make_topic,
+    make_sdg,
+    make_skill,
 )
 from openbook_common.tracking import TrackingEvent
 from openbook_communities.enums import UpdateConnectionAction
@@ -418,7 +422,7 @@ class TestUsers:
         mock_create_or_update_subscriber.assert_called_once_with(
             user=user, locale=mock_get_language_from_request.return_value
         )
-        mock_track.assert_called_once_with(user, TrackingEvent("userUpdated"))
+        self._validate_tracking_event_user_updated(mock_track)
 
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
@@ -519,7 +523,89 @@ class TestUsers:
         mock_create_or_update_subscriber.assert_called_once_with(
             user=user, locale=mock_get_language_from_request.return_value
         )
-        mock_track.assert_called_once_with(user, TrackingEvent("userUpdated"))
+        self._validate_tracking_event_user_updated(mock_track)
+
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_updated_event")
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
+    @mock.patch("openbook_auth.schema.mutations.track")
+    def test_user_updated_tracking_event(
+        self,
+        mock_track,
+        mock_create_or_update_subscriber,
+        mock_get_language_from_request,
+        mock_publish_user_name_updated_event,
+        mock_publish_user_updated_event,
+        mock_patch,
+    ):
+        response = self.create_response(200)
+        mock_patch.return_value = response
+        topic = make_topic()
+        skill = make_skill()
+        sdg = make_sdg()
+        user = make_user(name="John", last_name="Doe", engagement_level=EngagementLevelChoice.ENGAGED.value)
+
+        def update_user(inputs: Dict[str, any]) -> None:
+            request = HttpRequest()
+            request.COOKIES = {}
+            request.user = user
+            executed = async_to_sync(schema.execute)(
+                """
+                mutation updateAuthenticatedUserV2($input: UpdateAuthenticatedUserInput!) {
+                    updateAuthenticatedUserV2(input: $input) { id }
+                }
+            """,
+                context_value=benedict({"request": request}),
+                variable_values={"input": inputs},
+            )
+            assert executed.errors is None
+
+        update_user({})
+        self._validate_tracking_event_user_updated(mock_track, {})
+        mock_track.reset_mock()
+
+        # should not contain updated_fields if field values didn't change
+        update_user({"firstName": "John", "lastName": "Doe"})
+        self._validate_tracking_event_user_updated(mock_track, {})
+        mock_track.reset_mock()
+
+        update_user({"firstName": "Johnny", "lastName": "Doey", "aboutMe": "All about me"})
+        self._validate_tracking_event_user_updated(mock_track, {"firstName", "lastName", "aboutMe"})
+        mock_track.reset_mock()
+
+        update_user({"location": "New York", "geolocation": geolocation})
+        self._validate_tracking_event_user_updated(mock_track, {"location", "geolocation"})
+        mock_track.reset_mock()
+
+        update_user({"pronouns": "They/Them", "engagementLevel": EngagementLevelChoice.INITIATOR.value})
+        self._validate_tracking_event_user_updated(mock_track, {"pronouns", "engagementLevel"})
+        mock_track.reset_mock()
+
+        update_user({"interests": [str(topic.id)], "sdgs": [str(sdg.id)], "skills": [str(skill.id)]})
+        self._validate_tracking_event_user_updated(mock_track, {"interests", "sdgs", "skills"})
+        mock_track.reset_mock()
+
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        test_image_path = os.path.join(current_dir, "test_avatar.jpg")
+        with open(test_image_path, "rb") as image_file:
+            image_content = image_file.read()
+            image = SimpleUploadedFile(name="test_avatar.jpg", content=image_content, content_type="image/jpeg")
+        update_user({"avatar": image})
+        self._validate_tracking_event_user_updated(mock_track, {"avatar"})
+        mock_track.reset_mock()
+
+    @staticmethod
+    def _validate_tracking_event_user_updated(mock_track, expected_updated_fields=None):
+        mock_track.assert_called_once()
+        user_arg, event_arg = mock_track.call_args.args
+        assert isinstance(event_arg, TrackingEvent)
+        assert event_arg.name == "userUpdated"
+        assert isinstance(event_arg.properties, dict)
+        assert isinstance(event_arg.properties["updatedFields"], list)
+        if expected_updated_fields:
+            assert set(event_arg.properties["updatedFields"]) == expected_updated_fields
 
     @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")

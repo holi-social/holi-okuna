@@ -828,42 +828,40 @@ class User(ModelWithUUID, AbstractUser):
         remove_avatar=False,
         tracking_consent_analytics=None,
         tracking_consent_personalization=None,
-    ):
-        profile = self.profile
-
+    ) -> None:
         if username:
             self.update_username(username)
 
         if url is not None:
             if len(url) == 0:
-                profile.url = None
+                self.profile.url = None
             else:
-                profile.url = url
+                self.profile.url = url
 
         if name:
-            profile.name = normalize_spaces(name)
+            self.profile.name = normalize_spaces(name)
 
         if update_location:
             if geolocation:
-                profile.location = location or geolocation.name
-                profile.geolocation = geolocation.geometry
-                profile.geolocation_id = geolocation.id
+                self.profile.location = location or geolocation.name
+                self.profile.geolocation = geolocation.geometry
+                self.profile.geolocation_id = geolocation.id
             else:
-                profile.location = location
-                profile.geolocation = None
-                profile.geolocation_id = None
+                self.profile.location = location
+                self.profile.geolocation = None
+                self.profile.geolocation_id = None
 
         if about_me is not None:
             if len(about_me) == 0:
-                profile.about_me = None
+                self.profile.about_me = None
             else:
-                profile.about_me = about_me
+                self.profile.about_me = about_me
 
         if followers_count_visible is not None:
-            profile.followers_count_visible = followers_count_visible
+            self.profile.followers_count_visible = followers_count_visible
 
         if community_posts_visible is not None:
-            profile.community_posts_visible = community_posts_visible
+            self.profile.community_posts_visible = community_posts_visible
 
         if visibility:
             if self.visibility == User.VISIBILITY_TYPE_PRIVATE and visibility != User.VISIBILITY_TYPE_PRIVATE:
@@ -882,17 +880,17 @@ class User(ModelWithUUID, AbstractUser):
             self.tracking_consent_personalization = tracking_consent_personalization
 
         if last_name is not None:
-            profile.last_name = normalize_spaces(last_name)
+            self.profile.last_name = normalize_spaces(last_name)
         if pronouns is not None:
-            profile.pronouns = pronouns
+            self.profile.pronouns = pronouns
         if engagement_level:
             self.update_engagement_level(engagement_level)
         if interests is not None:
-            profile.interests.set(interests)
+            self.profile.interests.set(interests)
         if sdgs is not None:
-            profile.sdgs.set(sdgs)
+            self.profile.sdgs.set(sdgs)
         if skills is not None:
-            profile.skills.set(skills)
+            self.profile.skills.set(skills)
 
         if remove_avatar:
             self._delete_profile_avatar(save=False)
@@ -905,7 +903,7 @@ class User(ModelWithUUID, AbstractUser):
             self._update_profile_cover(cover, save=False)
 
         if save:
-            profile.save()
+            self.profile.save()
             self.save()
 
     def update_notifications_settings(
