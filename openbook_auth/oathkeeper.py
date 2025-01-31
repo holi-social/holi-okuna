@@ -9,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 import logging
 
 from openbook_auth.tasks import extend_ory_session
+from openbook_common.tracking import track, TrackingEvent
 
 CACHE_TIMEOUT = 300
 
@@ -56,6 +57,7 @@ class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
                             are_guidelines_accepted=True,
                         )
                         cache.set(cache_key, user, timeout=CACHE_TIMEOUT)
+                        track(user, TrackingEvent("userCreated"))
                     except Exception as ex:
                         logger.info(
                             "Could not create user with id %s. Parallel creation? Retrying get. Exception: %s",
