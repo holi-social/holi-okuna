@@ -178,3 +178,29 @@ class LinkPreviewTestCase(TestCase):
 
         mock_get.return_value = MockResponse("", False)
         self.parse_empty_response("www.my.de", mock_get)
+
+    @mock.patch("requests.get")
+    def test_non_breaking_space(self, mock_get):
+        mock_get.return_value = MockResponse(
+            """
+            <html><head>
+            <meta property="og:url" content="https://my.url/xyz" />
+            <meta property="og:type" content="website" />
+            <meta property="og:title" content="MyTitle" />
+            <meta property="og:site_name" content="MySite" />
+            <meta property="og:description" content="MyDescription" />
+            <meta property="og:image" content="https://www.my.url/image.jpg" />
+            </head></html>
+            """
+        )
+        previews1 = LinkPreview.parse_text("www.my.de/\u00a0x")
+        previews2 = LinkPreview.parse_text("www.my.de\u00a0x")
+        self.assertIn(mock.call(url="http://www.my.de/", timeout=10), mock_get.call_args_list)
+        self.assertEqual(previews1, previews2)
+        self.assertEqual(1, len(previews1))
+        preview = previews1[0]
+        self.assertEqual(preview.has_data(), True)
+        self.assertEqual(preview.requested_url, "http://www.my.de/")
+        self.assertEqual(preview.url, "https://my.url/xyz")
+        self.assertEqual(preview.title, "MyTitle")
+        preview.fetched_at = timezone.now() - timezone.timedelta(hours=(settings.LINK_PREVIEW_CACHE_TIME_H + 1))
