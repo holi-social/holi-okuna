@@ -37,12 +37,6 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
         allow_null=True,
         max_upload_size=settings.PROFILE_AVATAR_MAX_SIZE,
     )
-    cover = RestrictedImageFileSizeField(
-        allow_empty_file=False,
-        required=False,
-        allow_null=True,
-        max_upload_size=settings.PROFILE_COVER_MAX_SIZE,
-    )
     password = serializers.CharField(
         min_length=PASSWORD_MIN_LENGTH,
         max_length=PASSWORD_MAX_LENGTH,
