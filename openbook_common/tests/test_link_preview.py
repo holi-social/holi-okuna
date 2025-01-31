@@ -18,13 +18,7 @@ class LinkPreviewTestCase(TestCase):
         self.assertIn(mock.call(url="http://www.abcd.de/", timeout=10), mock_get.call_args_list)
         self.assertEqual(1, len(mock_get.call_args_list))
         self.assertEqual(preview, preview2)
-        self.assertEqual(preview.has_data(), False)
-        self.assertEqual(preview.requested_url, "http://www.abcd.de/")
-        self.assertEqual(preview.url, "")
-        self.assertEqual(preview.title, "")
-        self.assertEqual(preview.description, "")
-        self.assertEqual(preview.type, "")
-        self.assertEqual(preview.image, "")
+        self.assert_empty_preview(preview, "http://www.abcd.de/")
         self.assertTrue(timezone.now() - timezone.timedelta(seconds=3) <= preview.fetched_at <= timezone.now())
 
     @mock.patch("requests.get")
@@ -54,13 +48,7 @@ class LinkPreviewTestCase(TestCase):
         self.assertEqual(previews, previews2)
         self.assertEqual(1, len(previews))
         preview = previews[0]
-        self.assertEqual(preview.has_data(), False)
-        self.assertEqual(preview.requested_url, "http://www.abcd.de/")
-        self.assertEqual(preview.url, "")
-        self.assertEqual(preview.title, "")
-        self.assertEqual(preview.description, "")
-        self.assertEqual(preview.type, "")
-        self.assertEqual(preview.image, "")
+        self.assert_empty_preview(preview, "http://www.abcd.de/")
         self.assertTrue(timezone.now() - timezone.timedelta(seconds=3) <= preview.fetched_at <= timezone.now())
 
     @mock.patch("requests.get")
@@ -156,7 +144,11 @@ class LinkPreviewTestCase(TestCase):
         self.assertIn(mock.call(url=f"http://{url}/", timeout=10), mock_get.call_args_list)
         self.assertEqual(1, len(previews))
         preview = previews[0]
-        self.assertEqual(preview.requested_url, f"http://{url}/")
+        self.assert_empty_preview(preview, f"http://{url}/")
+
+    def assert_empty_preview(self, preview, url):
+        self.assertEqual(preview.has_data(), False)
+        self.assertEqual(preview.requested_url, url)
         self.assertEqual(preview.url, "")
         self.assertEqual(preview.title, "")
         self.assertEqual(preview.description, "")
