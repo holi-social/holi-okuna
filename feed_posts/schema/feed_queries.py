@@ -85,6 +85,7 @@ class Query:
                 reaction_count=Count("reactions"),
                 total_comments=Subquery(space_comments_subquery, output_field=models.IntegerField()),
             )
+            .select_related("community")
             .order_by("-created", "-reaction_count", "-total_comments")
             .distinct()
         )
@@ -119,99 +120,163 @@ class Query:
                 reaction_count=Count("reactions"),
                 total_comments=Coalesce(Subquery(feed_post_comments_subquery, output_field=models.IntegerField()), 0),
             )
+            .select_related("creator")
+            .prefetch_related("topics")
             .order_by("-created_at", "-reaction_count", "-total_comments")
             .all()
         )
 
-        user_interests = list(user.profile.interests.values_list("id", flat=True).all())
-
+        user_interests = list(user.profile.interests.values_list("id", flat=True))
         user_connections = list(user.connections.values_list("target_user_id", flat=True))
-
         current_time = timezone.now()
 
-        # User recently created posts
-        recently_created_user_feed_posts = feed_posts.filter(
-            creator=user, created_at__gte=current_time - timedelta(hours=1)
-        ).all()
+        # Execute all queries in parallel while preserving order
+        from concurrent.futures import ThreadPoolExecutor
 
-        # User recently created space posts
-        recently_created_user_space_posts = (
-            PostModel.objects.filter(
-                creator=user, status=PostModel.STATUS_PUBLISHED, created__gte=current_time - timedelta(hours=1)
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = []
+
+            # User recently created posts
+            futures.append(
+                executor.submit(
+                    lambda: list(
+                        feed_posts.filter(creator=user, created_at__gte=current_time - timedelta(hours=1)).all()
+                    )
+                )
             )
-            .order_by("-created")
-            .distinct()
-        )
 
-        # Co-founders
-        co_founder_feed_posts = [post for post in feed_posts if post.has_priority]
-
-        # Editors priority posts
-        editors_priority_feed_posts = [
-            post for post in feed_posts if post.created_at >= current_time - timedelta(days=post.priority_duration)
-        ]
-
-        # User connections posts
-        user_connections_feed_posts = feed_posts.filter(
-            creator__id__in=user_connections, created_at__gte=current_time - priority_duration
-        ).all()
-
-        # Space posts in spaces that the user is collaborator
-        space_posts_user_is_contributor = space_posts.filter(
-            community__memberships__user=user, created__gte=current_time - priority_duration
-        ).all()
-
-        space_posts_user_is_follower = space_posts.filter(
-            community__notifications_subscriptions__subscriber=user,
-            community__notifications_subscriptions__new_post_notifications=True,
-            created__gte=current_time - priority_duration,
-        ).all()
-
-        # Feed posts matching user's topics
-        matching_interest_feed_posts = feed_posts.filter(
-            topics__id__in=user_interests, created_at__gte=current_time - priority_duration
-        ).all()
-
-        # Space posts matching user's topics
-        matching_interest_space_posts = space_posts.filter(
-            community__topics__id__in=user_interests, created__gte=current_time - priority_duration
-        ).all()
-
-        # Editors posts
-        editors_feed_posts = feed_posts.filter(
-            creator__role=UserRole.EDITOR, created_at__gte=current_time - priority_duration
-        ).all()
-
-        # Latest feed posts
-        latest_feed_posts = feed_posts.filter(creator=user, created_at__gte=current_time - timedelta(days=1)).all()
-
-        # Latest space posts
-        latest_space_posts = (
-            PostModel.objects.filter(
-                creator=user, status=PostModel.STATUS_PUBLISHED, created__gte=current_time - timedelta(days=1)
+            # User recently created space posts
+            futures.append(
+                executor.submit(
+                    lambda: list(
+                        PostModel.objects.filter(
+                            creator=user,
+                            status=PostModel.STATUS_PUBLISHED,
+                            created__gte=current_time - timedelta(hours=1),
+                        )
+                        .order_by("-created")
+                        .distinct()
+                    )
+                )
             )
-            .order_by("-created")
-            .distinct()
-        )
+
+            # Co-founders
+            futures.append(executor.submit(lambda: [post for post in feed_posts if post.has_priority]))
+
+            # Editors priority posts
+            futures.append(
+                executor.submit(
+                    lambda: [
+                        post
+                        for post in feed_posts
+                        if post.created_at >= current_time - timedelta(days=post.priority_duration)
+                    ]
+                )
+            )
+
+            # User connections posts
+            futures.append(
+                executor.submit(
+                    lambda: list(
+                        feed_posts.filter(
+                            creator__id__in=user_connections, created_at__gte=current_time - priority_duration
+                        ).all()
+                    )
+                )
+            )
+
+            # Space posts in spaces that the user is collaborator
+            futures.append(
+                executor.submit(
+                    lambda: list(
+                        space_posts.filter(
+                            community__memberships__user=user, created__gte=current_time - priority_duration
+                        ).all()
+                    )
+                )
+            )
+
+            # Space posts user is follower of
+            futures.append(
+                executor.submit(
+                    lambda: list(
+                        space_posts.filter(
+                            community__notifications_subscriptions__subscriber=user,
+                            community__notifications_subscriptions__new_post_notifications=True,
+                            created__gte=current_time - priority_duration,
+                        ).all()
+                    )
+                )
+            )
+
+            # Feed posts matching user's topics
+            futures.append(
+                executor.submit(
+                    lambda: list(
+                        feed_posts.filter(
+                            topics__id__in=user_interests, created_at__gte=current_time - priority_duration
+                        ).all()
+                    )
+                )
+            )
+
+            # Space posts matching user's topics
+            futures.append(
+                executor.submit(
+                    lambda: list(
+                        space_posts.filter(
+                            community__topics__id__in=user_interests, created__gte=current_time - priority_duration
+                        ).all()
+                    )
+                )
+            )
+
+            # Editors posts
+            futures.append(
+                executor.submit(
+                    lambda: list(
+                        feed_posts.filter(
+                            creator__role=UserRole.EDITOR, created_at__gte=current_time - priority_duration
+                        ).all()
+                    )
+                )
+            )
+
+            # Latest feed posts
+            futures.append(
+                executor.submit(
+                    lambda: list(
+                        feed_posts.filter(creator=user, created_at__gte=current_time - timedelta(days=1)).all()
+                    )
+                )
+            )
+
+            # Latest space posts
+            futures.append(
+                executor.submit(
+                    lambda: list(
+                        PostModel.objects.filter(
+                            creator=user,
+                            status=PostModel.STATUS_PUBLISHED,
+                            created__gte=current_time - timedelta(days=1),
+                        )
+                        .order_by("-created")
+                        .distinct()
+                    )
+                )
+            )
+
+            # All feed posts
+            futures.append(executor.submit(lambda: list(feed_posts)))
+
+            # All space posts
+            futures.append(executor.submit(lambda: list(space_posts)))
+
+            # Get results in order
+            post_lists = [future.result() for future in futures]
 
         all_posts = OrderedDict()
-
-        for post_list in [
-            recently_created_user_feed_posts,
-            recently_created_user_space_posts,
-            co_founder_feed_posts,
-            editors_priority_feed_posts,
-            user_connections_feed_posts,
-            space_posts_user_is_contributor,
-            space_posts_user_is_follower,
-            matching_interest_feed_posts,
-            matching_interest_space_posts,
-            editors_feed_posts,
-            latest_feed_posts,
-            latest_space_posts,
-            feed_posts,
-            space_posts,
-        ]:
+        for post_list in post_lists:
             for post in post_list:
                 all_posts[post] = None
 
