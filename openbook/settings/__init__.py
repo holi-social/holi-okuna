@@ -89,6 +89,7 @@ INSTALLED_APPS = [
     "rangefilter",
     "django_rq",
     "django_extensions",
+    "anon_stats",
     "openbook_common",
     "openbook_auth",
     "openbook_posts",
