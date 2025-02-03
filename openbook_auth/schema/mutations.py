@@ -2,6 +2,7 @@
 import uuid
 from copy import deepcopy
 from datetime import datetime, timedelta
+from typing import Dict, List
 
 import requests
 import strawberry
@@ -43,6 +44,28 @@ from openbook_notifications.services import NotificationsService
 logger = structlog.get_logger(__name__)
 
 
+def _capture_user_fields(user: UserModel) -> Dict[str, str]:
+    # for many-to-many relations (interests, sdgs, skills), only capture ids to avoid db round-trips
+    return {
+        "email": user.email,
+        "firstName": user.profile.name,
+        "lastName": user.profile.last_name,
+        "location": user.profile.location,
+        "geolocation": user.profile.geolocation,
+        "aboutMe": user.profile.about_me,
+        "pronouns": user.profile.pronouns,
+        "engagementLevel": user.profile.engagement_level,
+        "interests": set(user.profile.interests.values_list("id", flat=True)),
+        "sdgs": set(user.profile.sdgs.values_list("id", flat=True)),
+        "skills": set(user.profile.skills.values_list("id", flat=True)),
+        "avatar": user.profile.avatar.url if user.profile.avatar else None,
+    }
+
+
+def _get_updated_fields(o1: Dict[str, any], o2: Dict[str, any]) -> List[str]:
+    return [key for key in set(o1.keys()).union(o2.keys()) if o1.get(key) != o2.get(key)]
+
+
 @strawberry.type
 class Mutation:
     # TODO HOLI-8088 remove once not used by the frontend anymore
@@ -71,6 +94,7 @@ class Mutation:
         data = serializer.validated_data
 
         remove_avatar = is_parameter_null(data, "avatar")
+        current_user_fields_before = _capture_user_fields(current_user)
 
         current_user.update(
             name=data.get("name"),
@@ -90,6 +114,7 @@ class Mutation:
             tracking_consent_personalization=data.get("tracking_consent_personalization"),
             save=True,
         )
+        current_user_fields_after = _capture_user_fields(current_user)
 
         generate_identity_when_needed(current_user)
 
@@ -148,7 +173,13 @@ class Mutation:
                 user=current_user, spaces=spaces, insights=insights
             )
 
-        track(current_user, TrackingEvent("userUpdated"))
+        track(
+            current_user,
+            TrackingEvent(
+                "userUpdated",
+                {"updatedFields": _get_updated_fields(current_user_fields_before, current_user_fields_after)},
+            ),
+        )
 
         cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
 

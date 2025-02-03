@@ -30,7 +30,6 @@ class InvitedUserProfileSerializer(serializers.ModelSerializer):
             "about_me",
             "url",
             "location",
-            "cover",
             "is_of_legal_age",
             "followers_count_visible",
             "badges",

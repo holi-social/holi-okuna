@@ -6,7 +6,6 @@ class UserProfileFormSet(BaseInlineFormSet):
         super(UserProfileFormSet, self).__init__(*args, **kwargs)
         for form in self.forms:
             form.fields["avatar"].required = False
-            form.fields["cover"].required = False
             form.fields["badges"].required = False
             form.fields["url"].required = False
             form.fields["engagement_level"].required = False
