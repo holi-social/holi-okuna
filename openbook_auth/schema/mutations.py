@@ -173,13 +173,9 @@ class Mutation:
                 user=current_user, spaces=spaces, insights=insights
             )
 
-        track(
-            current_user,
-            TrackingEvent(
-                "userUpdated",
-                {"updatedFields": _get_updated_fields(current_user_fields_before, current_user_fields_after)},
-            ),
-        )
+        updated_fields = _get_updated_fields(current_user_fields_before, current_user_fields_after)
+        if updated_fields:
+            track(current_user, TrackingEvent("userUpdated", {"updatedFields": updated_fields}))
 
         cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
 
