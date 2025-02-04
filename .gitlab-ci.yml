@@ -22,10 +22,10 @@ stages:
 
 default:
   before_script:
-    - set -eux
+    - set -eu
     # env -0 | sort -z | tr '\0' '\n': Sort env output alphabetically, keeping multiline variables intact
     # egrep: Remove sensitive information from the output of env
-    - env -0 | sort -z | tr '\0' '\n' | egrep -ve '^(DOCKER_AUTH_CONFIG|GOOGLE_APPLICATION_CREDENTIALS)=.*'
+    #- env -0 | sort -z | tr '\0' '\n' | egrep -ve '^(DOCKER_AUTH_CONFIG|GOOGLE_APPLICATION_CREDENTIALS)=.*'
   interruptible: true
   tags:
     - 1cpu-4gb # build on smaller machine
