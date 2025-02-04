@@ -43,6 +43,7 @@ from openbook_communities.helpers import (
     upload_to_community_avatar_directory,
     upload_to_community_cover_directory,
     upload_to_community_task_thumbnail_directory,
+    upload_to_community_tool_thumbnail_directory,
 )
 from openbook_communities.queries import (
     make_search_communities_query_for_user,
@@ -1539,7 +1540,7 @@ class CollaborationTool(ModelWithUUID):
         verbose_name=_("thumbnail"),
         blank=True,
         null=True,
-        upload_to=upload_to_community_task_thumbnail_directory,
+        upload_to=upload_to_community_tool_thumbnail_directory,
         processors=[
             ExifRotate(),
             ResizeToFit(
