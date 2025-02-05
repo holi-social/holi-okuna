@@ -20,8 +20,8 @@ stages:
 
 default:
   before_script:
-    - set -eux
-    - env
+    - set -eu
+    #- env
   interruptible: true
   tags:
     - 1cpu-4gb # build on smaller machine
