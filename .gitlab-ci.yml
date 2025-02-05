@@ -23,8 +23,8 @@ stages:
 
 default:
   before_script:
-    - set -eux
-    - env
+    - set -eu
+    #- env
   interruptible: true
   tags:
     - holi-small # build on smaller machine
