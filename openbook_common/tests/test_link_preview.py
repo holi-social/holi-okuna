@@ -1,7 +1,9 @@
 from unittest import mock
 
+from django.conf import settings
 from django.test import TestCase
 from django.utils import timezone
+from requests import RequestException
 
 from openbook_common.models import LinkPreview
 from openbook_common.utils.test import MockResponse
@@ -16,13 +18,7 @@ class LinkPreviewTestCase(TestCase):
         self.assertIn(mock.call(url="http://www.abcd.de/", timeout=10), mock_get.call_args_list)
         self.assertEqual(1, len(mock_get.call_args_list))
         self.assertEqual(preview, preview2)
-        self.assertEqual(preview.has_data(), False)
-        self.assertEqual(preview.requested_url, "http://www.abcd.de/")
-        self.assertEqual(preview.url, "")
-        self.assertEqual(preview.title, "")
-        self.assertEqual(preview.description, "")
-        self.assertEqual(preview.type, "")
-        self.assertEqual(preview.image, "")
+        self.assert_empty_preview(preview, "http://www.abcd.de/")
         self.assertTrue(timezone.now() - timezone.timedelta(seconds=3) <= preview.fetched_at <= timezone.now())
 
     @mock.patch("requests.get")
@@ -43,14 +39,17 @@ class LinkPreviewTestCase(TestCase):
         self.assertTrue(timezone.now() - timezone.timedelta(seconds=3) <= preview.fetched_at <= timezone.now())
 
     @mock.patch("requests.get")
-    def test_preview_without_data_is_note_returned(self, mock_get):
+    def test_preview_without_data_gives_empty_preview(self, mock_get):
         mock_get.return_value = MockResponse("<html>no opengraph</html>")
         previews = LinkPreview.parse_text("www.abcd.de")
         previews2 = LinkPreview.parse_text("www.abcd.de")
         self.assertIn(mock.call(url="http://www.abcd.de/", timeout=10), mock_get.call_args_list)
         self.assertEqual(1, len(mock_get.call_args_list))
         self.assertEqual(previews, previews2)
-        self.assertEqual(previews, [])
+        self.assertEqual(1, len(previews))
+        preview = previews[0]
+        self.assert_empty_preview(preview, "http://www.abcd.de/")
+        self.assertTrue(timezone.now() - timezone.timedelta(seconds=3) <= preview.fetched_at <= timezone.now())
 
     @mock.patch("requests.get")
     def test_page_with_opengraph_gives_preview(self, mock_get):
@@ -129,3 +128,79 @@ class LinkPreviewTestCase(TestCase):
         self.assertEqual(preview2.description, "MySecondDescription")
         self.assertEqual(preview2.type, "other")
         self.assertEqual(preview2.image, "https://mysecond.url/secondimage.jpg")
+
+    @mock.patch("requests.get")
+    def test_unsuccessfull_response(self, mock_get):
+        mock_get.return_value = MockResponse("", False)
+        self.parse_empty_response("www.my.de", mock_get)
+
+    @mock.patch("requests.get")
+    def test_no_response(self, mock_get):
+        mock_get.side_effect = RequestException()
+        self.parse_empty_response("www.my.de", mock_get)
+
+    def parse_empty_response(self, url, mock_get):
+        previews = LinkPreview.parse_text(url)
+        self.assertIn(mock.call(url=f"http://{url}/", timeout=10), mock_get.call_args_list)
+        self.assertEqual(1, len(previews))
+        preview = previews[0]
+        self.assert_empty_preview(preview, f"http://{url}/")
+
+    def assert_empty_preview(self, preview, url):
+        self.assertEqual(preview.has_data(), False)
+        self.assertEqual(preview.requested_url, url)
+        self.assertEqual(preview.url, "")
+        self.assertEqual(preview.title, "")
+        self.assertEqual(preview.description, "")
+        self.assertEqual(preview.type, "")
+        self.assertEqual(preview.image, "")
+
+    @mock.patch("requests.get")
+    def test_previous_preview_no_longer_exists(self, mock_get):
+        mock_get.return_value = MockResponse(
+            """
+            <html><head>
+            <meta property="og:url" content="https://my.url/xyz" />
+            <meta property="og:type" content="website" />
+            <meta property="og:title" content="MyTitle" />
+            <meta property="og:site_name" content="MySite" />
+            <meta property="og:description" content="MyDescription" />
+            <meta property="og:image" content="https://www.my.url/image.jpg" />
+            </head></html>
+            """
+        )
+        previews = LinkPreview.parse_text("www.my.de")
+        self.assertIn(mock.call(url="http://www.my.de/", timeout=10), mock_get.call_args_list)
+        self.assertEqual(1, len(previews))
+        preview = previews[0]
+        preview.fetched_at = timezone.now() - timezone.timedelta(hours=(settings.LINK_PREVIEW_CACHE_TIME_H + 1))
+        preview.save()
+
+        mock_get.return_value = MockResponse("", False)
+        self.parse_empty_response("www.my.de", mock_get)
+
+    @mock.patch("requests.get")
+    def test_non_breaking_space(self, mock_get):
+        mock_get.return_value = MockResponse(
+            """
+            <html><head>
+            <meta property="og:url" content="https://my.url/xyz" />
+            <meta property="og:type" content="website" />
+            <meta property="og:title" content="MyTitle" />
+            <meta property="og:site_name" content="MySite" />
+            <meta property="og:description" content="MyDescription" />
+            <meta property="og:image" content="https://www.my.url/image.jpg" />
+            </head></html>
+            """
+        )
+        previews1 = LinkPreview.parse_text("www.my.de/\u00a0x")
+        previews2 = LinkPreview.parse_text("www.my.de\u00a0x")
+        self.assertIn(mock.call(url="http://www.my.de/", timeout=10), mock_get.call_args_list)
+        self.assertEqual(previews1, previews2)
+        self.assertEqual(1, len(previews1))
+        preview = previews1[0]
+        self.assertEqual(preview.has_data(), True)
+        self.assertEqual(preview.requested_url, "http://www.my.de/")
+        self.assertEqual(preview.url, "https://my.url/xyz")
+        self.assertEqual(preview.title, "MyTitle")
+        preview.fetched_at = timezone.now() - timezone.timedelta(hours=(settings.LINK_PREVIEW_CACHE_TIME_H + 1))

@@ -16,6 +16,7 @@ from openbook.middleware.graphql_error_extension import GraphQLErrorExtension
 from openbook.settings.sentry_config import HoliSentryTracingExtension
 from openbook_appointments.schema import mutations as appointments_mutations
 from openbook_appointments.schema import queries as appointments_queries
+from anon_stats.schema import mutations as anon_stats
 from openbook_auth.schema import mutations as auth_mutations
 from openbook_auth.schema import queries as auth_queries
 from openbook_common.schema import queries as commons_queries
@@ -89,6 +90,7 @@ Query = merge_types(
 Mutation = merge_types(
     "Mutation",
     (
+        anon_stats.Mutation,
         auth_mutations.Mutation,
         connections_mutations.Mutation,
         posts_mutations.Mutation,

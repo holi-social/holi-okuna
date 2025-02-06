@@ -59,7 +59,7 @@ class GetUserUserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ("name", "avatar", "location", "cover", "about_me", "url", "badges")
+        fields = ("name", "avatar", "location", "about_me", "url", "badges")
 
 
 class GetUserUserCircleSerializer(serializers.ModelSerializer):

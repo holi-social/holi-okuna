@@ -125,7 +125,7 @@ class Query:
     @strawberry_django.field()
     def connections_by_user_id(self, info, user_id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[User]:
         verify_authorized_user(info)
-        user = UserModel.objects.get(id=user_id)
+        user = UserModel.objects.get(username=user_id)
         return get_ordered_user_connections(circle_id=user.connections_circle_id, offset=offset, limit=limit)
 
     @strawberry_django.field(

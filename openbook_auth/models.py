@@ -32,10 +32,7 @@ from openbook_common.tracking import track, TrackingEvent
 from openbook.settings import USERBLOCK
 from openbook.utils import DEFAULT_EMAIL_LANGUAGE, get_supported_language_for_email
 from openbook_auth.checkers import *
-from openbook_auth.helpers import (
-    upload_to_user_avatar_directory,
-    upload_to_user_cover_directory,
-)
+from openbook_auth.helpers import upload_to_user_avatar_directory
 from openbook_auth.utils import normalize_spaces
 from openbook_common.enums import VisibilityType
 from openbook_common.helpers import ExifRotate, generate_blurhash, PrefixedQ
@@ -647,22 +644,6 @@ class User(ModelWithUUID, AbstractUser):
         self.is_deleted = False
         self.save()
 
-    def _update_profile_cover(self, cover, save=True):
-        if cover is None:
-            self._delete_profile_cover(save=False)
-        else:
-            self.profile.cover = cover
-            self.profile.cover_blurhash = generate_blurhash(cover)
-
-        if save:
-            self.profile.save()
-
-    def _delete_profile_cover(self, save=True):
-        delete_file_field(self.profile.cover)
-        self.profile.cover = None
-        self.profile.cover_blurhash = None
-        self.profile.cover.delete(save=save)
-
     def _update_profile_avatar(self, avatar, save=True):
         if self.profile.avatar:
             self._delete_profile_avatar(save=False)
@@ -678,11 +659,6 @@ class User(ModelWithUUID, AbstractUser):
         self.profile.avatar_blurhash = None
         self.profile.avatar.delete(save=save)
 
-    def update_username(self, username):
-        check_username_not_taken(user=self, username=username)
-        self.username = username
-        self.save()
-
     def update_password(self, password):
         self.set_password(password)
         self._reset_auth_token()
@@ -693,11 +669,6 @@ class User(ModelWithUUID, AbstractUser):
         self.save()
         verify_token = self._make_email_verification_token_for_email(new_email=email)
         return verify_token
-
-    # engagement_level may only be set once
-    def update_engagement_level(self, engagement_level):
-        self.profile.engagement_level = engagement_level
-        self.profile.save()
 
     def verify_email_with_token(self, token):
         new_email = check_email_verification_token_is_valid_for_email(user=self, email_verification_token=token)
@@ -805,7 +776,6 @@ class User(ModelWithUUID, AbstractUser):
 
     def update(
         self,
-        username=None,
         name=None,
         location=None,
         geolocation=None,
@@ -815,8 +785,6 @@ class User(ModelWithUUID, AbstractUser):
         community_posts_visible=None,
         visibility=None,
         avatar=None,
-        cover=None,
-        remove_cover=False,
         last_name=None,
         pronouns=None,
         engagement_level=None,
@@ -828,42 +796,39 @@ class User(ModelWithUUID, AbstractUser):
         remove_avatar=False,
         tracking_consent_analytics=None,
         tracking_consent_personalization=None,
-    ):
-        profile = self.profile
-
-        if username:
-            self.update_username(username)
-
+    ) -> None:
         if url is not None:
             if len(url) == 0:
-                profile.url = None
+                self.profile.url = None
             else:
-                profile.url = url
+                self.profile.url = url
 
         if name:
-            profile.name = normalize_spaces(name)
+            self.profile.name = normalize_spaces(name)
+        if last_name is not None:
+            self.profile.last_name = normalize_spaces(last_name)
 
         if update_location:
             if geolocation:
-                profile.location = location or geolocation.name
-                profile.geolocation = geolocation.geometry
-                profile.geolocation_id = geolocation.id
+                self.profile.location = location or geolocation.name
+                self.profile.geolocation = geolocation.geometry
+                self.profile.geolocation_id = geolocation.id
             else:
-                profile.location = location
-                profile.geolocation = None
-                profile.geolocation_id = None
+                self.profile.location = location
+                self.profile.geolocation = None
+                self.profile.geolocation_id = None
 
         if about_me is not None:
             if len(about_me) == 0:
-                profile.about_me = None
+                self.profile.about_me = None
             else:
-                profile.about_me = about_me
+                self.profile.about_me = about_me
 
         if followers_count_visible is not None:
-            profile.followers_count_visible = followers_count_visible
+            self.profile.followers_count_visible = followers_count_visible
 
         if community_posts_visible is not None:
-            profile.community_posts_visible = community_posts_visible
+            self.profile.community_posts_visible = community_posts_visible
 
         if visibility:
             if self.visibility == User.VISIBILITY_TYPE_PRIVATE and visibility != User.VISIBILITY_TYPE_PRIVATE:
@@ -881,31 +846,24 @@ class User(ModelWithUUID, AbstractUser):
         if tracking_consent_personalization is not None:
             self.tracking_consent_personalization = tracking_consent_personalization
 
-        if last_name is not None:
-            profile.last_name = normalize_spaces(last_name)
         if pronouns is not None:
-            profile.pronouns = pronouns
+            self.profile.pronouns = pronouns
         if engagement_level:
-            self.update_engagement_level(engagement_level)
+            self.profile.engagement_level = engagement_level
         if interests is not None:
-            profile.interests.set(interests)
+            self.profile.interests.set(interests)
         if sdgs is not None:
-            profile.sdgs.set(sdgs)
+            self.profile.sdgs.set(sdgs)
         if skills is not None:
-            profile.skills.set(skills)
+            self.profile.skills.set(skills)
 
         if remove_avatar:
             self._delete_profile_avatar(save=False)
         elif avatar:
             self._update_profile_avatar(avatar, save=False)
 
-        if remove_cover:
-            self._delete_profile_cover(save=False)
-        elif cover:
-            self._update_profile_cover(cover, save=False)
-
         if save:
-            profile.save()
+            self.profile.save()
             self.save()
 
     def update_notifications_settings(
@@ -5259,22 +5217,6 @@ class UserProfile(ModelWithUUID):
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     avatar_blurhash = models.CharField(max_length=50, blank=True, null=True)
-    cover = ProcessedImageField(
-        verbose_name=_("cover"),
-        blank=False,
-        null=True,
-        upload_to=upload_to_user_cover_directory,
-        processors=[
-            ExifRotate(),
-            ResizeToFit(
-                width=settings.CONTENT_IMAGE_MAX_DIMENSION,
-                height=settings.CONTENT_IMAGE_MAX_DIMENSION,
-                upscale=False,
-            ),
-        ],
-        max_length=settings.IMAGE_URL_MAX_LENGTH,
-    )
-    cover_blurhash = models.CharField(max_length=50, blank=True, null=True)
     about_me = models.TextField(
         _("about me"),
         max_length=settings.PROFILE_ABOUT_ME_MAX_LENGTH,

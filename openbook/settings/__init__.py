@@ -89,6 +89,7 @@ INSTALLED_APPS = [
     "rangefilter",
     "django_rq",
     "django_extensions",
+    "anon_stats",
     "openbook_common",
     "openbook_auth",
     "openbook_posts",
@@ -517,8 +518,6 @@ PROFILE_GEOLOCATION_ID_MAX_LENGTH = 255
 PROFILE_ABOUT_ME_MAX_LENGTH = int(os.environ.get("PROFILE_ABOUT_ME_MAX_LENGTH", "3000"))
 PROFILE_AVATAR_MAX_SIZE = int(os.environ.get("PROFILE_AVATAR_MAX_SIZE", "10485760"))
 PROFILE_AVATAR_URL_MAX_LENGTH = 500
-PROFILE_COVER_MAX_SIZE = int(os.environ.get("PROFILE_COVER_MAX_SIZE", "10485760"))
-PROFILE_COVER_URL_MAX_LENGTH = 500
 PASSWORD_RESET_TIMEOUT_DAYS = 1
 COMMUNITY_NAME_MAX_LENGTH = 80
 COMMUNITY_TITLE_MIN_LENGTH = 2
