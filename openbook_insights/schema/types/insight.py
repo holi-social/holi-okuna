@@ -125,3 +125,14 @@ class Insight:
     @strawberry_django.field()
     def initiative(self, id: uuid.UUID) -> Initiative:
         return self.initiatives.get(id=id)
+
+
+@strawberry_django.type(InsightModel)
+class InsightPreview:
+    id: strawberry.auto
+    title: strawberry.auto
+    description: strawberry.auto
+    creator: Optional[User] = strawberry_django.field(select_related=["creator__profile"])
+    date_published: strawberry.auto
+    header_image: Optional[str]
+    header_image_blurhash: Optional[str]

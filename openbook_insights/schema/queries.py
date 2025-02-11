@@ -15,6 +15,7 @@ from openbook_insights.models import Discussion as DiscussionModel
 from openbook_insights.models import Insight as InsightModel
 from openbook_insights.schema.types import Insight
 from openbook_insights.schema.types.discussion import Discussion
+from openbook_insights.schema.types.insight import InsightPreview
 
 
 @strawberry.type
@@ -40,6 +41,27 @@ class Query:
         ).select_related("creator", "creator__profile", "topic")
 
         base_queryset = base_queryset.prefetch_related("posts")
+
+        base_queryset = base_queryset.order_by("-date_published", "id")
+
+        paged_insights = UserBlock.paged(
+            current_user,
+            lambda insight: None if insight.creator is None else insight.creator.id,
+            base_queryset,
+            offset,
+            limit,
+        )
+
+        return paged_insights
+
+    @strawberry_django.field()
+    def feed_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[InsightPreview]:
+        current_user = info.context.request.user
+
+        base_queryset = InsightModel.objects.filter(
+            Q(creator__isnull=True) | UserModel.is_visible_ignore_blocked_query("creator"),
+            date_published__lte=datetime.now(),
+        ).select_related("creator", "creator__profile")
 
         base_queryset = base_queryset.order_by("-date_published", "id")
 
