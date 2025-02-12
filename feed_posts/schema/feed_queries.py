@@ -1,12 +1,11 @@
 from collections import OrderedDict
 from datetime import timedelta
-from asgiref.sync import sync_to_async
 
 import strawberry
 import strawberry_django
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import Count, OuterRef, Subquery, Prefetch
+from django.db.models import Count, OuterRef, Subquery
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
@@ -43,7 +42,6 @@ class Query:
     # The query is not intended to be performant or optimized at this stage, but rather to ensure all personalization requirements are met.
     # Effort on optimization or performance improvements should only be made if this iteration performs worse than the current all_posts query.
     @strawberry_django.field()
-    @sync_to_async
     def feed(
         self,
         info,
@@ -79,16 +77,15 @@ class Query:
             .values("total")
         )
 
-        base_space_posts = (
+        space_posts = (
             PostModel.objects.filter(
                 PostModel.is_visible_query(user), status=PostModel.STATUS_PUBLISHED, community__id__isnull=False
             )
-            .select_related("creator", "community")
-            .prefetch_related("reactions", "community__topics")
             .annotate(
                 reaction_count=Count("reactions"),
                 total_comments=Subquery(space_comments_subquery, output_field=models.IntegerField()),
             )
+            .select_related("community")
             .defer("mentions")
             .order_by("-created", "-reaction_count", "-total_comments")
             .distinct()
@@ -97,12 +94,12 @@ class Query:
         if user.is_anonymous:
             feed_posts = (
                 FeedPostModel.objects.filter(visibility=VisibilityLevel.PUBLIC)
-                .select_related("creator")
-                .prefetch_related("reactions", "topics")
                 .annotate(
                     reaction_count=Count("reactions"),
                     total_comments=Subquery(feed_post_comments_subquery, output_field=models.IntegerField()),
                 )
+                .select_related("creator")
+                .prefetch_related("topics")
                 .order_by("-created_at", "-reaction_count", "-total_comments")
             )
 
@@ -111,105 +108,81 @@ class Query:
                 key=lambda post: (-int(getattr(post, "has_priority", False)),),
             )
 
-            posts = list(sorted_posts) + list(base_space_posts)
+            posts = sorted_posts + list(space_posts)
             feed_items = [map_to_feed_item(post) for post in posts]
             return paginate_posts(feed_items, offset, limit)
 
         # Authenticated users
-        feed_config = FeedConfig.objects.select_related().first()
+
+        feed_config = FeedConfig.objects.first()
         priority_duration = timedelta(days=feed_config.priority_duration) if feed_config else timedelta(days=7)
 
-        base_feed_posts = (
-            FeedPostModel.objects.select_related("creator")
-            .prefetch_related("reactions", "topics")
-            .annotate(
+        feed_posts = (
+            FeedPostModel.objects.annotate(
                 reaction_count=Count("reactions"),
                 total_comments=Coalesce(Subquery(feed_post_comments_subquery, output_field=models.IntegerField()), 0),
             )
+            .select_related("creator")
+            .prefetch_related("topics")
             .order_by("-created_at", "-reaction_count", "-total_comments")
         )
 
-        user_interests = list(user.profile.interests.values_list("id", flat=True))
-        user_connections = list(user.connections.values_list("target_user_id", flat=True))
+        user_interests = user.profile.interests.values_list("id", flat=True)
+        user_connections = user.connections.values_list("target_user_id", flat=True)
         current_time = timezone.now()
 
-        post_lists = []
-
-        # User recently created posts
-        post_lists.append(
-            list(base_feed_posts.filter(creator=user, created_at__gte=current_time - timedelta(hours=1)))
-        )
-
-        # User recently created space posts
-        post_lists.append(
-            list(
-                base_space_posts.filter(
-                    creator=user,
-                    created__gte=current_time - timedelta(hours=1),
-                )
+        # Build post lists in order of priority
+        post_lists = [
+            # User recently created posts
+            feed_posts.filter(creator=user, created_at__gte=current_time - timedelta(hours=1)),
+            # User recently created space posts
+            PostModel.objects.filter(
+                creator=user,
+                status=PostModel.STATUS_PUBLISHED,
+                created__gte=current_time - timedelta(hours=1),
             )
-        )
-
-        # Co-founders and priority posts
-        priority_posts = [
-            post
-            for post in base_feed_posts
-            if post.has_priority or post.created_at >= current_time - timedelta(days=post.priority_duration)
-        ]
-        post_lists.append(priority_posts)
-
-        # User connections posts
-        post_lists.append(
-            list(
-                base_feed_posts.filter(
-                    creator__id__in=user_connections, created_at__gte=current_time - priority_duration
-                )
-            )
-        )
-
-        # Space posts - user collaborator/follower
-        space_posts_user = base_space_posts.filter(
-            models.Q(community__memberships__user=user)
-            | models.Q(
+            .defer("mentions")
+            .order_by("-created")
+            .distinct(),
+            # Co-founders
+            [post for post in feed_posts if post.has_priority],
+            [post for post in feed_posts if post.created_at >= current_time - timedelta(days=post.priority_duration)],
+            # User connections posts
+            feed_posts.filter(creator__id__in=user_connections, created_at__gte=current_time - priority_duration),
+            # Space posts in spaces that the user is collaborator
+            space_posts.filter(community__memberships__user=user, created__gte=current_time - priority_duration),
+            # Space posts user is follower of
+            space_posts.filter(
                 community__notifications_subscriptions__subscriber=user,
                 community__notifications_subscriptions__new_post_notifications=True,
+                created__gte=current_time - priority_duration,
             ),
-            created__gte=current_time - priority_duration,
-        )
-        post_lists.append(list(space_posts_user))
+            # Feed posts matching user's topics
+            feed_posts.filter(topics__id__in=user_interests, created_at__gte=current_time - priority_duration),
+            # Space posts matching user's topics
+            space_posts.filter(
+                community__topics__id__in=user_interests, created__gte=current_time - priority_duration
+            ),
+            # Editors posts
+            feed_posts.filter(creator__role=UserRole.EDITOR, created_at__gte=current_time - priority_duration),
+            # Latest feed posts
+            feed_posts.filter(creator=user, created_at__gte=current_time - timedelta(days=1)),
+            # Latest space posts
+            PostModel.objects.filter(
+                creator=user,
+                status=PostModel.STATUS_PUBLISHED,
+                created__gte=current_time - timedelta(days=1),
+            )
+            .defer("mentions")
+            .order_by("-created")
+            .distinct(),
+            # All feed posts
+            feed_posts,
+            # All space posts
+            space_posts,
+        ]
 
-        # Posts matching user's topics
-        topic_posts = base_feed_posts.filter(
-            topics__id__in=user_interests, created_at__gte=current_time - priority_duration
-        )
-        post_lists.append(list(topic_posts))
-
-        space_topic_posts = base_space_posts.filter(
-            community__topics__id__in=user_interests, created__gte=current_time - priority_duration
-        )
-        post_lists.append(list(space_topic_posts))
-
-        # Editors posts
-        editor_posts = base_feed_posts.filter(
-            creator__role=UserRole.EDITOR, created_at__gte=current_time - priority_duration
-        )
-        post_lists.append(list(editor_posts))
-
-        # Latest posts
-        latest_feed = base_feed_posts.filter(creator=user, created_at__gte=current_time - timedelta(days=1))
-        post_lists.append(list(latest_feed))
-
-        latest_space = base_space_posts.filter(
-            creator=user,
-            created__gte=current_time - timedelta(days=1),
-        )
-        post_lists.append(list(latest_space))
-
-        # All remaining posts
-        post_lists.append(list(base_feed_posts))
-        post_lists.append(list(base_space_posts))
-
-        # Use OrderedDict to maintain order and remove duplicates
+        # Combine all posts while preserving order and removing duplicates
         all_posts = OrderedDict()
         for post_list in post_lists:
             for post in post_list:
