@@ -8,6 +8,7 @@ from django.db import models
 from django.db.models import Count, OuterRef, Subquery
 from django.db.models.functions import Coalesce
 from django.utils import timezone
+from django.core.cache import cache
 
 from comments.models import Comment
 from feed_posts.enums import VisibilityLevel
@@ -49,6 +50,12 @@ class Query:
         limit: int = 10,
     ) -> Paged[FeedItem]:
         user = info.context.request.user
+
+        # Generate cache key based on user and pagination
+        cache_key = f"feed:{user.id if user.is_authenticated else 'anon'}:o{offset}:l{limit}"
+        cached_feed = cache.get(cache_key)
+        if cached_feed:
+            return cached_feed
 
         feed_post_content_type = ContentType.objects.get_for_model(FeedPostModel)
         space_post_content_type = ContentType.objects.get_for_model(PostModel)
@@ -110,7 +117,11 @@ class Query:
 
             posts = sorted_posts + list(space_posts)
             feed_items = [map_to_feed_item(post) for post in posts]
-            return paginate_posts(feed_items, offset, limit)
+            result = paginate_posts(feed_items, offset, limit)
+
+            # Cache anonymous results for 10 minutes
+            cache.set(cache_key, result, 600)
+            return result
 
         # Authenticated users
 
@@ -190,5 +201,8 @@ class Query:
 
         posts = list(all_posts.keys())
         feed_items = [map_to_feed_item(post) for post in posts]
+        result = paginate_posts(feed_items, offset, limit)
 
-        return paginate_posts(feed_items, offset, limit)
+        # Cache authenticated user results for 2 minutes
+        cache.set(cache_key, result, 120)
+        return result
