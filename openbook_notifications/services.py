@@ -362,9 +362,10 @@ class NotificationsService:
         notification.send()
 
     @staticmethod
-    def send_welcome_email_series_notification(user: User, spaces, insights):
+    def send_welcome_email_series_notification(user: User, spaces, insights, token):
         notification = WelcomeEmailSeriesNotification(
             user=str(user.username),
-            payload=WelcomeEmailSeriesPayload(user=user, spaces=spaces, insights=insights),
+            payload=WelcomeEmailSeriesPayload(user=user, spaces=spaces, insights=insights, token=token),
+            token=token,
         )
         notification.send()

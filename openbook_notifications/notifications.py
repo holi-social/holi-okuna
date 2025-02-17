@@ -391,10 +391,11 @@ class WelcomeEmailSeriesNotification(Notification):
         self,
         user: str,
         payload: WelcomeEmailSeriesPayload,
+        token: str,
     ):
         super().__init__(
             workflow=Workflow.WELCOME_EMAIL_SERIES.value,
             recipients=user,
             payload=payload.to_dict(),
-            transaction_id=user,  # user id is used as transaction id so that we can easily unsubscribe from the email series
+            transaction_id=token,  # token is used as transaction_id to cancel the workflow and unsubscribe the user from newsletter
         )
