@@ -169,8 +169,11 @@ class Mutation:
             )
 
             insights = insight_model.objects.order_by("-date_published")[:3]
+
+            subscription_token = str(uuid.uuid4())
+
             NotificationsService.send_welcome_email_series_notification(
-                user=current_user, spaces=spaces, insights=insights
+                user=current_user, spaces=spaces, insights=insights, token=subscription_token
             )
 
         updated_fields = _get_updated_fields(current_user_fields_before, current_user_fields_after)
@@ -295,4 +298,10 @@ class Mutation:
         current_user = verify_authorized_user(info)
         current_user.remove_insight_bookmark(insight_id)  # To maintain compatibility with older versions
         UserFavorite.unfavorite(user=current_user, favoritable_id=insight_id, favoritable_type="insight")
+        return Result(success=True)
+
+    @strawberry.mutation()
+    @sync_to_async
+    def unsubscribe_from_newsletter(self, info, token: str) -> Result:
+        NotificationApi.cancel_workflow(transaction_id=token)
         return Result(success=True)

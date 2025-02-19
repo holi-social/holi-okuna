@@ -1534,3 +1534,22 @@ class TestUsers:
 
         response = get_connections_by_user_id_query(user_id=user1.id)
         assert_is_unauthorized(response)
+
+    @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
+    def test_can_unsubscribe_from_newsletter(self, mock_cancel_workflow):
+        token = str(uuid.uuid4())
+        executed = async_to_sync(schema.execute)(
+            """
+            mutation test($token: String!) {
+                unsubscribeFromNewsletter(token: $token) {
+                    success
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": AnonymousUser}}),
+            variable_values={"token": token},
+        )
+
+        assert executed.errors is None
+        mock_cancel_workflow.assert_called_once_with(transaction_id=token)
+        assert executed.data["unsubscribeFromNewsletter"]["success"] is True
