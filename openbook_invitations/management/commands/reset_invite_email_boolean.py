@@ -15,7 +15,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--days",
             type=str,
-            help="Invites going back these many days will have their boolean" " reset if no user is created",
+            help="Invites going back these many days will have their boolean reset if no user is created",
         )
 
     def handle(self, *args, **options):
