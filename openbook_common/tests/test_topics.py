@@ -1,7 +1,6 @@
-import pytest
 import unittest
 
-from openbook_common.topics import topic_v2_slugs, slug_to_topic_v2
+from openbook_common.topics import topic_v2_slugs, slug_to_topic_v2, slugs_to_topic_v2_slugs
 
 
 class TestSlugToTopicV2(unittest.TestCase):
@@ -98,3 +97,49 @@ class TestSlugToTopicV2(unittest.TestCase):
 
         for slug in all_slugs:
             assert slug in tested_slugs, f"Slug '{slug}' is missing a test case"
+
+
+class TestSlugsToTopicV2Slugs(unittest.TestCase):
+    def test_topic_v1_slugs_mapping(self):
+        """Test that a list of TopicV1 slugs is mapped to a list of TopicV2 slugs"""
+        input_slugs = ["water-ocean", "alternative-economy", "peace-security", "urban-rural-development"]
+        expected = ["climate-environment", "other", "peace-security"]
+
+        actual = slugs_to_topic_v2_slugs(input_slugs)
+
+        assert len(actual) == len(expected), "Invalid number of slugs"
+        for slug in expected:
+            assert slug in actual, f"Slug '{slug}' is missing"
+
+    def test_topic_v2_slugs_mapping(self):
+        """Test that a list of TopicV2 slugs is mapped to a distinct list of TopicV2 slugs"""
+        input_slugs = ["sports-recreation", "other", "peace-security", "other"]
+        expected = ["sports-recreation", "other", "peace-security"]
+
+        actual = slugs_to_topic_v2_slugs(input_slugs)
+
+        assert len(actual) == len(expected), "Invalid number of slugs"
+        for slug in expected:
+            assert slug in actual, f"Slug '{slug}' is missing"
+
+    def test_mixed_version_slugs_mapping(self):
+        """Test that a list of mixed version slugs is mapped to a list of TopicV2 slugs"""
+        input_slugs = ["water-ocean", "alternative-economy", "peace-security", "sports-recreation"]
+        expected = ["climate-environment", "other", "peace-security", "sports-recreation"]
+
+        actual = slugs_to_topic_v2_slugs(input_slugs)
+
+        assert len(actual) == len(expected), "Invalid number of slugs"
+        for slug in expected:
+            assert slug in actual, f"Slug '{slug}' is missing"
+
+    def test_unknown_slug_mapping(self):
+        """Test that unknown or empty slugs are ignored when mapping to a list of TopicV2 slugs"""
+        input_slugs = ["water-ocean", "", "peace-security", "unknown"]
+        expected = ["climate-environment", "peace-security"]
+
+        actual = slugs_to_topic_v2_slugs(input_slugs)
+
+        assert len(actual) == len(expected), "Invalid number of slugs"
+        for slug in expected:
+            assert slug in actual, f"Slug '{slug}' is missing"

@@ -75,3 +75,7 @@ def slug_to_topic_v2(slug: str) -> Optional[str]:
             return topic
 
     return None
+
+
+def slugs_to_topic_v2_slugs(slugs: [str]) -> [str]:
+    return list(set(filter(None, map(slug_to_topic_v2, slugs))))
