@@ -37,6 +37,7 @@ class TrackingUser(Protocol):
     username: str
     tracking_consent_analytics: bool
     tracking_consent_personalization: bool
+    tracking_consent_ad_partners: bool
 
 
 def initialize_tracking(config: PostHogConfig):
@@ -68,6 +69,7 @@ def track(user: TrackingUser, event: TrackingEvent):
                     "event_version__patch": event.event_version__patch,
                     "trackingConsentAnalytics": user.tracking_consent_analytics,
                     "trackingConsentPersonalization": user.tracking_consent_personalization,
+                    "trackingConsentAdPartners": user.tracking_consent_ad_partners,
                 },
             )
         except Exception as e:
