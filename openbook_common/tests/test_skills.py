@@ -1,9 +1,13 @@
+import logging
 import pytest
+import unittest
 
 from openbook_common.skills import skill_v2_slugs, slug_to_skill_v2
 
+logger = logging.getLogger(__name__)
 
-class TestSlugToSkillV2:
+
+class TestSlugToSkillV2(unittest.TestCase):
     # Define test cases as a list of tuples (input, expected)
     test_cases = [
         # Music Performance
@@ -113,10 +117,10 @@ class TestSlugToSkillV2:
         ("unknown-slug", None),
     ]
 
-    @pytest.mark.parametrize("input_slug,expected", test_cases)
-    def test_slug_to_skill_v2_mapping(self, input_slug, expected):
+    def test_slug_to_skill_v2_mapping(self):
         """Test that each slug maps to its expected skill."""
-        assert slug_to_skill_v2(input_slug) == expected
+        for input_slug, expected in self.test_cases:
+            assert slug_to_skill_v2(input_slug) == expected
 
     def test_all_implemented_slugs_are_tested(self):
         """Test that all slugs in the implementation have a corresponding test case."""

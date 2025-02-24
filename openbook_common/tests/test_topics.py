@@ -1,9 +1,10 @@
 import pytest
+import unittest
 
 from openbook_common.topics import topic_v2_slugs, slug_to_topic_v2
 
 
-class TestSlugToTopicV2:
+class TestSlugToTopicV2(unittest.TestCase):
     # Define test cases as a list of tuples (input, expected)
     test_cases = [
         # ANIMAL_WELFARE
@@ -85,10 +86,10 @@ class TestSlugToTopicV2:
         ("unknown-slug", None),
     ]
 
-    @pytest.mark.parametrize("input_slug,expected", test_cases)
-    def test_slug_to_topic_v2_mapping(self, input_slug, expected):
+    def test_slug_to_topic_v2_mapping(self):
         """Test that each slug maps to its expected topic."""
-        assert slug_to_topic_v2(input_slug) == expected
+        for input_slug, expected in self.test_cases:
+            assert slug_to_topic_v2(input_slug) == expected
 
     def test_all_implemented_slugs_are_tested(self):
         """Test that all slugs in the implementation have a corresponding test case."""
