@@ -84,7 +84,7 @@ class Comment(ModelWithUUID):
         commentable_id: uuid.UUID,
         commentable_type: EnabledCommentableType,
     ):
-        commentable_content_type = ContentType.objects.get_for_model(model=commentable_type.model_class())
+        commentable_content_type = ContentType.objects.get(model=commentable_type.value)
         commentable = commentable_content_type.get_object_for_this_type(pk=commentable_id)
         return commentable
 

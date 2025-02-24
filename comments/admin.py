@@ -31,7 +31,8 @@ class PostCommentAdmin(admin.ModelAdmin):
     def link_to_commentable(self, obj):
         content_type = ContentType.objects.get_for_model(model=obj.commentable_type.model_class())
         link = reverse("admin:%s_%s_change" % (content_type.app_label, content_type.model), args=(obj.commentable_id,))
-        commentable = obj.get_commentable(obj.commentable_id, obj.commentable_type)
+        commentable_content_type = ContentType.objects.get_for_model(model=obj.commentable_type.model_class())
+        commentable = commentable_content_type.get_object_for_this_type(pk=obj.commentable_id)
         return format_html(
             '<a href="{}">{}</a>',
             link,
