@@ -59,9 +59,7 @@ def create_community_name_from_title_and_hash(title, hash):
     except ValidationError:
         name_suffix_length = min(8, len(hash))
         while name_suffix_length <= len(hash) and name_suffix_length > 0:
-            name = (
-                f"{slug[: settings.COMMUNITY_NAME_MAX_LENGTH - name_suffix_length - 1]}-{hash[: name_suffix_length]}"
-            )
+            name = f"{slug[: settings.COMMUNITY_NAME_MAX_LENGTH - name_suffix_length - 1]}-{hash[:name_suffix_length]}"
             try:
                 community_name_not_taken_validator(name)
                 return name

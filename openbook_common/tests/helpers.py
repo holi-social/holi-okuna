@@ -92,7 +92,7 @@ def make_user(
     defined_arguments["id"] = defined_arguments["username"]
 
     user = mixer.blend(User, **defined_arguments)
-    profile = make_profile(user, **defined_arguments)
+    profile = make_profile(user, name=name, last_name=last_name, engagement_level=engagement_level)
     if user.profile.full_name() and not user.identity:
         user.identity = User.sanitize_identity_input(user.profile.full_name())
         user.save()
@@ -121,7 +121,7 @@ def make_profile(
     user: Optional[User] = None,
     name: Optional[str] = None,
     last_name: Optional[str] = None,
-    **kwargs,
+    engagement_level=None,
 ) -> UserProfile:
     defined_arguments = {k: v for k, v in locals().items() if v is not None}
     return mixer.blend(UserProfile, **defined_arguments)

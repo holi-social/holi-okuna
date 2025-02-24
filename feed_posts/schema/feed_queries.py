@@ -8,6 +8,7 @@ from django.db import models
 from django.db.models import Count, OuterRef, Subquery
 from django.db.models.functions import Coalesce
 from django.utils import timezone
+from django.core.cache import cache
 
 from comments.models import Comment
 from feed_posts.enums import VisibilityLevel
@@ -50,6 +51,12 @@ class Query:
     ) -> Paged[FeedItem]:
         user = info.context.request.user
 
+        # Generate cache key based on user and pagination
+        cache_key = f"feed:{user.id if user.is_authenticated else 'anon'}:o{offset}:l{limit}"
+        cached_feed = cache.get(cache_key)
+        if cached_feed:
+            return cached_feed
+
         feed_post_content_type = ContentType.objects.get_for_model(FeedPostModel)
         space_post_content_type = ContentType.objects.get_for_model(PostModel)
 
@@ -86,6 +93,7 @@ class Query:
                 total_comments=Subquery(space_comments_subquery, output_field=models.IntegerField()),
             )
             .select_related("community")
+            .defer("mentions")
             .order_by("-created", "-reaction_count", "-total_comments")
             .distinct()
         )
@@ -97,8 +105,9 @@ class Query:
                     reaction_count=Count("reactions"),
                     total_comments=Subquery(feed_post_comments_subquery, output_field=models.IntegerField()),
                 )
+                .select_related("creator")
+                .prefetch_related("topics")
                 .order_by("-created_at", "-reaction_count", "-total_comments")
-                .all()
             )
 
             sorted_posts = sorted(
@@ -106,9 +115,13 @@ class Query:
                 key=lambda post: (-int(getattr(post, "has_priority", False)),),
             )
 
-            posts = list(sorted_posts) + list(space_posts)
+            posts = sorted_posts + list(space_posts)
             feed_items = [map_to_feed_item(post) for post in posts]
-            return paginate_posts(feed_items, offset, limit)
+            result = paginate_posts(feed_items, offset, limit)
+
+            # Cache anonymous results for 10 minutes
+            cache.set(cache_key, result, 600)
+            return result
 
         # Authenticated users
 
@@ -123,158 +136,64 @@ class Query:
             .select_related("creator")
             .prefetch_related("topics")
             .order_by("-created_at", "-reaction_count", "-total_comments")
-            .all()
         )
 
-        user_interests = list(user.profile.interests.values_list("id", flat=True))
-        user_connections = list(user.connections.values_list("target_user_id", flat=True))
+        user_interests = user.profile.interests.values_list("id", flat=True)
+        user_connections = user.connections.values_list("target_user_id", flat=True)
         current_time = timezone.now()
 
-        # Execute all queries in parallel while preserving order
-        from concurrent.futures import ThreadPoolExecutor
-
-        with ThreadPoolExecutor(max_workers=4) as executor:
-            futures = []
-
+        # Build post lists in order of priority
+        post_lists = [
             # User recently created posts
-            futures.append(
-                executor.submit(
-                    lambda: list(
-                        feed_posts.filter(creator=user, created_at__gte=current_time - timedelta(hours=1)).all()
-                    )
-                )
-            )
-
+            feed_posts.filter(creator=user, created_at__gte=current_time - timedelta(hours=1)),
             # User recently created space posts
-            futures.append(
-                executor.submit(
-                    lambda: list(
-                        PostModel.objects.filter(
-                            creator=user,
-                            status=PostModel.STATUS_PUBLISHED,
-                            created__gte=current_time - timedelta(hours=1),
-                        )
-                        .order_by("-created")
-                        .distinct()
-                    )
-                )
+            PostModel.objects.filter(
+                creator=user,
+                status=PostModel.STATUS_PUBLISHED,
+                created__gte=current_time - timedelta(hours=1),
             )
-
+            .defer("mentions")
+            .order_by("-created")
+            .distinct(),
             # Co-founders
-            futures.append(executor.submit(lambda: [post for post in feed_posts if post.has_priority]))
-
-            # Editors priority posts
-            futures.append(
-                executor.submit(
-                    lambda: [
-                        post
-                        for post in feed_posts
-                        if post.created_at >= current_time - timedelta(days=post.priority_duration)
-                    ]
-                )
-            )
-
+            [post for post in feed_posts if post.has_priority],
+            [post for post in feed_posts if post.created_at >= current_time - timedelta(days=post.priority_duration)],
             # User connections posts
-            futures.append(
-                executor.submit(
-                    lambda: list(
-                        feed_posts.filter(
-                            creator__id__in=user_connections, created_at__gte=current_time - priority_duration
-                        ).all()
-                    )
-                )
-            )
-
+            feed_posts.filter(creator__id__in=user_connections, created_at__gte=current_time - priority_duration),
             # Space posts in spaces that the user is collaborator
-            futures.append(
-                executor.submit(
-                    lambda: list(
-                        space_posts.filter(
-                            community__memberships__user=user, created__gte=current_time - priority_duration
-                        ).all()
-                    )
-                )
-            )
-
+            space_posts.filter(community__memberships__user=user, created__gte=current_time - priority_duration),
             # Space posts user is follower of
-            futures.append(
-                executor.submit(
-                    lambda: list(
-                        space_posts.filter(
-                            community__notifications_subscriptions__subscriber=user,
-                            community__notifications_subscriptions__new_post_notifications=True,
-                            created__gte=current_time - priority_duration,
-                        ).all()
-                    )
-                )
-            )
-
+            space_posts.filter(
+                community__notifications_subscriptions__subscriber=user,
+                community__notifications_subscriptions__new_post_notifications=True,
+                created__gte=current_time - priority_duration,
+            ),
             # Feed posts matching user's topics
-            futures.append(
-                executor.submit(
-                    lambda: list(
-                        feed_posts.filter(
-                            topics__id__in=user_interests, created_at__gte=current_time - priority_duration
-                        ).all()
-                    )
-                )
-            )
-
+            feed_posts.filter(topics__id__in=user_interests, created_at__gte=current_time - priority_duration),
             # Space posts matching user's topics
-            futures.append(
-                executor.submit(
-                    lambda: list(
-                        space_posts.filter(
-                            community__topics__id__in=user_interests, created__gte=current_time - priority_duration
-                        ).all()
-                    )
-                )
-            )
-
+            space_posts.filter(
+                community__topics__id__in=user_interests, created__gte=current_time - priority_duration
+            ),
             # Editors posts
-            futures.append(
-                executor.submit(
-                    lambda: list(
-                        feed_posts.filter(
-                            creator__role=UserRole.EDITOR, created_at__gte=current_time - priority_duration
-                        ).all()
-                    )
-                )
-            )
-
+            feed_posts.filter(creator__role=UserRole.EDITOR, created_at__gte=current_time - priority_duration),
             # Latest feed posts
-            futures.append(
-                executor.submit(
-                    lambda: list(
-                        feed_posts.filter(creator=user, created_at__gte=current_time - timedelta(days=1)).all()
-                    )
-                )
-            )
-
+            feed_posts.filter(creator=user, created_at__gte=current_time - timedelta(days=1)),
             # Latest space posts
-            futures.append(
-                executor.submit(
-                    lambda: list(
-                        PostModel.objects.filter(
-                            creator=user,
-                            status=PostModel.STATUS_PUBLISHED,
-                            created__gte=current_time - timedelta(days=1),
-                        )
-                        .order_by("-created")
-                        .distinct()
-                    )
-                )
+            PostModel.objects.filter(
+                creator=user,
+                status=PostModel.STATUS_PUBLISHED,
+                created__gte=current_time - timedelta(days=1),
             )
-
+            .defer("mentions")
+            .order_by("-created")
+            .distinct(),
             # All feed posts
-            futures.append(executor.submit(lambda: list(feed_posts)))
-
+            feed_posts,
             # All space posts
-            futures.append(executor.submit(lambda: list(space_posts)))
+            space_posts,
+        ]
 
-            # Get results in order
-            post_lists = [future.result() for future in futures]
-
+        # Combine all posts while preserving order and removing duplicates
         all_posts = OrderedDict()
         for post_list in post_lists:
             for post in post_list:
@@ -282,5 +201,8 @@ class Query:
 
         posts = list(all_posts.keys())
         feed_items = [map_to_feed_item(post) for post in posts]
+        result = paginate_posts(feed_items, offset, limit)
 
-        return paginate_posts(feed_items, offset, limit)
+        # Cache authenticated user results for 2 minutes
+        cache.set(cache_key, result, 120)
+        return result

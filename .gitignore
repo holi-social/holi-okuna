@@ -28,3 +28,4 @@ core
 /.run/_*
 .envrc.local
 terraform*.log
+/.gitlab-ci-local

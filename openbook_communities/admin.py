@@ -94,7 +94,7 @@ class CommunityAdmin(admin.ModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         def nice_name(obj):
-            return f'{obj.profile.name if hasattr(obj, "profile") else ""} {obj.profile.last_name if hasattr(obj, "profile") else ""} ({obj.email}), {obj.username}'
+            return f"{obj.profile.name if hasattr(obj, 'profile') else ''} {obj.profile.last_name if hasattr(obj, 'profile') else ''} ({obj.email}), {obj.username}"
 
         formfield = super().formfield_for_foreignkey(db_field, request, **kwargs)
         if db_field.name == "creator":

@@ -364,7 +364,3 @@ class Query:
             offset,
             limit,
         )
-
-    @strawberry_django.field()
-    def get_stuff(self) -> List[SpaceUserConnectionType]:
-        return [SpaceUserConnectionType.MEMBER, SpaceUserConnectionType.CREATOR]

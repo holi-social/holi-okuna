@@ -1,6 +1,7 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
+from django.utils import timezone
 
 import strawberry
 import strawberry_django
@@ -16,6 +17,7 @@ from openbook_insights.models import Insight as InsightModel
 from openbook_insights.schema.types import Insight
 from openbook_insights.schema.types.discussion import Discussion
 from openbook_insights.schema.types.insight import InsightPreview
+from django.core.cache import cache
 
 
 @strawberry.type
@@ -58,6 +60,12 @@ class Query:
     def feed_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[InsightPreview]:
         current_user = info.context.request.user
 
+        # Generate cache key based on pagination
+        cache_key = f"feed_insights:o{offset}:l{limit}"
+        cached_insights = cache.get(cache_key)
+        if cached_insights:
+            return cached_insights
+
         base_queryset = InsightModel.objects.filter(
             Q(creator__isnull=True) | UserModel.is_visible_ignore_blocked_query("creator"),
             date_published__lte=datetime.now(),
@@ -73,6 +81,15 @@ class Query:
             limit,
         )
 
+        # Calculate seconds until next 10am
+        now = timezone.now()
+        next_10am = now.replace(hour=10, minute=0, second=0, microsecond=0)
+        if now.hour >= 10:
+            next_10am += timedelta(days=1)
+        cache_ttl = int((next_10am - now).total_seconds())
+
+        # Cache until next 10am
+        cache.set(cache_key, paged_insights, cache_ttl)
         return paged_insights
 
     @strawberry_django.field()
