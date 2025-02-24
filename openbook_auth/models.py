@@ -289,6 +289,7 @@ class User(ModelWithUUID, AbstractUser):
 
     tracking_consent_analytics = models.BooleanField(blank=True, null=True, default=None)
     tracking_consent_personalization = models.BooleanField(blank=True, null=True, default=None)
+    tracking_consent_ad_partners = models.BooleanField(blank=True, null=True, default=None)
 
     JWT_TOKEN_TYPE_CHANGE_EMAIL = "CE"
     JWT_TOKEN_TYPE_PASSWORD_RESET = "PR"
@@ -802,6 +803,7 @@ class User(ModelWithUUID, AbstractUser):
         remove_avatar=False,
         tracking_consent_analytics=None,
         tracking_consent_personalization=None,
+        tracking_consent_ad_partners=None,
     ) -> None:
         if url is not None:
             if len(url) == 0:
@@ -851,6 +853,8 @@ class User(ModelWithUUID, AbstractUser):
             self.tracking_consent_analytics = tracking_consent_analytics
         if tracking_consent_personalization is not None:
             self.tracking_consent_personalization = tracking_consent_personalization
+        if tracking_consent_ad_partners is not None:
+            self.tracking_consent_ad_partners = tracking_consent_ad_partners
 
         if pronouns is not None:
             self.profile.pronouns = pronouns
