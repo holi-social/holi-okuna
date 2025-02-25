@@ -1,4 +1,4 @@
-from typing import Optional, Literal
+from typing import Optional, Literal, List
 
 # keys are the V2 topic slugs, values is a combined list of V1 and V2 topic slugs (for backwards-compatibility)
 topic_v2_slugs = {
@@ -77,5 +77,5 @@ def slug_to_topic_v2(slug: str) -> Optional[str]:
     return None
 
 
-def slugs_to_topic_v2_slugs(slugs: [str]) -> [str]:
+def slugs_to_topic_v2_slugs(slugs: List[str]) -> List[str]:
     return list(set(filter(None, map(slug_to_topic_v2, slugs))))

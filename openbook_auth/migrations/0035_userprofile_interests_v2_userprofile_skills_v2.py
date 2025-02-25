@@ -3,19 +3,19 @@
 import django.contrib.postgres.fields
 from django.db import migrations, models
 
-from openbook_common.topics import slug_to_topic_v2
-from openbook_common.skills import slug_to_skill_v2
+from openbook_common.topics import slugs_to_topic_v2_slugs
+from openbook_common.skills import slugs_to_skill_v2_slugs
 
 
 def migrate_topics_and_skills(apps, schema_editor):
     UserProfile = apps.get_model("openbook_auth", "UserProfile")
-    
+
     for user_profile in UserProfile.objects.all():
         old_interests = user_profile.interests.all()
-        new_interests = slugs_to_topic_v2_slugs(old_interests)
+        new_interests = slugs_to_topic_v2_slugs([topic.slug for topic in old_interests])
 
         old_skills = user_profile.skills.all()
-        new_skills = slugs_to_skill_v2_slugs(old_skills)
+        new_skills = slugs_to_skill_v2_slugs([skill.slug for skill in old_skills])
 
         user_profile.interests_v2 = new_interests
         user_profile.skills_v2 = new_skills
@@ -23,7 +23,6 @@ def migrate_topics_and_skills(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_auth", "0034_remove_userprofile_cover_and_more"),
     ]

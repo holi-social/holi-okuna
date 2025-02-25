@@ -5,10 +5,12 @@ import secrets
 from datetime import datetime, timedelta
 from enum import Enum
 from itertools import chain
-from typing import Iterable, Set, Callable, Type, Optional
+from typing import Iterable, Set, Callable, Type, Optional, List
 from uuid import UUID
 
 import strawberry
+from openbook_common.topics import slugs_to_topic_v2_slugs
+from openbook_common.skills import slugs_to_skill_v2_slugs
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
@@ -791,11 +793,11 @@ class User(ModelWithUUID, AbstractUser):
         last_name=None,
         pronouns=None,
         engagement_level=None,
-        interests=None,
-        interests_v2=None,
+        interests: Optional[List[Topic]] = None,
+        interests_v2: Optional[List[str]] = None,
         sdgs=None,
-        skills=None,
-        skills_v2=None,
+        skills: Optional[List[Skill]] = None,
+        skills_v2: Optional[List[str]] = None,
         save=True,
         update_location=False,
         remove_avatar=False,
@@ -856,15 +858,17 @@ class User(ModelWithUUID, AbstractUser):
         if engagement_level:
             self.profile.engagement_level = engagement_level
         if interests is not None:
-            self.profile.interests.set(interests)
-            self.profile.interests_v2 = slugs_to_topic_v2_slugs(interests)
+            updated_interests = Topic.objects.filter(id__in=interests)
+            self.profile.interests.set(updated_interests)
+            self.profile.interests_v2 = slugs_to_topic_v2_slugs([topic.slug for topic in updated_interests])
         elif interests_v2 is not None:
             self.profile.interests_v2 = interests_v2
         if sdgs is not None:
             self.profile.sdgs.set(sdgs)
         if skills is not None:
-            self.profile.skills.set(skills)
-            self.profile.skills_v2 = slugs_to_skill_v2_slugs(skills)
+            updated_skills = Skill.objects.filter(id__in=skills)
+            self.profile.skills.set(updated_skills)
+            self.profile.skills_v2 = slugs_to_skill_v2_slugs([skill.slug for skill in updated_skills])
         elif skills_v2 is not None:
             self.profile.skills_v2 = skills_v2
 

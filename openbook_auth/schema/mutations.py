@@ -55,9 +55,9 @@ def _capture_user_fields(user: UserModel) -> Dict[str, str]:
         "aboutMe": user.profile.about_me,
         "pronouns": user.profile.pronouns,
         "engagementLevel": user.profile.engagement_level,
-        "interests": set(user.profile.interests.values_list("id", flat=True)),
+        "interests": set(user.profile.interests.values_list("id", flat=True)) | set(user.profile.interests_v2),
         "sdgs": set(user.profile.sdgs.values_list("id", flat=True)),
-        "skills": set(user.profile.skills.values_list("id", flat=True)),
+        "skills": set(user.profile.skills.values_list("id", flat=True)) | set(user.profile.skills_v2),
         "avatar": user.profile.avatar.url if user.profile.avatar else None,
     }
 
@@ -106,8 +106,10 @@ class Mutation:
             update_location=input.location is not strawberry.UNSET or input.geolocation is not strawberry.UNSET,
             engagement_level=data.get("engagement_level"),
             interests=data.get("interests"),
+            interests_v2=data.get("interests_v2"),
             sdgs=data.get("sdgs"),
             skills=data.get("skills"),
+            skills_v2=data.get("skills_v2"),
             avatar=data.get("avatar"),
             remove_avatar=remove_avatar,
             tracking_consent_analytics=data.get("tracking_consent_analytics"),

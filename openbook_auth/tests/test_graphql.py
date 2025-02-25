@@ -30,6 +30,7 @@ from openbook_auth.tests.helpers import (
     api_update_authenticated_user_names_data,
     get_user_connection_status_to_space_data,
     get_user_with_id_raw,
+    get_user_by_id_raw,
     get_users_by_chat_identities,
     get_connected_users,
     get_connected_users_raw,
@@ -531,6 +532,74 @@ class TestUsers:
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     @mock.patch("openbook_auth.schema.mutations.track")
+    def test_updating_topics_skills_is_backward_compatible(
+        self,
+        mock_track,
+        mock_create_or_update_subscriber,
+        mock_get_language_from_request,
+        mock_publish_user_name_updated_event,
+        mock_publish_user_updated_event,
+        mock_patch,
+    ):
+        # test exemplary topic and skill, there are separate unit tests for exhaustive testing the
+        # backwards-compatibility mapping itself
+
+        # GIVEN a V1 topic slug and a V1 skill slug
+        topic = make_topic(slug="biodiversity-animal-welfare")
+        skill = make_skill(slug="development-concept")
+        user = make_user(interests=[], skills=[], interests_v2=[], skills_v2=[])
+
+        # WHEN update topics and skills of a user using the V1 API
+        self._update_user(user, {"interests": [str(topic.id)], "skills": [str(skill.id)]})
+
+        # THEN they are updated for the V1 API
+        response = get_user_by_id_raw(
+            user,
+            fields="""
+                interests { slug }
+                skills { slug }
+                interestsV2
+                skillsV2
+            """,
+        )
+        # TODO multiple topics
+        from sys import stderr
+
+        print(response.data, file=stderr)
+
+        assert len(response.data["userById"]["interests"]) == 1
+        assert response.data["userById"]["interests"][0]["slug"] == "biodiversity-animal-welfare"
+
+        assert len(response.data["userById"]["skills"]) == 1
+        assert response.data["userById"]["skills"][0]["slug"] == "development-concept"
+
+        # AND THEN they are updated in a backwards-compatible way in the V2 API
+        assert len(response.data["userById"]["interestsV2"]) == 1
+        assert response.data["userById"]["interestsV2"][0] == "animal-welfare"
+        assert response.data["userById"]["skillsV2"][0] == "creativity-design"
+
+    # noinspection PyMethodMayBeStatic
+    def _update_user(self, user: User, inputs: Dict[str, any]) -> None:
+        request = HttpRequest()
+        request.COOKIES = {}
+        request.user = user
+        executed = async_to_sync(schema.execute)(
+            """
+            mutation updateAuthenticatedUserV2($input: UpdateAuthenticatedUserInput!) {
+                updateAuthenticatedUserV2(input: $input) { id }
+            }
+        """,
+            context_value=benedict({"request": request}),
+            variable_values={"input": inputs},
+        )
+        assert executed.errors is None
+
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_updated_event")
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
+    @mock.patch("openbook_auth.schema.mutations.track")
     def test_user_updated_tracking_event(
         self,
         mock_track,
@@ -542,49 +611,42 @@ class TestUsers:
     ):
         response = self.create_response(200)
         mock_patch.return_value = response
-        topic = make_topic()
-        skill = make_skill()
+        topic = make_topic(slug="animal-welfare")
+        topic_v2 = "arts-culture"
+
+        skill = make_skill(slug="animal-care")
+        skill_v2 = "arts-crafts"
+
         sdg = make_sdg()
         user = make_user(name="John", last_name="Doe", engagement_level=EngagementLevelChoice.ENGAGED.value)
 
-        def update_user(inputs: Dict[str, any]) -> None:
-            request = HttpRequest()
-            request.COOKIES = {}
-            request.user = user
-            executed = async_to_sync(schema.execute)(
-                """
-                mutation updateAuthenticatedUserV2($input: UpdateAuthenticatedUserInput!) {
-                    updateAuthenticatedUserV2(input: $input) { id }
-                }
-            """,
-                context_value=benedict({"request": request}),
-                variable_values={"input": inputs},
-            )
-            assert executed.errors is None
-
-        update_user({})
+        self._update_user(user, {})
         mock_track.assert_not_called()
         mock_track.reset_mock()
 
         # should not contain updated_fields if field values didn't change
-        update_user({"firstName": "John", "lastName": "Doe"})
+        self._update_user(user, {"firstName": "John", "lastName": "Doe"})
         mock_track.assert_not_called()
         mock_track.reset_mock()
 
-        update_user({"firstName": "Johnny", "lastName": "Doey", "aboutMe": "All about me"})
+        self._update_user(user, {"firstName": "Johnny", "lastName": "Doey", "aboutMe": "All about me"})
         self._validate_tracking_event_user_updated(mock_track, {"firstName", "lastName", "aboutMe"})
         mock_track.reset_mock()
 
-        update_user({"location": "New York", "geolocation": geolocation})
+        self._update_user(user, {"location": "New York", "geolocation": geolocation})
         self._validate_tracking_event_user_updated(mock_track, {"location", "geolocation"})
         mock_track.reset_mock()
 
-        update_user({"pronouns": "They/Them", "engagementLevel": EngagementLevelChoice.INITIATOR.value})
+        self._update_user(user, {"pronouns": "They/Them", "engagementLevel": EngagementLevelChoice.INITIATOR.value})
         self._validate_tracking_event_user_updated(mock_track, {"pronouns", "engagementLevel"})
         mock_track.reset_mock()
 
-        update_user({"interests": [str(topic.id)], "sdgs": [str(sdg.id)], "skills": [str(skill.id)]})
+        self._update_user(user, {"interests": [str(topic.id)], "sdgs": [str(sdg.id)], "skills": [str(skill.id)]})
         self._validate_tracking_event_user_updated(mock_track, {"interests", "sdgs", "skills"})
+        mock_track.reset_mock()
+
+        self._update_user(user, {"interestsV2": [topic_v2], "skillsV2": [skill_v2]})
+        self._validate_tracking_event_user_updated(mock_track, {"interests", "skills"})
         mock_track.reset_mock()
 
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -592,7 +654,7 @@ class TestUsers:
         with open(test_image_path, "rb") as image_file:
             image_content = image_file.read()
             image = SimpleUploadedFile(name="test_avatar.jpg", content=image_content, content_type="image/jpeg")
-        update_user({"avatar": image})
+        self._update_user(user, {"avatar": image})
         self._validate_tracking_event_user_updated(mock_track, {"avatar"})
         mock_track.reset_mock()
 

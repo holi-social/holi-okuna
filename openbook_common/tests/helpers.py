@@ -86,6 +86,10 @@ def make_user(
     role: UserRole = UserRole.REGULAR,
     is_employee: bool = False,
     engagement_level=None,
+    interests: Optional[List[Topic]] = None,
+    interests_v2: Optional[List[str]] = None,
+    skills: Optional[List[Skill]] = None,
+    skills_v2: Optional[List[str]] = None,
 ) -> User:
     defined_arguments = {k: v for k, v in locals().items() if v is not None}
     defined_arguments.setdefault("username", str(uuid.uuid4()))
@@ -265,8 +269,11 @@ def make_category():
     return mixer.blend(Category)
 
 
-def make_topic(is_discover_spaces_default=False) -> Topic:
-    return mixer.blend(Topic, is_discover_spaces_default=is_discover_spaces_default)
+def make_topic(
+    title: Optional[str] = None, slug: Optional[str] = None, is_discover_spaces_default: bool = False
+) -> Topic:
+    defined_arguments = {k: v for k, v in locals().items() if v is not None}
+    return mixer.blend(Topic, **defined_arguments)
 
 
 def make_sdg() -> SDG:
@@ -283,8 +290,9 @@ def make_community_topics():
     return community_topics
 
 
-def make_skill() -> Skill:
-    return mixer.blend(Skill)
+def make_skill(title: Optional[str] = None, slug: Optional[str] = None) -> Skill:
+    defined_arguments = {k: v for k, v in locals().items() if v is not None}
+    return mixer.blend(Skill, **defined_arguments)
 
 
 def make_community_invites_enabled():
