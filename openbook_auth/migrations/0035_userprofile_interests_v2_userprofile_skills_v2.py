@@ -3,8 +3,7 @@
 import django.contrib.postgres.fields
 from django.db import migrations, models
 
-from openbook_common.topics import slugs_to_topic_v2_slugs
-from openbook_common.skills import slugs_to_skill_v2_slugs
+from openbook_terms.helpers import topics_to_topic_v2_slugs, skills_to_skill_v2_slugs
 
 
 def migrate_topics_and_skills(apps, schema_editor):
@@ -12,10 +11,10 @@ def migrate_topics_and_skills(apps, schema_editor):
 
     for user_profile in UserProfile.objects.all():
         old_interests = user_profile.interests.all()
-        new_interests = slugs_to_topic_v2_slugs([topic.slug for topic in old_interests])
+        new_interests = topics_to_topic_v2_slugs(old_interests)
 
         old_skills = user_profile.skills.all()
-        new_skills = slugs_to_skill_v2_slugs([skill.slug for skill in old_skills])
+        new_skills = skills_to_skill_v2_slugs(old_skills)
 
         user_profile.interests_v2 = new_interests
         user_profile.skills_v2 = new_skills
