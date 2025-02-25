@@ -1,143 +1,168 @@
 [
-  {
-    "model": "openbook_auth.User",
-    "pk": "1",
-    "fields": {
-      "username": "9ebfc2c2-2d2b-413d-8bfd-ec30af1b7d49",
-      "password": "F0OB4R",
-      "is_superuser": false,
-      "is_staff": false,
-      "is_active": true,
-      "date_joined": "2022-08-25 12:08:16+00",
-      "email": "oswald_rippin@example.com",
-      "is_email_verified": false,
-      "uuid": "9ebfc2c2-2d2b-413d-8bfd-ec30af1b7d49",
-      "invite_count": 0,
-      "are_guidelines_accepted": true,
-      "is_deleted": false,
-      "visibility": "O"
-    }
-  },
-  {
-    "model": "openbook_auth.UserProfile",
-    "pk": "9829b4fb-9c99-44b5-8568-476be3ae01f9",
-    "fields": {
-      "user_id": 1,
-      "followers_count_visible": false,
-      "is_of_legal_age": true,
-      "community_posts_visible": true,
-      "interests": ["2ebecfaa-3a6d-4f39-9389-28bbbca628c9", "e61f3914-930e-4178-a954-73c7a129bd1f", "6244ff16-823b-4c51-b695-58b1aadab32c"],
-      "sdgs": ["4c832a1f-9b1d-4bb7-8186-57a8eaacf1ef"],
-      "skills": ["fcc4a764-d646-4fc6-ba8a-41dc4e224022"],
-      "name": "Oswald",
-      "last_name": "Rippin",
-      "avatar": "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/871.jpg",
-      "engagement_level": "INTERESTED"
-    }
-  },
-  {
-    "model": "openbook_auth.User",
-    "pk": "2",
-    "fields": {
-      "username": "5846dd02-e2c9-4350-9e68-e4c79bf02e02",
-      "password": "F0OB4R",
-      "is_superuser": false,
-      "is_staff": false,
-      "is_active": true,
-      "date_joined": "2022-08-24 12:08:16+00",
-      "email": "lamar_maggio@example.com",
-      "is_email_verified": false,
-      "uuid": "5846dd02-e2c9-4350-9e68-e4c79bf02e02",
-      "invite_count": 0,
-      "are_guidelines_accepted": true,
-      "is_deleted": false,
-      "visibility": "O"
-    }
-  },
-  {
-    "model": "openbook_auth.UserProfile",
-    "pk": "4ee7305e-ef9b-42ec-9b85-a4602f01a72e",
-    "fields": {
-      "user_id": 2,
-      "followers_count_visible": false,
-      "is_of_legal_age": true,
-      "community_posts_visible": true,
-      "interests": [],
-      "sdgs": [],
-      "skills": []
-    }
-  },
-  {
-    "model": "openbook_auth.User",
-    "pk": "3",
-    "fields": {
-      "username": "a09124b7-cdaf-4922-9c02-10b40b3b1530",
-      "password": "F0OB4R",
-      "is_superuser": false,
-      "is_staff": false,
-      "is_active": true,
-      "date_joined": "2022-08-23 12:08:16+00",
-      "email": "nelda_auer@example.com",
-      "is_email_verified": false,
-      "uuid": "a09124b7-cdaf-4922-9c02-10b40b3b1530",
-      "invite_count": 0,
-      "are_guidelines_accepted": true,
-      "is_deleted": false,
-      "visibility": "O"
-    }
-  },
-  {
-    "model": "openbook_auth.UserProfile",
-    "pk": "46fd9173-5895-4c3e-997d-568f0838ab24",
-    "fields": {
-      "user_id": 3,
-      "followers_count_visible": false,
-      "is_of_legal_age": true,
-      "community_posts_visible": true,
-      "interests": ["9cafd8e2-85ab-4e54-9cca-f4327015648a"],
-      "sdgs": ["9fbb8ea2-c82d-44cc-867e-2f94032f4d37"],
-      "skills": ["f8399855-4123-4ed6-9595-e0fb65bc2ade", "8c0e9623-0b29-4203-a4aa-ebfbe5ef39e5"],
-      "name": "Nelda",
-      "last_name": "Auer",
-      "engagement_level": "INTERESTED",
-      "about_me": "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua."
-    }
-  },
-  {
-    "model": "openbook_auth.User",
-    "pk": "4",
-    "fields": {
-      "username": "d2384748-0151-40d6-8527-0fe182112a6c",
-      "password": "F0OB4R",
-      "is_superuser": false,
-      "is_staff": false,
-      "is_active": true,
-      "date_joined": "2022-08-22 12:08:16+00",
-      "email": "kaitlyn_veum@example.com",
-      "is_email_verified": false,
-      "uuid": "d2384748-0151-40d6-8527-0fe182112a6c",
-      "invite_count": 0,
-      "are_guidelines_accepted": true,
-      "is_deleted": false,
-      "visibility": "O"
-    }
-  },
-  {
-    "model": "openbook_auth.UserProfile",
-    "pk": "ac17e49d-7eeb-4e8f-a34d-dc4ee0921c67",
-    "fields": {
-      "user_id": 4,
-      "followers_count_visible": false,
-      "is_of_legal_age": true,
-      "community_posts_visible": true,
-      "interests": ["3c285e6f-239e-43a5-ae83-927ce8694ca9", "13049222-f742-49f1-8091-760c2100d7c8"],
-      "sdgs": ["ec00e781-ed8f-4295-9429-28be990bb42d", "681124cc-1acb-4b59-b616-868b48837c74"],
-      "skills": ["df485e09-9e38-420b-a990-fc94211e1b84"],
-      "name": "Kaitlyn",
-      "last_name": "Veum",
-      "avatar": "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/513.jpg",
-      "engagement_level": "ENGAGED",
-      "about_me": "At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."
-    }
-  }
+	{
+		"model": "openbook_auth.User",
+		"pk": "1",
+		"fields": {
+			"username": "9ebfc2c2-2d2b-413d-8bfd-ec30af1b7d49",
+			"password": "F0OB4R",
+			"is_superuser": false,
+			"is_staff": false,
+			"is_active": true,
+			"date_joined": "2022-08-25 12:08:16+00",
+			"email": "oswald_rippin@example.com",
+			"is_email_verified": false,
+			"uuid": "9ebfc2c2-2d2b-413d-8bfd-ec30af1b7d49",
+			"invite_count": 0,
+			"are_guidelines_accepted": true,
+			"is_deleted": false,
+			"visibility": "O"
+		}
+	},
+	{
+		"model": "openbook_auth.UserProfile",
+		"pk": "9829b4fb-9c99-44b5-8568-476be3ae01f9",
+		"fields": {
+			"user_id": 1,
+			"followers_count_visible": false,
+			"is_of_legal_age": true,
+			"community_posts_visible": true,
+			"interests": [
+				"2ebecfaa-3a6d-4f39-9389-28bbbca628c9",
+				"e61f3914-930e-4178-a954-73c7a129bd1f",
+				"6244ff16-823b-4c51-b695-58b1aadab32c"
+			],
+			"interests_v2": [
+				"food-hunger-relief",
+				"mental-physical-health",
+				"climate-environment"
+			],
+			"sdgs": ["4c832a1f-9b1d-4bb7-8186-57a8eaacf1ef"],
+			"skills": ["fcc4a764-d646-4fc6-ba8a-41dc4e224022"],
+			"skills_v2": ["fundraising"],
+			"name": "Oswald",
+			"last_name": "Rippin",
+			"avatar": "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/871.jpg",
+			"engagement_level": "INTERESTED"
+		}
+	},
+	{
+		"model": "openbook_auth.User",
+		"pk": "2",
+		"fields": {
+			"username": "5846dd02-e2c9-4350-9e68-e4c79bf02e02",
+			"password": "F0OB4R",
+			"is_superuser": false,
+			"is_staff": false,
+			"is_active": true,
+			"date_joined": "2022-08-24 12:08:16+00",
+			"email": "lamar_maggio@example.com",
+			"is_email_verified": false,
+			"uuid": "5846dd02-e2c9-4350-9e68-e4c79bf02e02",
+			"invite_count": 0,
+			"are_guidelines_accepted": true,
+			"is_deleted": false,
+			"visibility": "O"
+		}
+	},
+	{
+		"model": "openbook_auth.UserProfile",
+		"pk": "4ee7305e-ef9b-42ec-9b85-a4602f01a72e",
+		"fields": {
+			"user_id": 2,
+			"followers_count_visible": false,
+			"is_of_legal_age": true,
+			"community_posts_visible": true,
+			"interests": [],
+			"interests_v2": [],
+			"sdgs": [],
+			"skills": [],
+			"skills_v2": []
+		}
+	},
+	{
+		"model": "openbook_auth.User",
+		"pk": "3",
+		"fields": {
+			"username": "a09124b7-cdaf-4922-9c02-10b40b3b1530",
+			"password": "F0OB4R",
+			"is_superuser": false,
+			"is_staff": false,
+			"is_active": true,
+			"date_joined": "2022-08-23 12:08:16+00",
+			"email": "nelda_auer@example.com",
+			"is_email_verified": false,
+			"uuid": "a09124b7-cdaf-4922-9c02-10b40b3b1530",
+			"invite_count": 0,
+			"are_guidelines_accepted": true,
+			"is_deleted": false,
+			"visibility": "O"
+		}
+	},
+	{
+		"model": "openbook_auth.UserProfile",
+		"pk": "46fd9173-5895-4c3e-997d-568f0838ab24",
+		"fields": {
+			"user_id": 3,
+			"followers_count_visible": false,
+			"is_of_legal_age": true,
+			"community_posts_visible": true,
+			"interests": ["9cafd8e2-85ab-4e54-9cca-f4327015648a"],
+			"interests_v2": ["gender-equality"],
+			"sdgs": ["9fbb8ea2-c82d-44cc-867e-2f94032f4d37"],
+			"skills": [
+				"f8399855-4123-4ed6-9595-e0fb65bc2ade",
+				"8c0e9623-0b29-4203-a4aa-ebfbe5ef39e5"
+			],
+			"skills_v2": ["finances-taxes", "translation"],
+			"name": "Nelda",
+			"last_name": "Auer",
+			"engagement_level": "INTERESTED",
+			"about_me": "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua."
+		}
+	},
+	{
+		"model": "openbook_auth.User",
+		"pk": "4",
+		"fields": {
+			"username": "d2384748-0151-40d6-8527-0fe182112a6c",
+			"password": "F0OB4R",
+			"is_superuser": false,
+			"is_staff": false,
+			"is_active": true,
+			"date_joined": "2022-08-22 12:08:16+00",
+			"email": "kaitlyn_veum@example.com",
+			"is_email_verified": false,
+			"uuid": "d2384748-0151-40d6-8527-0fe182112a6c",
+			"invite_count": 0,
+			"are_guidelines_accepted": true,
+			"is_deleted": false,
+			"visibility": "O"
+		}
+	},
+	{
+		"model": "openbook_auth.UserProfile",
+		"pk": "ac17e49d-7eeb-4e8f-a34d-dc4ee0921c67",
+		"fields": {
+			"user_id": 4,
+			"followers_count_visible": false,
+			"is_of_legal_age": true,
+			"community_posts_visible": true,
+			"interests": [
+				"3c285e6f-239e-43a5-ae83-927ce8694ca9",
+				"13049222-f742-49f1-8091-760c2100d7c8"
+			],
+			"interests_v2": ["animal-welfare", "climate-environment"],
+			"sdgs": [
+				"ec00e781-ed8f-4295-9429-28be990bb42d",
+				"681124cc-1acb-4b59-b616-868b48837c74"
+			],
+			"skills": ["df485e09-9e38-420b-a990-fc94211e1b84"],
+			"skills_v2": ["research-analysis"],
+			"name": "Kaitlyn",
+			"last_name": "Veum",
+			"avatar": "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/513.jpg",
+			"engagement_level": "ENGAGED",
+			"about_me": "At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."
+		}
+	}
 ]

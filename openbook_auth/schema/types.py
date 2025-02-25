@@ -34,8 +34,10 @@ class UpdateAuthenticatedUserInput:
     geolocation: Optional[GeoJSONInput] = strawberry.UNSET
     engagement_level: Optional[str] = strawberry.UNSET
     interests: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    interests_v2: Optional[List[str]] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    skills_v2: Optional[List[str]] = strawberry.UNSET
     tracking_consent_analytics: Optional[bool] = strawberry.UNSET
     tracking_consent_personalization: Optional[bool] = strawberry.UNSET
 
@@ -98,6 +100,10 @@ class User:
     def interests(self) -> List[Optional[Topic]]:
         return self.profile.interests.all()
 
+    @strawberry_django.field(select_related=["profile"])
+    def interests_v2(self) -> List[Optional[str]]:
+        return self.profile.interests_v2
+
     @strawberry_django.field(select_related=["profile__sdgs"])
     def sdgs(self) -> List[Optional[SDG]]:
         return self.profile.sdgs.all().order_by("number")
@@ -105,6 +111,10 @@ class User:
     @strawberry_django.field(select_related=["profile__skills"])
     def skills(self) -> List[Optional[Skill]]:
         return self.profile.skills.all()
+
+    @strawberry_django.field(select_related=["profile"])
+    def skills_v2(self) -> List[Optional[str]]:
+        return self.profile.skills_v2
 
     @strawberry_django.field()
     def connection_status_to_myself(self, info) -> Optional[UserConnectionStatus]:
