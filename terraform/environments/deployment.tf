@@ -421,6 +421,26 @@ resource "google_cloud_run_service" "okuna" {
             }
           }
         }
+
+        startup_probe {
+          initial_delay_seconds = 10
+          period_seconds        = 5
+          timeout_seconds       = 5
+          failure_threshold     = 10
+          http_get {
+            path = "/graphql?query=%7B__typename%7D"
+          }
+        }
+
+        liveness_probe {
+          period_seconds    = 15
+          timeout_seconds   = 10
+          failure_threshold = 3
+          http_get {
+            path = "/graphql?query=%7B__typename%7D"
+          }
+        }
+
         resources {
           limits = {
             # cpu can only be scaled down to 1000m as long as container_concurrency is set to != 1

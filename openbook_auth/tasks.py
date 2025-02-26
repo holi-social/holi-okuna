@@ -53,6 +53,7 @@ def update_ory_user_identity(user: User) -> bool:
 
 
 def update_ory(user_id, data):
+    # TODO: handle requests.exceptions.Timeout
     response = requests.patch(
         f"{settings.ORY_BASE_URL}/admin/identities/{user_id}", headers=ORY_HEADERS, json=data, timeout=30
     )

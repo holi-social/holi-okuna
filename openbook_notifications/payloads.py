@@ -619,7 +619,7 @@ class WelcomeEmailSeriesPayload(Payload):
                 "user": UserData.from_user(user).to_dict(),
                 "recommendedSpaces": [SpaceData.from_community(space).to_dict() for space in spaces],
                 "recommendedInsights": [InsightData.from_insight(insight).to_dict() for insight in insights],
-                "token": token,
+                "unsubscribeUrl": f"{app_url}/unsubscribe?series=welcome&email={user.email}&token={token}",
             },
             notification_type=NotificationType.WELCOME_EMAIL_SERIES.value,
             notification_version=WelcomeEmailSeriesPayload.NOTIFICATION_VERSION,
