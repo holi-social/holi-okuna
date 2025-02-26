@@ -81,15 +81,7 @@ class Query:
             limit,
         )
 
-        # Calculate seconds until next 10am
-        now = timezone.now()
-        next_10am = now.replace(hour=10, minute=0, second=0, microsecond=0)
-        if now.hour >= 10:
-            next_10am += timedelta(days=1)
-        cache_ttl = int((next_10am - now).total_seconds())
-
-        # Cache until next 10am
-        cache.set(cache_key, paged_insights, cache_ttl)
+        cache.set(cache_key, paged_insights)
         return paged_insights
 
     @strawberry_django.field()
