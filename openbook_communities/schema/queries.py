@@ -20,7 +20,6 @@ from openbook_communities.models import CollaborationTool as CollaborationToolMo
 from openbook_communities.models import Community as CommunityModel
 from openbook_communities.models import SpaceUserConnectionType
 from openbook_communities.models import Task as TaskModel
-from openbook_communities.models import Topic as TopicModel
 from openbook_communities.schema.helpers import (
     filtered_spaces,
     create_filtered_spaces_query,
@@ -40,9 +39,25 @@ Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
 @strawberry.type
 class Query:
     @strawberry_django.field()
+    def discover_spaces_default_topics_v2(self) -> List[str]:
+        return [
+            "human-rights",
+            "animal-welfare",
+            "arts-culture",
+            "literacy-education",
+            "mental-physical-health",
+            "democracy-politics",
+        ]
+
+    @strawberry_django.field()
     def spaces(
         self,
-        topic_id: Optional[uuid.UUID] = None,
+        topic_id: Annotated[
+            Optional[uuid.UUID],
+            strawberry.argument(
+                description="Deprecated since version 1.52, use topics_v2 instead",
+            ),
+        ] = None,
         location: Annotated[
             Optional[str],
             strawberry.argument(
@@ -51,10 +66,32 @@ class Query:
             ),
         ] = None,
         geolocation: Optional[GeoJSON] = None,
-        skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
-        topic_slug: Optional[str] = None,
-        topic_slugs: Optional[List[Optional[str]]] = None,
-        skill_slugs: Optional[List[Optional[str]]] = None,
+        skill_ids: Annotated[
+            Optional[List[Optional[uuid.UUID]]],
+            strawberry.argument(
+                description="Deprecated since version 1.52, use skills_v2 instead",
+            ),
+        ] = None,
+        topic_slug: Annotated[
+            Optional[str],
+            strawberry.argument(
+                description="Deprecated since version 1.52, use topics_v2 instead",
+            ),
+        ] = None,
+        topic_slugs: Annotated[
+            Optional[List[Optional[str]]],
+            strawberry.argument(
+                description="Deprecated since version 1.52, use topics_v2 instead",
+            ),
+        ] = None,
+        skill_slugs: Annotated[
+            Optional[List[Optional[str]]],
+            strawberry.argument(
+                description="Deprecated since version 1.52, use skills_v2 instead",
+            ),
+        ] = None,
+        topics_v2: Optional[List[str]] = None,
+        skills_v2: Optional[List[str]] = None,
         member_id: Optional[uuid.UUID] = None,
         offset: int = 0,
         limit: int = 10,
@@ -66,6 +103,8 @@ class Query:
             topic_slug=topic_slug,
             topic_slugs=topic_slugs,
             skill_slugs=skill_slugs,
+            topics_v2=topics_v2,
+            skills_v2=skills_v2,
             member_id=member_id,
         )
 
@@ -94,9 +133,9 @@ class Query:
             if geolocation:
                 whens.append(When(create_filtered_spaces_query(geolocation=geolocation), then=Value(20)))
 
-        default_topics = list(TopicModel.objects.filter(is_discover_spaces_default=True).values_list("id", flat=True))
-        if default_topics:
-            whens.append(When(create_filtered_spaces_query(topic_ids=default_topics), then=Value(30)))
+        default_topics_v2 = self.discover_spaces_default_topics_v2()
+        if default_topics_v2:
+            whens.append(When(create_filtered_spaces_query(topics_v2=default_topics_v2), then=Value(30)))
 
         return Paged.of(
             CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
@@ -119,14 +158,26 @@ class Query:
     def discover_spaces(
         self,
         info,
-        topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
+        topic_ids: Annotated[
+            Optional[List[Optional[uuid.UUID]]],
+            strawberry.argument(
+                description="Deprecated since version 1.52, use topics_v2 instead",
+            ),
+        ] = None,
+        topics_v2: Optional[List[str]] = None,
         location: Annotated[
             Optional[str],
             # Using description instead of deprecation_reason as deprecated arguments are removed in GraphQL Mesh
             strawberry.argument(description="Unsupported since version 1.0.16, use geolocation instead"),
         ] = None,
         geolocation: Optional[GeoJSON] = None,
-        skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
+        skill_ids: Annotated[
+            Optional[List[Optional[uuid.UUID]]],
+            strawberry.argument(
+                description="Deprecated since version 1.52, use skills_v2 instead",
+            ),
+        ] = None,
+        skills_v2: Optional[List[str]] = None,
         offset: int = 0,
         limit: int = 10,
     ) -> List[Optional[DiscoverSpaces]]:
@@ -153,6 +204,16 @@ class Query:
                     )
                 )
 
+        if topics_v2 is not None:
+            for topic_v2 in topics_v2:
+                spaces = async_to_sync(filtered_spaces)(topics_v2=[topic_v2])
+                result.append(
+                    DiscoverSpaces(
+                        topic_v2=topic_v2,
+                        spaces=Paged.of(spaces, offset, limit),
+                    )
+                )
+
         # get all spaces by skill_id (including geolocation filter)
         if skill_ids is not None:
             for skill_id in skill_ids:
@@ -164,6 +225,18 @@ class Query:
                         spaces=Paged.of(spaces, offset, limit),
                     )
                 )
+
+        if skills_v2 is not None:
+            for skill_v2 in skills_v2:
+                spaces = async_to_sync(filtered_spaces)(skills_v2=[skill_v2], geolocation=geolocation)
+                result.append(
+                    DiscoverSpaces(
+                        skill_v2=skill_v2,
+                        location_id=geolocation.id if geolocation else None,
+                        spaces=Paged.of(spaces, offset, limit),
+                    )
+                )
+
         return result
 
     @strawberry_django.field()
