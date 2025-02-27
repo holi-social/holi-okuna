@@ -83,9 +83,8 @@ resource "google_cloud_run_v2_job" "okuna_migration" {
           }
         }
         env {
-          name = "ALLOWED_HOSTS"
-          # TODO This could break the admin interface, we need to check it after deployment
-          value = local.dns_name
+          name  = "ALLOWED_HOSTS"
+          value = "${local.dns_name},127.0.0.1,localhost" # localhost for healthcheck (startup and liveness probes)
         }
         env {
           name  = "RDS_DB_NAME"
@@ -246,9 +245,8 @@ resource "google_cloud_run_service" "okuna" {
           }
         }
         env {
-          name = "ALLOWED_HOSTS"
-          # TODO This could break the admin interface, we need to check it after deployment
-          value = local.dns_name
+          name  = "ALLOWED_HOSTS"
+          value = "${local.dns_name},127.0.0.1,localhost" # localhost for healthcheck (startup and liveness probes)
         }
         env {
           name  = "RDS_DB_NAME"
