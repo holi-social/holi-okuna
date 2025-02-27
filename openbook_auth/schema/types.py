@@ -33,10 +33,14 @@ class UpdateAuthenticatedUserInput:
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeoJSONInput] = strawberry.UNSET
     engagement_level: Optional[str] = strawberry.UNSET
-    interests: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    interests: Optional[List[Optional[uuid.UUID]]] = strawberry_django.field(
+        deprecation_reason="Deprecated since 1.52. Use interests_v2 instead."
+    )
     interests_v2: Optional[List[str]] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
-    skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    skills: Optional[List[Optional[uuid.UUID]]] = strawberry_django.field(
+        deprecation_reason="Deprecated since 1.52. Use skills_v2 instead."
+    )
     skills_v2: Optional[List[str]] = strawberry.UNSET
     tracking_consent_analytics: Optional[bool] = strawberry.UNSET
     tracking_consent_personalization: Optional[bool] = strawberry.UNSET
@@ -96,7 +100,9 @@ class User:
     def engagement_level(self) -> Optional[str]:
         return self.profile.engagement_level
 
-    @strawberry_django.field(select_related=["profile__interests"])
+    @strawberry_django.field(
+        select_related=["profile__interests"], deprecation_reason="Deprecated since 1.52. Use interests_v2 instead."
+    )
     def interests(self) -> List[Optional[Topic]]:
         return self.profile.interests.all()
 
@@ -108,7 +114,9 @@ class User:
     def sdgs(self) -> List[Optional[SDG]]:
         return self.profile.sdgs.all().order_by("number")
 
-    @strawberry_django.field(select_related=["profile__skills"])
+    @strawberry_django.field(
+        select_related=["profile__skills"], deprecation_reason="Deprecated since 1.52. Use skills_v2 instead."
+    )
     def skills(self) -> List[Optional[Skill]]:
         return self.profile.skills.all()
 

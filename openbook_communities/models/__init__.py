@@ -53,6 +53,7 @@ from openbook_communities.queries import (
 from openbook_moderation.models import ModeratedObject
 from openbook_notifications.api import NotificationApi
 from openbook_terms.models import SDG, Topic, Skill
+from django.contrib.postgres.fields import ArrayField
 
 community_image_storage = default_storage
 community_task_image_storage = default_storage
@@ -187,6 +188,7 @@ class Community(ModelWithUUID):
         db_index=True,
     )
     topics = models.ManyToManyField(Topic, related_name="communities", blank=False, db_index=True)
+    topics_v2 = ArrayField(models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH), blank=True, default=list)
     sdgs = models.ManyToManyField(SDG, related_name="communities", blank=True, db_index=True)
     geolocation = models.PointField(blank=True, null=True, spatial_index=True)
     contact_description = models.CharField(
@@ -1272,6 +1274,7 @@ class Task(ModelWithUUID):
         choices=Regularity.choices,
     )
     skills = models.ManyToManyField(Skill, related_name="tasks", blank=True, db_index=True)
+    skills_v2 = ArrayField(models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH), blank=True, default=list)
     thumbnail = ProcessedImageField(
         storage=community_task_image_storage,
         verbose_name=_("thumbnail"),

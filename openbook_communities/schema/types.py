@@ -190,6 +190,7 @@ class Task:
     location: strawberry.auto
     regularity: TaskModel.Regularity
     skills: List[Skill]
+    skills_v2: List[str]
     thumbnail: Optional[str]
     thumbnail_blurhash: Optional[str]
     contact_email: str
@@ -259,6 +260,7 @@ class Space:
     location: strawberry.auto
     links: List[Optional[ExternalLink]]
     topics: List[Optional[Topic]]
+    topics_v2: List[str]
     sdgs: List[Optional[SDG]]
     contact_description: Optional[str]
     contact_email: Optional[str]
@@ -430,13 +432,21 @@ class Space:
 @strawberry.type
 class DiscoverSpaces:
     spaces: Paged[Space]
-    topic_id: Optional[uuid.UUID] = None
+    topic_id: Optional[uuid.UUID] = strawberry.field(
+        deprecation_reason="Deprecated since version 1.52, use topic_v2 instead",
+        default=None,
+    )
+    topic_v2: Optional[str] = None
     location: Optional[str] = strawberry.field(
-        deprecation_reason="Unsupported since version 1.0.16, use location_id instead",
+        deprecation_reason="Deprecated since version 1.0.16, use location_id instead",
         default=None,
     )
     location_id: Optional[str] = None
-    skill_id: Optional[uuid.UUID] = None
+    skill_id: Optional[uuid.UUID] = strawberry.field(
+        deprecation_reason="Deprecated since version 1.52, use skill_v2 instead",
+        default=None,
+    )
+    skill_v2: Optional[str] = None
 
 
 @strawberry.type
