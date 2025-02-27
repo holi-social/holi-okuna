@@ -1,3 +1,5 @@
+import structlog
+from django.core.cache import cache
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db import models
@@ -14,6 +16,8 @@ from openbook_terms.models import Topic
 from openbook_polls.models import Poll
 
 insight_image_storage = default_storage
+
+logger = structlog.get_logger(__name__)
 
 
 class Insight(ModelWithUUID):
@@ -62,6 +66,12 @@ class Insight(ModelWithUUID):
         ]
 
     def save(self, *args, **kwargs):
+        # Attempt to delete the cache matching the pattern
+        try:
+            cache.delete_pattern("*feed_insights*")
+        except Exception as e:
+            # Log the error but don't raise an exception
+            logger.warning(f"Insights cache invalidation failed: {e}")
         if self.header_image:
             self.header_image_blurhash = generate_blurhash(self.header_image)
         super().save(*args, **kwargs)
