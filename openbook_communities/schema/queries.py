@@ -5,7 +5,7 @@ import strawberry
 import strawberry_django
 from asgiref.sync import async_to_sync
 from django.core.exceptions import PermissionDenied
-from django.db.models import Count, Prefetch, F, Q, Case, When, Value, IntegerField, OuterRef, Exists
+from django.db.models import Count, Prefetch, F, Q, Case, When, Value, IntegerField
 from django.db.models.lookups import IContains
 from django.utils.translation import gettext_lazy as _
 from strawberry.django.context import StrawberryDjangoContext
@@ -31,7 +31,6 @@ from openbook_communities.schema.types import (
     Space,
     Task,
 )
-from openbook_terms.models import Skill as SkillModel
 
 Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
 

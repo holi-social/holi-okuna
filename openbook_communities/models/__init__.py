@@ -53,6 +53,7 @@ from openbook_communities.queries import (
 from openbook_moderation.models import ModeratedObject
 from openbook_notifications.api import NotificationApi
 from openbook_terms.models import SDG, Topic, Skill
+from openbook_terms.helpers import topics_to_topic_v2_slugs, skills_to_skill_v2_slugs
 from django.contrib.postgres.fields import ArrayField
 
 community_image_storage = default_storage
@@ -354,6 +355,7 @@ class Community(ModelWithUUID):
         invites_enabled=None,
         location=None,
         topic_ids=None,
+        topics_v2=None,
     ):
         # If it's a private community and no invites_enabled
         if type == Community.COMMUNITY_TYPE_PRIVATE and invites_enabled is None:
@@ -377,6 +379,7 @@ class Community(ModelWithUUID):
             rules=rules,
             invites_enabled=invites_enabled,
             location=location,
+            topics_v2=topics_v2,
         )
 
         CommunityMembership.create_membership(
@@ -547,6 +550,7 @@ class Community(ModelWithUUID):
         categories_names=None,
         invites_enabled=None,
         topic_ids=None,
+        topics_v2=None,
         sdg_ids=None,
         cover=None,
         remove_cover=False,
@@ -585,6 +589,9 @@ class Community(ModelWithUUID):
 
         if categories_names is not None:
             self.set_categories_with_names(categories_names=categories_names)
+
+        if topics_v2 is not None:
+            self.topics_v2 = topics_v2
 
         if topic_ids is not None:
             self.set_topics_with_ids(topic_ids=topic_ids)
@@ -681,13 +688,11 @@ class Community(ModelWithUUID):
         self.categories.clear()
 
     def set_topics_with_ids(self, topic_ids):
-        self.clear_topics()
+        self.topics.clear()
         Topic = get_topic_model()
         topics = Topic.objects.filter(id__in=topic_ids)
+        self.topics_v2 = topics_to_topic_v2_slugs(topics)
         self.topics.set(topics)
-
-    def clear_topics(self):
-        self.topics.clear()
 
     def set_sdgs_with_ids(self, sdg_ids):
         self.clear_sdgs()
@@ -1324,13 +1329,11 @@ class Task(ModelWithUUID):
             & (pQ(visibility=VisibilityType.PUBLIC) | pQ(community__memberships__user__id=user.id))
         )
 
-    def clear_skills(self):
-        self.skills.clear()
-
     def set_skills_with_ids(self, skill_ids):
-        self.clear_skills()
+        self.skills.clear()
         Skill = get_skill_model()
         skills = Skill.objects.filter(id__in=skill_ids)
+        self.skills_v2 = skills_to_skill_v2_slugs(skills)
         self.skills.set(skills)
 
     @classmethod
@@ -1349,6 +1352,7 @@ class Task(ModelWithUUID):
         regularity=None,
         contact_phone=None,
         skills=None,
+        skills_v2=None,
         thumbnail=None,
     ):
         task = cls.objects.create(
@@ -1366,6 +1370,7 @@ class Task(ModelWithUUID):
             contact_phone=contact_phone,
             thumbnail=thumbnail,
             thumbnail_blurhash=generate_blurhash(thumbnail),
+            skills_v2=skills_v2,
         )
 
         if skills:
@@ -1387,6 +1392,7 @@ class Task(ModelWithUUID):
         regularity=None,
         contact_phone=None,
         skills=None,
+        skills_v2=None,
         thumbnail=None,
         remove_thumbnail=False,
     ):
@@ -1404,8 +1410,13 @@ class Task(ModelWithUUID):
             self.geolocation = geolocation
         if contact_phone is not None:
             self.contact_phone = contact_phone
+        if skills_v2 is not None:
+            self.skills_v2 = skills_v2
         if skills is not None:
-            self.skills.set(skills)
+            Skill = get_skill_model()
+            updated_skills = Skill.objects.filter(id__in=[skill.id for skill in skills])
+            self.skills_v2 = skills_to_skill_v2_slugs(updated_skills)
+            self.skills.set(updated_skills)
 
         if remove_thumbnail:
             self._delete_thumbnail(save=False)

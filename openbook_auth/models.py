@@ -1735,6 +1735,7 @@ class User(ModelWithUUID, AbstractUser):
         invites_enabled=None,
         location=None,
         topic_ids=None,
+        topics_v2=None,
     ):
         Community = get_community_model()
         community = Community.create_community(
@@ -1752,6 +1753,7 @@ class User(ModelWithUUID, AbstractUser):
             invites_enabled=invites_enabled,
             location=location,
             topic_ids=topic_ids,
+            topics_v2=topics_v2,
         )
 
         return community
@@ -1817,6 +1819,7 @@ class User(ModelWithUUID, AbstractUser):
         categories_names=None,
         invites_enabled=None,
         topic_ids=None,
+        topics_v2=None,
         cover=None,
         remove_cover=False,
         avatar=None,
@@ -1844,6 +1847,7 @@ class User(ModelWithUUID, AbstractUser):
             categories_names=categories_names,
             invites_enabled=invites_enabled,
             topic_ids=topic_ids,
+            topics_v2=topics_v2,
             cover=cover,
             remove_cover=remove_cover,
             avatar=avatar,
@@ -1870,6 +1874,7 @@ class User(ModelWithUUID, AbstractUser):
         categories_names=None,
         invites_enabled=None,
         topic_ids=None,
+        topics_v2=None,
         cover=None,
         remove_cover=False,
         avatar=None,
@@ -1900,6 +1905,7 @@ class User(ModelWithUUID, AbstractUser):
             categories_names=categories_names,
             invites_enabled=invites_enabled,
             topic_ids=topic_ids,
+            topics_v2=topics_v2,
             cover=cover,
             remove_cover=remove_cover,
             avatar=avatar,
@@ -4952,6 +4958,7 @@ class User(ModelWithUUID, AbstractUser):
         regularity=None,
         contact_phone=None,
         skills=None,
+        skills_v2=None,
         thumbnail=None,
     ):
         Community = get_community_model()
@@ -4975,6 +4982,7 @@ class User(ModelWithUUID, AbstractUser):
             regularity=regularity,
             contact_phone=contact_phone,
             skills=skills,
+            skills_v2=skills_v2,
             thumbnail=thumbnail,
         )
 
@@ -4993,6 +5001,7 @@ class User(ModelWithUUID, AbstractUser):
         regularity=None,
         contact_phone=None,
         skills=None,
+        skills_v2=None,
         thumbnail=None,
         remove_thumbnail=False,
     ):
@@ -5015,6 +5024,7 @@ class User(ModelWithUUID, AbstractUser):
             regularity=regularity,
             contact_phone=contact_phone,
             skills=skills,
+            skills_v2=skills_v2,
             thumbnail=thumbnail,
             remove_thumbnail=remove_thumbnail,
         )
