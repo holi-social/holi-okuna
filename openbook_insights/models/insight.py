@@ -59,6 +59,7 @@ class Insight(ModelWithUUID):
         blank=True,
         null=True,
     )
+    topic_v2 = models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH, blank=True, null=True)
 
     class Meta:
         indexes = [

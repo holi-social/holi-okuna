@@ -61,7 +61,7 @@ class ValidateSpaceInput:
 class CreateSpaceInput:
     title: str
     description: str
-    topics: List[Optional[uuid.UUID]] = strawberry_django.field(
+    topics: Optional[List[Optional[uuid.UUID]]] = strawberry_django.field(
         deprecation_reason="Deprecated since version 1.52, use topics_v2 instead."
     )
     topics_v2: Optional[List[str]]

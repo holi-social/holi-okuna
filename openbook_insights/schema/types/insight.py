@@ -36,6 +36,7 @@ class Insight:
     header_image: Optional[str]
     header_image_blurhash: Optional[str]
     topic: Optional[Topic]
+    topic_v2: Optional[str]
 
     @strawberry_django.field()
     def posts(self, info) -> List[Post]:
