@@ -35,7 +35,9 @@ class Insight:
     date_published: strawberry.auto
     header_image: Optional[str]
     header_image_blurhash: Optional[str]
-    topic: Optional[Topic]
+    topic: Optional[Topic] = strawberry_django.field(
+        deprecation_reason="Deprecated since version 1.52, use topic_v2 instead."
+    )
     topic_v2: Optional[str]
 
     @strawberry_django.field()

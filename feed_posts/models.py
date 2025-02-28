@@ -3,6 +3,7 @@ from datetime import timedelta
 from typing import Optional
 
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import ArrayField
 from django.core.files.storage import default_storage
 from django.utils import timezone
 from django.utils.text import slugify
@@ -35,6 +36,8 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
     visibility = models.CharField(max_length=21, choices=VisibilityLevel.choices, default=VisibilityLevel.PUBLIC)
 
     topics = models.ManyToManyField(Topic, related_name="feed_posts", blank=True, db_index=True)
+
+    topics_v2 = ArrayField(models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH), blank=True, default=list)
 
     category = models.ForeignKey(FeedPostCategory, on_delete=models.PROTECT, null=True)
 

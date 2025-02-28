@@ -138,7 +138,7 @@ class Query:
             .order_by("-created_at", "-reaction_count", "-total_comments")
         )
 
-        user_interests = user.profile.interests.values_list("id", flat=True)
+        user_interests_v2 = user.profile.interests_v2
         user_connections = user.connections.values_list("target_user_id", flat=True)
         current_time = timezone.now()
 
@@ -169,10 +169,10 @@ class Query:
                 created__gte=current_time - priority_duration,
             ),
             # Feed posts matching user's topics
-            feed_posts.filter(topics__id__in=user_interests, created_at__gte=current_time - priority_duration),
+            feed_posts.filter(topics_v2__overlap=user_interests_v2, created_at__gte=current_time - priority_duration),
             # Space posts matching user's topics
             space_posts.filter(
-                community__topics__id__in=user_interests, created__gte=current_time - priority_duration
+                community__topics_v2__overlap=user_interests_v2, created__gte=current_time - priority_duration
             ),
             # Editors posts
             feed_posts.filter(creator__role=UserRole.EDITOR, created_at__gte=current_time - priority_duration),

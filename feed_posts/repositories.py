@@ -8,6 +8,8 @@ from openbook_auth.models import User, get_reactions, UserRole
 from openbook_common.enums import ReactionType
 from openbook_common.schema.types import GeolocationPointInput
 from openbook_common.utils.helpers import is_uuid
+from openbook_terms.helpers import topics_to_topic_v2_slugs
+from openbook_terms.models import Topic
 
 
 class FeedPostRepository:
@@ -16,7 +18,8 @@ class FeedPostRepository:
         title,
         visibility,
         description,
-        topics,
+        topic_ids,
+        topics_v2,
         category,
         creator,
         image,
@@ -50,10 +53,13 @@ class FeedPostRepository:
             geolocation=GeolocationPointInput.to_point(geolocation),
             priority_duration=priority_duration,
             image=post_image,
+            topics_v2=topics_v2,
         )
 
-        if topics is not None:
+        if topic_ids is not None:
+            topics = Topic.objects.filter(id__in=topic_ids)
             feed_post.topics.set(topics)
+            feed_post.topics_v2 = topics_to_topic_v2_slugs(topics)
 
         # This code is required for backward compatibility. Remove it after version 1.30.x
         if image is not None:
@@ -80,7 +86,8 @@ class FeedPostRepository:
         description=None,
         visibility=None,
         category=None,
-        topics=None,
+        topic_ids=None,
+        topics_v2=None,
         image=None,
         remove_image=False,
         link_preview=None,
@@ -104,8 +111,13 @@ class FeedPostRepository:
         if category is not None:
             post.category = category
 
-        if topics is not None:
+        if topics_v2 is not None:
+            post.topics_v2 = topics_v2
+
+        if topic_ids is not None:
+            topics = Topic.objects.filter(id__in=topic_ids)
             post.topics.set(topics)
+            post.topics_v2 = topics_to_topic_v2_slugs(topics)
 
         # This code is required for backward compatibility. Remove it after version 1.30.x
         if remove_image:
