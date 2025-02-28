@@ -1,7 +1,7 @@
 import random
 import tempfile
 import uuid
-from typing import List, Optional
+from typing import List, Optional, get_args
 
 from PIL import Image
 from asgiref.sync import async_to_sync
@@ -19,6 +19,7 @@ from openbook_auth.models import EngagementLevelChoice, User, UserProfile, UserR
 from openbook_categories.models import Category
 from openbook_circles.models import Circle
 from openbook_common.enums import VisibilityType
+from openbook_common.topics import TopicV2
 from openbook_common.models import (
     Badge,
     Emoji,
@@ -43,6 +44,7 @@ from openbook_moderation.models import (
 from openbook_notifications.models import Notification
 from openbook_posts.models import Post
 from openbook_terms.models import SDG, Skill, Topic, FeedPostCategory
+from openbook_terms.helpers import topics_to_topic_v2_slugs
 
 fake = Faker()
 
@@ -273,6 +275,8 @@ def make_topic(
     title: Optional[str] = None, slug: Optional[str] = None, is_discover_spaces_default: bool = False
 ) -> Topic:
     defined_arguments = {k: v for k, v in locals().items() if v is not None}
+    if slug is None:
+        defined_arguments["slug"] = random.choice(list(get_args(TopicV2)))  # noqa: S311
     return mixer.blend(Topic, **defined_arguments)
 
 
@@ -280,14 +284,13 @@ def make_sdg() -> SDG:
     return mixer.blend(SDG)
 
 
+def make_topics(count: int) -> List[Topic]:
+    slugs = list(get_args(TopicV2))
+    return [make_topic(slug=slugs[index]) for index in range(count)]
+
+
 def make_community_topics():
-    community_topics = []
-
-    for _ in range(0, settings.COMMUNITY_TOPICS_MAX_AMOUNT):
-        topic = make_topic()
-        community_topics.append(topic.id)
-
-    return community_topics
+    return make_topics(settings.COMMUNITY_TOPICS_MAX_AMOUNT)
 
 
 def make_skill(title: Optional[str] = None, slug: Optional[str] = None) -> Skill:
@@ -313,6 +316,7 @@ def make_community(
     type=Community.COMMUNITY_TYPE_PUBLIC,
     title=None,
     topics=None,
+    topics_v2=None,
     location=None,
     geolocation=None,
     admins: List[User] = None,
@@ -329,6 +333,9 @@ def make_community(
     if not topics:
         topics = make_community_topics()
 
+    if not topics_v2:
+        topics_v2 = topics_to_topic_v2_slugs(topics)
+
     if not location:
         location = fake.text(max_nb_chars=settings.COMMUNITY_LOCATION_MAX_LENGTH)
 
@@ -343,6 +350,7 @@ def make_community(
         categories_names=[make_category().name],
         invites_enabled=make_community_invites_enabled(),
         location=location,
+        topics_v2=topics_v2,
     )
     community.topics.set(topics)
     community.geolocation = geolocation

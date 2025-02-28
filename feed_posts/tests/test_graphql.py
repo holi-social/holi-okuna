@@ -27,11 +27,11 @@ from openbook_auth.models import UserRole
 from openbook_common.enums import ReactionType, ReactionAction, VisibilityType
 from openbook_common.tests.helpers import (
     make_user,
-    make_topic,
     make_feed_post_category,
     simple_jpeg_bytes,
     make_community,
     make_feed_post_founder_update_category,
+    make_topics,
 )
 from openbook_notifications.notifications import PostReactionNotification
 
@@ -60,7 +60,7 @@ class TestFeedPosts(TestCase):
             "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
             "visibility": VisibilityLevel.PUBLIC,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(make_topic().id) for _ in range(6)],
+            "topicIds": [str(t.id) for t in make_topics(6)],
             "image": SimpleUploadedFile(name="image_1.jpg", content=simple_jpeg_bytes),
             "location": "Munich, Germany",
             "geolocation": {
@@ -74,7 +74,7 @@ class TestFeedPosts(TestCase):
             "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
             "visibility": VisibilityLevel.REGISTERED_USERS_ONLY,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(make_topic().id) for _ in range(3)],
+            "topicIds": [str(t.id) for t in make_topics(3)],
             "image": SimpleUploadedFile(name="image_2.jpg", content=simple_jpeg_bytes),
             "location": "Munich, Germany",
             "geolocation": {
@@ -88,7 +88,7 @@ class TestFeedPosts(TestCase):
             "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
             "visibility": VisibilityLevel.PUBLIC,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(make_topic().id) for _ in range(6)],
+            "topicIds": [str(t.id) for t in make_topics(6)],
             "image": SimpleUploadedFile(name="image_3.jpg", content=simple_jpeg_bytes),
             "location": "Munich, Germany",
             "geolocation": {
@@ -102,7 +102,7 @@ class TestFeedPosts(TestCase):
             "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
             "visibility": VisibilityLevel.REGISTERED_USERS_ONLY,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(make_topic().id) for _ in range(3)],
+            "topicIds": [str(t.id) for t in make_topics(3)],
             "image": SimpleUploadedFile(name="image_4.jpg", content=simple_jpeg_bytes),
             "location": "Munich, Germany",
             "geolocation": {
@@ -116,7 +116,7 @@ class TestFeedPosts(TestCase):
             "description": f"@{cls.another_user.username} @{cls.yet_another_user.username} {fake.text(max_nb_chars=100)}",
             "visibility": VisibilityLevel.PUBLIC,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(make_topic().id) for _ in range(6)],
+            "topicIds": [str(t.id) for t in make_topics(6)],
             "image": SimpleUploadedFile(name="image_1.jpg", content=simple_jpeg_bytes),
             "location": "Munich, Germany",
             "geolocation": {
@@ -130,7 +130,7 @@ class TestFeedPosts(TestCase):
             "description": f"@{cls.another_user.username} {fake.text(max_nb_chars=100)}",
             "visibility": VisibilityLevel.PUBLIC,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(make_topic().id) for _ in range(6)],
+            "topicIds": [str(t.id) for t in make_topics(6)],
             "image": SimpleUploadedFile(name="image_1.jpg", content=simple_jpeg_bytes),
             "location": "Munich, Germany",
             "geolocation": {
@@ -144,7 +144,7 @@ class TestFeedPosts(TestCase):
             "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
             "visibility": VisibilityLevel.REGISTERED_USERS_ONLY,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(make_topic().id) for _ in range(3)],
+            "topicIds": [str(t.id) for t in make_topics(3)],
             "newImages": [
                 {
                     "image": SimpleUploadedFile(name="image_2.jpg", content=simple_jpeg_bytes),
@@ -165,7 +165,7 @@ class TestFeedPosts(TestCase):
             "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
             "visibility": VisibilityLevel.PUBLIC,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(make_topic().id) for _ in range(6)],
+            "topicIds": [str(t.id) for t in make_topics(6)],
             "image": SimpleUploadedFile(name="image_3.jpg", content=simple_jpeg_bytes),
             "images": [
                 {

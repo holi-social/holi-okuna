@@ -31,9 +31,9 @@ from openbook_common.tests.helpers import (
     make_fake_post_title,
     make_sdg,
     make_skill,
-    make_topic,
     make_user,
     simple_jpeg_bytes,
+    make_topics,
 )
 from openbook_common.utils.model_loaders import (
     get_community_admin_privileges_granted_notification_model,
@@ -77,8 +77,7 @@ def django_db_setup(django_db_setup, django_db_blocker):
 class TestCommunities(TestCase):
     def test_filters_for_spaces(self):
         creator = make_user()
-        topic1 = make_topic()
-        topic2 = make_topic()
+        [topic1, topic2] = make_topics(2)
         # locations inside geolocation filter
         geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
         geolocation2 = geos.Point(8.5798387, 53.5590841, srid=4326)
@@ -160,10 +159,9 @@ class TestCommunities(TestCase):
         )
 
     def test_filters_for_recommended_spaces(self):
-        topic1 = make_topic()
-        topic2 = make_topic()
-        default_topic = make_topic(is_discover_spaces_default=True)
-        uninteresting_topic = make_topic()
+        [topic1, topic2, default_topic, uninteresting_topic] = make_topics(4)
+        default_topic.is_discover_spaces_default = True
+        default_topic.save()
 
         # locations inside geolocation filter
         geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
@@ -245,9 +243,10 @@ class TestCommunities(TestCase):
         )
 
     def test_filters_for_recommended_spaces_paging(self):
-        topic1 = make_topic()
-        default_topic = make_topic(is_discover_spaces_default=True)
-        uninteresting_topic = make_topic()
+        [topic1, default_topic, uninteresting_topic] = make_topics(3)
+        default_topic.is_discover_spaces_default = True
+        default_topic.save()
+
         user = make_user()
         user.profile.geolocation = geos.GEOSGeometry(json.dumps(geolocation_geometry))
         user.profile.interests.add(topic1)
@@ -350,8 +349,7 @@ class TestCommunities(TestCase):
         )
 
     def test_filters_for_discover_spaces(self):
-        topic1 = make_topic()
-        topic2 = make_topic()
+        [topic1, topic2] = make_topics(2)
         # locations inside geolocation filter
         geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
         geolocation2 = geos.Point(8.5798387, 53.5590841, srid=4326)
@@ -2532,7 +2530,7 @@ class TestCommunities(TestCase):
 
     def test_invalid_spaces_do_not_pass_validation(self):
         user = make_user()
-        topic_ids = [str(make_topic().id) for _ in range(7)]
+        topic_ids = [str(t.id) for t in make_topics(7)]
         empty_image = SimpleUploadedFile(name="cover.jpg", content="")
 
         validate_space_mutation = """
@@ -2593,7 +2591,7 @@ class TestCommunities(TestCase):
     def test_valid_partial_spaces_pass_validation(self):
         user = make_user()
         valid_input = {"title": "valid", "description": "valid"}
-        topic_ids = [str(make_topic().id) for _ in range(2)]
+        topic_ids = [str(t.id) for t in make_topics(2)]
         cover = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
         sdg_ids = [str(make_sdg().id) for _ in range(2)]
         location = "Hamburg, Germany"
@@ -2649,7 +2647,7 @@ class TestCommunities(TestCase):
         self, mock_publish_space_created_event, mock_invalidate_discover_spaces_query_cache
     ):
         user = make_user()
-        topic_ids = [str(make_topic().id) for _ in range(7)]
+        topic_ids = [str(t.id) for t in make_topics(7)]
         valid_topics = topic_ids[:2]
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
 
@@ -2695,7 +2693,7 @@ class TestCommunities(TestCase):
 
     def test_validates_space_before_creation(self):
         user = make_user()
-        topic_ids = [str(make_topic().id) for _ in range(7)]
+        topic_ids = [str(t.id) for t in make_topics(2)]
         valid_topics = topic_ids[:2]
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
         empty_image = SimpleUploadedFile(name="cover.jpg", content="")
@@ -2757,7 +2755,7 @@ class TestCommunities(TestCase):
     @mock.patch("openbook_communities.schema.mutations.publish_space_created_event")
     def test_can_create_space(self, mock_publish_space_created_event, mock_invalidate_discover_spaces_query_cache):
         user = make_user()
-        topic_ids = [str(make_topic().id) for _ in range(2)]
+        topic_ids = [str(t.id) for t in make_topics(2)]
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
 
         create_space_mutation = """
@@ -2813,7 +2811,7 @@ class TestCommunities(TestCase):
     def test_can_not_create_space_if_not_logged_in(
         self, mock_publish_space_created_event, mock_invalidate_discover_spaces_query_cache
     ):
-        topic_ids = [str(make_topic().id) for _ in range(7)]
+        topic_ids = [str(t.id) for t in make_topics(7)]
         valid_topics = topic_ids[:2]
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
 
@@ -2839,7 +2837,7 @@ class TestCommunities(TestCase):
     def test_validates_space_update(self):
         user = make_user()
         community = make_community()
-        topic_ids = [str(make_topic().id) for _ in range(7)]
+        topic_ids = [str(t.id) for t in make_topics(7)]
         empty_image = SimpleUploadedFile(name="cover.jpg", content="")
 
         update_space_mutation = """
@@ -2954,7 +2952,7 @@ class TestCommunities(TestCase):
     def test_can_update_space(self, mock_invalidate_discover_spaces_query_cache):
         user = make_user()
         community = make_community(creator=user)
-        topic_ids = [str(make_topic().id) for _ in range(3)]
+        topic_ids = [str(t.id) for t in make_topics(3)]
         cover = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
         cover2 = SimpleUploadedFile(name="cover2.jpg", content=simple_jpeg_bytes)
         avatar = SimpleUploadedFile(name="avatar.jpg", content=simple_jpeg_bytes)
@@ -3008,7 +3006,7 @@ class TestCommunities(TestCase):
     def test_updated_space_has_new_values(self):
         user = make_user()
         community = make_community(creator=user)
-        topic_ids = [str(make_topic().id) for _ in range(2)]
+        topic_ids = [str(t.id) for t in make_topics(2)]
 
         cover = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
         avatar = SimpleUploadedFile(name="avatar.jpg", content=simple_jpeg_bytes)

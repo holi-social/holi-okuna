@@ -12,11 +12,11 @@ from openbook.graphql_schema import schema
 from openbook_common.tracking import initialize_tracking, PostHogConfig, TrackingEvent
 from openbook_common.tests.helpers import (
     make_user,
-    make_topic,
     make_community as make_space,
     make_skill,
     make_community_task,
     simple_jpeg_bytes,
+    make_topics,
 )
 from openbook_communities.tests.helpers import mutate_update_space_user_connection_data
 from openbook_communities.models import SpaceUserConnectionType
@@ -194,7 +194,7 @@ class TestSpaceEvents(TestCase):
         input_create_space = {
             "title": "valid",
             "description": "valid",
-            "topics": [str(make_topic().id) for _ in range(2)],
+            "topics": [str(t.id) for t in make_topics(2)],
             "cover": (SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)),
         }
         mock_track.reset_mock()
