@@ -60,7 +60,14 @@ class Notification:
     class DeliveryError(Exception):
         pass
 
-    def __init__(self, workflow: str, recipients: str | List[str], payload: dict, transaction_id: str):
+    def __init__(
+        self,
+        workflow: str,
+        recipients: str | List[str],
+        payload: dict,
+        transaction_id: str,
+        email_override: dict = None,
+    ):
         session = Session()
         retries = Retry(
             total=3,
@@ -75,6 +82,7 @@ class Notification:
         self.payload = payload
         self.session = session
         self.transaction_id = transaction_id
+        self.email_override = email_override
 
         # Android notifications only allow for key/value pairs in the data field to be of type string, not objects/JSON
         # (see https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#androidconfig).
@@ -88,6 +96,9 @@ class Notification:
             "fcm": {"type": "notification", "data": android_payload},
             "apns": {"payload": payload},
         }
+
+        if email_override:
+            self.overrides["email"] = email_override
 
     def send(self):
         if not self.recipients:
@@ -398,4 +409,5 @@ class WelcomeEmailSeriesNotification(Notification):
             recipients=user,
             payload=payload.to_dict(),
             transaction_id=token,  # token is used as transaction_id to cancel the workflow and unsubscribe the user from newsletter
+            email_override={"from": "support@holi.social", "replyTo": "support@holi.social"},
         )
