@@ -159,8 +159,8 @@ class TestCommunities(TestCase):
         )
 
     def test_filters_for_recommended_spaces(self):
-        [topic1, topic2, uninteresting_topic] = make_topics(3)
-        default_topic = make_topic(slug=DISCOVER_DEFAULT_SPACES_V2[0])
+        # skipping some default topics V2
+        [default_topic, _, _, _, topic1, topic2, uninteresting_topic] = make_topics(7)
         default_topic.is_discover_spaces_default = True
         default_topic.save()
 
@@ -217,7 +217,7 @@ class TestCommunities(TestCase):
         )
         user = make_user()
         user.profile.interests.add(topic1)
-        user.profile.interests_v2 = [t.slug for t in user.profile.interests]
+        user.profile.interests_v2 = [topic1.slug]
         assert_filtered_spaces(
             user,
             [
@@ -2695,7 +2695,7 @@ class TestCommunities(TestCase):
 
     def test_validates_space_before_creation(self):
         user = make_user()
-        topic_ids = [str(t.id) for t in make_topics(2)]
+        topic_ids = [str(t.id) for t in make_topics(7)]
         valid_topics = topic_ids[:2]
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
         empty_image = SimpleUploadedFile(name="cover.jpg", content="")

@@ -47,7 +47,7 @@ from openbook_moderation.models import (
 from openbook_notifications.models import Notification
 from openbook_posts.models import Post
 from openbook_terms.models import SDG, Skill, Topic, FeedPostCategory
-from openbook_terms.helpers import topics_to_topic_v2_slugs
+from openbook_terms.helpers import topics_to_topic_v2_slugs, skills_to_skill_v2_slugs
 
 fake = Faker()
 
@@ -328,13 +328,19 @@ def make_community_invites_enabled():
     return fake.boolean()
 
 
-def make_community_task(community, skills=None, visibility=VisibilityType.MEMBERS, is_deleted=False) -> Task:
+def make_community_task(
+    community, skills=None, skills_v2=None, visibility=VisibilityType.MEMBERS, is_deleted=False
+) -> Task:
     if not skills:
         skills = [make_skill()]
+    if not skills_v2:
+        skills_v2 = skills_to_skill_v2_slugs(skills)
 
     deleted_at = timezone.now() if is_deleted else None
 
-    return mixer.blend(Task, community=community, skills=skills, visibility=visibility, deleted_at=deleted_at)
+    return mixer.blend(
+        Task, community=community, skills=skills, skills_v2=skills_v2, visibility=visibility, deleted_at=deleted_at
+    )
 
 
 def make_community(
