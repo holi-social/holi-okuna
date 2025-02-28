@@ -10,6 +10,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Count
 from django.contrib.gis.db.models import Q
+from django.contrib.postgres.indexes import GinIndex
 from django.core.files.storage import default_storage
 from django.db import transaction
 from django.db.models import QuerySet
@@ -213,6 +214,7 @@ class Community(ModelWithUUID):
 
     class Meta:
         verbose_name_plural = "communities"
+        indexes = [GinIndex(fields=["topics_v2"])]
 
     @property
     def avatar_default_color(self):
@@ -1312,6 +1314,9 @@ class Task(ModelWithUUID):
     )
 
     deleted_at = models.DateTimeField(blank=True, null=True, default=None)
+
+    class Meta:
+        indexes = [GinIndex(fields=["skills_v2"])]
 
     @property
     def is_deleted(self) -> bool:

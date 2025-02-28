@@ -59,12 +59,10 @@ class Insight(ModelWithUUID):
         blank=True,
         null=True,
     )
-    topic_v2 = models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH, blank=True, null=True)
+    topic_v2 = models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH, blank=True, null=True, db_index=True)
 
     class Meta:
-        indexes = [
-            models.Index(fields=["-date_published"]),
-        ]
+        indexes = [models.Index(fields=["-date_published"])]
 
     def save(self, *args, **kwargs):
         # Attempt to delete the cache matching the pattern

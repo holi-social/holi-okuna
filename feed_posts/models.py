@@ -4,6 +4,7 @@ from typing import Optional
 
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.indexes import GinIndex
 from django.core.files.storage import default_storage
 from django.utils import timezone
 from django.utils.text import slugify
@@ -88,6 +89,9 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
         default=0,
         help_text="Specifies how many days the post will remain at the top of the feed.",
     )
+
+    class Meta:
+        indexes = [GinIndex(fields=["topics_v2"])]
 
     @property
     def has_priority(self):
