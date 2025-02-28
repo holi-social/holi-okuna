@@ -1,7 +1,6 @@
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Optional
-from django.utils import timezone
 
 import strawberry
 import strawberry_django
