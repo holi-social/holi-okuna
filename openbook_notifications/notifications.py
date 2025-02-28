@@ -107,7 +107,7 @@ class Notification:
         }
 
         if email_identifier:
-            self.overrides["integrationIdentifier"] = email_identifier.value
+            self.overrides["email"] = {"integrationIdentifier": email_identifier.value}
 
     def send(self):
         if not self.recipients:
