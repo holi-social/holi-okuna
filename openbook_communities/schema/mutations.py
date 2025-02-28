@@ -6,7 +6,6 @@ import structlog
 from asgiref.sync import sync_to_async
 from django.db import transaction
 from graphql import GraphQLError
-from rest_framework.exceptions import ValidationError
 
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_communities.events import (
@@ -179,7 +178,13 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         if not data.get("topics") and not data.get("topics_v2"):
-            raise ValidationError("Either topics or topics_v2 must be specified")
+            raise GraphQLError(
+                "Either topics or topics_v2 must be specified",
+                extensions={
+                    "code": GraphQLErrorCodes.BAD_USER_INPUT,
+                    "errors": [],
+                },
+            ) from None
 
         with transaction.atomic():
             space = current_user.create_community(
@@ -330,7 +335,7 @@ class Mutation:
                 regularity=data.get("regularity"),
                 contact_email=data.get("contact_email"),
                 contact_phone=data.get("contact_phone"),
-                skills=data.get("skills"),
+                skill_ids=data.get("skills"),
                 skills_v2=data.get("skills_v2"),
                 thumbnail=data.get("thumbnail"),
                 remove_thumbnail=is_parameter_null(data, "thumbnail"),

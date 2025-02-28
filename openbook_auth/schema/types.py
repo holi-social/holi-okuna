@@ -34,12 +34,12 @@ class UpdateAuthenticatedUserInput:
     geolocation: Optional[GeoJSONInput] = strawberry.UNSET
     engagement_level: Optional[str] = strawberry.UNSET
     interests: Optional[List[Optional[uuid.UUID]]] = strawberry_django.field(
-        deprecation_reason="Deprecated since 1.52. Use interests_v2 instead."
+        deprecation_reason="Deprecated since 1.52. Use interests_v2 instead.", default=strawberry.UNSET
     )
     interests_v2: Optional[List[str]] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     skills: Optional[List[Optional[uuid.UUID]]] = strawberry_django.field(
-        deprecation_reason="Deprecated since 1.52. Use skills_v2 instead."
+        deprecation_reason="Deprecated since 1.52. Use skills_v2 instead.", default=strawberry.UNSET
     )
     skills_v2: Optional[List[str]] = strawberry.UNSET
     tracking_consent_analytics: Optional[bool] = strawberry.UNSET

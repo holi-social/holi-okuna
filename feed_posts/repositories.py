@@ -41,6 +41,9 @@ class FeedPostRepository:
         elif images is not None and len(images) > 0:
             post_image = images[0]["image"]
 
+        if topics_v2 is None:
+            topics_v2 = []
+
         feed_post = FeedPost.objects.create(
             title=title,
             visibility=visibility,
@@ -60,6 +63,7 @@ class FeedPostRepository:
             topics = Topic.objects.filter(id__in=topic_ids)
             feed_post.topics.set(topics)
             feed_post.topics_v2 = topics_to_topic_v2_slugs(topics)
+            feed_post.save()
 
         # This code is required for backward compatibility. Remove it after version 1.30.x
         if image is not None:
@@ -118,6 +122,7 @@ class FeedPostRepository:
             topics = Topic.objects.filter(id__in=topic_ids)
             post.topics.set(topics)
             post.topics_v2 = topics_to_topic_v2_slugs(topics)
+            post.save()
 
         # This code is required for backward compatibility. Remove it after version 1.30.x
         if remove_image:

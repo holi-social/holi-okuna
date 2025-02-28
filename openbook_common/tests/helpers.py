@@ -7,6 +7,7 @@ from PIL import Image
 from asgiref.sync import async_to_sync
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 from faker import Faker
@@ -20,6 +21,7 @@ from openbook_categories.models import Category
 from openbook_circles.models import Circle
 from openbook_common.enums import VisibilityType
 from openbook_common.topics import TopicV2
+from openbook_common.skills import SkillV2
 from openbook_common.models import (
     Badge,
     Emoji,
@@ -28,6 +30,7 @@ from openbook_common.models import (
     ProxyBlacklistedDomain,
 )
 from openbook_common.utils.helpers import get_random_pastel_color
+from openbook_common.utils.model_loaders import get_topic_model, get_skill_model
 from openbook_communities.models import CollaborationTool, Community, ExternalLink, SpacesRelationship, Task
 from openbook_devices.models import Device
 from openbook_hashtags.models import Hashtag
@@ -274,10 +277,20 @@ def make_category():
 def make_topic(
     title: Optional[str] = None, slug: Optional[str] = None, is_discover_spaces_default: bool = False
 ) -> Topic:
+    TopicModel = get_topic_model()
+    if slug is not None:
+        try:
+            return TopicModel.objects.get(slug=slug)
+        except ObjectDoesNotExist:
+            pass
+
     defined_arguments = {k: v for k, v in locals().items() if v is not None}
     if slug is None:
-        defined_arguments["slug"] = random.choice(list(get_args(TopicV2)))  # noqa: S311
-    return mixer.blend(Topic, **defined_arguments)
+        existing_topics = [t.slug for t in TopicModel.objects.all()]
+        all_topic_slugs = set(get_args(TopicV2))
+        existing_topic_slugs = set(existing_topics)
+        defined_arguments["slug"] = random.choice(list(all_topic_slugs.difference(existing_topic_slugs)))  # noqa: S311
+    return mixer.blend(TopicModel, **defined_arguments)
 
 
 def make_sdg() -> SDG:
@@ -289,13 +302,26 @@ def make_topics(count: int) -> List[Topic]:
     return [make_topic(slug=slugs[index]) for index in range(count)]
 
 
-def make_community_topics():
-    return make_topics(settings.COMMUNITY_TOPICS_MAX_AMOUNT)
-
-
 def make_skill(title: Optional[str] = None, slug: Optional[str] = None) -> Skill:
+    SkillModel = get_skill_model()
+    if slug is not None:
+        try:
+            return SkillModel.objects.get(slug=slug)
+        except ObjectDoesNotExist:
+            pass
+
     defined_arguments = {k: v for k, v in locals().items() if v is not None}
+    if slug is None:
+        existing_skills = [t.slug for t in SkillModel.objects.all()]
+        all_skill_slugs = set(get_args(SkillV2))
+        existing_skill_slugs = set(existing_skills)
+        defined_arguments["slug"] = random.choice(list(all_skill_slugs.difference(existing_skill_slugs)))  # noqa: S311
     return mixer.blend(Skill, **defined_arguments)
+
+
+def make_skills(count: int) -> List[Skill]:
+    slugs = list(get_args(SkillV2))
+    return [make_skill(slug=slugs[index]) for index in range(count)]
 
 
 def make_community_invites_enabled():
@@ -331,7 +357,7 @@ def make_community(
         title = make_community_title()
 
     if not topics:
-        topics = make_community_topics()
+        topics = make_topics(settings.COMMUNITY_TOPICS_MAX_AMOUNT)
 
     if not topics_v2:
         topics_v2 = topics_to_topic_v2_slugs(topics)

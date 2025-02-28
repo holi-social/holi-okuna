@@ -30,10 +30,11 @@ from openbook_common.tests.helpers import (
     make_fake_post_text,
     make_fake_post_title,
     make_sdg,
-    make_skill,
+    make_skills,
     make_user,
     simple_jpeg_bytes,
     make_topics,
+    make_topic,
 )
 from openbook_common.utils.model_loaders import (
     get_community_admin_privileges_granted_notification_model,
@@ -46,6 +47,7 @@ from openbook_communities.models import (
     CommunityNotificationsSubscription,
     SpaceUserConnectionType,
 )
+from openbook_communities.schema.queries import DISCOVER_DEFAULT_SPACES_V2
 from openbook_communities.tests.helpers import (
     assert_onboarding,
     get_space_by_id_with_posts,
@@ -86,9 +88,7 @@ class TestCommunities(TestCase):
         space1 = make_community(creator=creator, topics=[topic1, topic2], geolocation=geolocation1)
         space2 = make_community(topics=[topic1], geolocation=geolocation2)
         space3 = make_community(topics=[topic2], geolocation=geolocation3)
-        skill1 = make_skill()
-        skill2 = make_skill()
-        skill3 = make_skill()
+        [skill1, skill2, skill3] = make_skills(3)
         make_community_task(space1, skills=[skill1, skill2])
         make_community_task(space2, skills=[skill2, skill3])
         make_community_task(space3, skills=[skill3])
@@ -159,7 +159,8 @@ class TestCommunities(TestCase):
         )
 
     def test_filters_for_recommended_spaces(self):
-        [topic1, topic2, default_topic, uninteresting_topic] = make_topics(4)
+        [topic1, topic2, uninteresting_topic] = make_topics(3)
+        default_topic = make_topic(slug=DISCOVER_DEFAULT_SPACES_V2[0])
         default_topic.is_discover_spaces_default = True
         default_topic.save()
 
@@ -204,6 +205,7 @@ class TestCommunities(TestCase):
         user = make_user()
         user.profile.geolocation = geos.GEOSGeometry(json.dumps(geolocation_geometry))
         user.profile.interests.add(topic1, topic2)
+        user.profile.interests_v2 = [t.slug for t in [topic1, topic2]]
         assert_filtered_spaces(
             user,
             [
@@ -215,6 +217,7 @@ class TestCommunities(TestCase):
         )
         user = make_user()
         user.profile.interests.add(topic1)
+        user.profile.interests_v2 = [t.slug for t in user.profile.interests]
         assert_filtered_spaces(
             user,
             [
@@ -250,6 +253,7 @@ class TestCommunities(TestCase):
         user = make_user()
         user.profile.geolocation = geos.GEOSGeometry(json.dumps(geolocation_geometry))
         user.profile.interests.add(topic1)
+        user.profile.interests_v2 = [topic1.slug]
 
         # locations inside geolocation filter
         geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
@@ -359,9 +363,7 @@ class TestCommunities(TestCase):
         space2 = make_community(topics=[topic1], geolocation=geolocation2)
         space3 = make_community(topics=[topic2], geolocation=geolocation3)
         make_community(topics=[topic1], geolocation=geolocation2, is_deleted=True)  # deleted spaces are not be shown
-        skill1 = make_skill()
-        skill2 = make_skill()
-        skill3 = make_skill()
+        [skill1, skill2, skill3] = make_skills(3)
         make_community_task(space1, skills=[skill1, skill2])
         make_community_task(space2, skills=[skill2, skill3])
 
@@ -2666,7 +2668,7 @@ class TestCommunities(TestCase):
             },
             {
                 "input": {"title": "valid", "description": "valid", "cover": valid_image},
-                "expected_error": "was not provided",
+                "expected_error": "Either topics or topics_v2 must be specified",
             },
             {
                 "input": {"title": "valid", "topics": valid_topics, "cover": valid_image},
@@ -2720,8 +2722,8 @@ class TestCommunities(TestCase):
                 "value": "f" * (COMMUNITY_DESCRIPTION_MAX_LENGTH + 1),
                 "expected_code": "max_length",
             },
-            {"field": "topics", "value": None, "expected_error": "Expected non-nullable type"},
-            {"field": "topics", "value": [], "expected_code": "min_length"},
+            # {"field": "topics", "value": None, "expected_error": "Expected non-nullable type"}, TODO adopt topics V2
+            # {"field": "topics", "value": [], "expected_code": "min_length"}, TODO adopt topics V2
             {"field": "topics", "value": topic_ids, "expected_code": "max_length"},
             {
                 "field": "topics",

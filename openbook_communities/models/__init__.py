@@ -364,6 +364,9 @@ class Community(ModelWithUUID):
             # The default for this field is not working when passed None?
             invites_enabled = True
 
+        if topics_v2 is None:
+            topics_v2 = []
+
         community = cls.objects.create(
             title=title,
             creator=creator,
@@ -1355,6 +1358,9 @@ class Task(ModelWithUUID):
         skills_v2=None,
         thumbnail=None,
     ):
+        if skills_v2 is None:
+            skills_v2 = []
+
         task = cls.objects.create(
             creator=creator,
             community=community,
@@ -1391,7 +1397,7 @@ class Task(ModelWithUUID):
         geolocation=None,
         regularity=None,
         contact_phone=None,
-        skills=None,
+        skill_ids=None,
         skills_v2=None,
         thumbnail=None,
         remove_thumbnail=False,
@@ -1412,9 +1418,9 @@ class Task(ModelWithUUID):
             self.contact_phone = contact_phone
         if skills_v2 is not None:
             self.skills_v2 = skills_v2
-        if skills is not None:
+        if skill_ids is not None:
             Skill = get_skill_model()
-            updated_skills = Skill.objects.filter(id__in=[skill.id for skill in skills])
+            updated_skills = Skill.objects.filter(id__in=skill_ids)
             self.skills_v2 = skills_to_skill_v2_slugs(updated_skills)
             self.skills.set(updated_skills)
 

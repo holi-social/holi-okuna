@@ -34,19 +34,21 @@ from openbook_communities.schema.types import (
 
 Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
 
+DISCOVER_DEFAULT_SPACES_V2 = [
+    "human-rights",
+    "animal-welfare",
+    "arts-culture",
+    "literacy-education",
+    "mental-physical-health",
+    "democracy-politics",
+]
+
 
 @strawberry.type
 class Query:
     @strawberry_django.field()
     def discover_spaces_default_topics_v2(self) -> List[str]:
-        return [
-            "human-rights",
-            "animal-welfare",
-            "arts-culture",
-            "literacy-education",
-            "mental-physical-health",
-            "democracy-politics",
-        ]
+        return DISCOVER_DEFAULT_SPACES_V2
 
     @strawberry_django.field()
     def spaces(
@@ -132,9 +134,7 @@ class Query:
             if geolocation:
                 whens.append(When(create_filtered_spaces_query(geolocation=geolocation), then=Value(20)))
 
-        default_topics_v2 = self.discover_spaces_default_topics_v2()
-        if default_topics_v2:
-            whens.append(When(create_filtered_spaces_query(topics_v2=default_topics_v2), then=Value(30)))
+        whens.append(When(create_filtered_spaces_query(topics_v2=DISCOVER_DEFAULT_SPACES_V2), then=Value(30)))
 
         return Paged.of(
             CommunityModel.objects.prefetch_related("links", "memberships__user__profile")

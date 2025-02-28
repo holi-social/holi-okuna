@@ -49,7 +49,7 @@ class ValidateSpaceInput:
     title: Optional[str] = strawberry.UNSET
     description: Optional[str] = strawberry.UNSET
     topics: Optional[List[Optional[uuid.UUID]]] = strawberry_django.field(
-        deprecation_reason="Deprecated since version 1.52, use topics_v2 instead."
+        deprecation_reason="Deprecated since version 1.52, use topics_v2 instead.", default=strawberry.UNSET
     )
     topics_v2: Optional[List[str]] = strawberry.UNSET
     cover: Optional[Upload] = strawberry.UNSET
@@ -62,9 +62,9 @@ class CreateSpaceInput:
     title: str
     description: str
     topics: Optional[List[Optional[uuid.UUID]]] = strawberry_django.field(
-        deprecation_reason="Deprecated since version 1.52, use topics_v2 instead."
+        deprecation_reason="Deprecated since version 1.52, use topics_v2 instead.", default=strawberry.UNSET
     )
-    topics_v2: Optional[List[str]]
+    topics_v2: Optional[List[str]] = strawberry.UNSET
     cover: Upload
 
 
@@ -80,7 +80,7 @@ class CreateTaskInput:
     slots_available: Optional[int] = strawberry.UNSET
     thumbnail: Optional[Upload] = strawberry.UNSET
     skills: Optional[List[Optional[uuid.UUID]]] = strawberry_django.field(
-        deprecation_reason="Deprecated since version 1.52, use skills_v2 instead."
+        deprecation_reason="Deprecated since version 1.52, use skills_v2 instead.", default=strawberry.UNSET
     )
     skills_v2: Optional[List[str]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
@@ -101,7 +101,7 @@ class UpdateTaskInput:
     slots_available: Optional[int] = strawberry.UNSET
     thumbnail: Optional[Upload] = strawberry.UNSET
     skills: Optional[List[Optional[uuid.UUID]]] = strawberry_django.field(
-        deprecation_reason="Deprecated since version 1.52, use skills_v2 instead."
+        deprecation_reason="Deprecated since version 1.52, use skills_v2 instead.", default=strawberry.UNSET
     )
     skills_v2: Optional[List[str]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
@@ -164,7 +164,7 @@ class UpdateSpaceInput:
     title: Optional[str] = strawberry.UNSET
     description: Optional[str] = strawberry.UNSET
     topics: Optional[List[Optional[uuid.UUID]]] = strawberry_django.field(
-        deprecation_reason="Deprecated since version 1.52, use topics_v2 instead."
+        deprecation_reason="Deprecated since version 1.52, use topics_v2 instead.", default=strawberry.UNSET
     )
     topics_v2: Optional[List[str]] = strawberry.UNSET
     cover: Optional[Upload] = strawberry.UNSET
@@ -205,7 +205,7 @@ class Task:
     location: strawberry.auto
     regularity: TaskModel.Regularity
     skills: List[Skill] = strawberry_django.field(
-        deprecation_reason="Deprecated since version 1.52, use skills_v2 instead."
+        deprecation_reason="Deprecated since version 1.52, use skills_v2 instead.", default=None
     )
     skills_v2: List[str]
     thumbnail: Optional[str]
@@ -277,7 +277,7 @@ class Space:
     location: strawberry.auto
     links: List[Optional[ExternalLink]]
     topics: List[Optional[Topic]] = strawberry_django.field(
-        deprecation_reason="Deprecated since version 1.52, use topics_v2 instead."
+        deprecation_reason="Deprecated since version 1.52, use topics_v2 instead.", default=None
     )
     topics_v2: List[str]
     sdgs: List[Optional[SDG]]
@@ -452,8 +452,7 @@ class Space:
 class DiscoverSpaces:
     spaces: Paged[Space]
     topic_id: Optional[uuid.UUID] = strawberry.field(
-        deprecation_reason="Deprecated since version 1.52, use topic_v2 instead",
-        default=None,
+        deprecation_reason="Deprecated since version 1.52, use topic_v2 instead", default=None
     )
     topic_v2: Optional[str] = None
     location: Optional[str] = strawberry.field(

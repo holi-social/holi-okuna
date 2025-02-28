@@ -21,6 +21,7 @@ from openbook_common.tests.helpers import (
     make_community,
     make_community_task,
     make_skill,
+    make_skills,
     make_user,
     simple_jpeg_bytes,
     assert_is_forbidden,
@@ -1171,9 +1172,7 @@ class TestTaskRecommendations:
             assert filter_response.data["recommendedTasks"]["totalResults"] == total_results
 
     def test_filters_for_recommended_tasks(self):
-        skill1 = make_skill()
-        skill2 = make_skill()
-        other_skill = make_skill()
+        [skill1, skill2, other_skill] = make_skills(3)
 
         # locations inside geolocation filter
         geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
@@ -1224,6 +1223,7 @@ class TestTaskRecommendations:
 
         self.user.profile.skills.add(skill1)
         self.user.profile.skills.add(skill2)
+        self.user.profile.skills_v2 = [skill1.slug, skill2.slug]
         self.user.profile.geolocation = geos.GEOSGeometry(json.dumps(geolocation_geometry))
 
         self.assert_filtered_tasks(
@@ -1247,9 +1247,9 @@ class TestTaskRecommendations:
         )
 
     def test_filters_for_recommended_tasks_paging(self):
-        skill1 = make_skill()
-        other_skill = make_skill()
+        [skill1, other_skill] = make_skills(2)
         self.user.profile.skills.add(skill1)
+        self.user.profile.skills_v2 = [skill1.slug]
         self.user.profile.geolocation = geos.GEOSGeometry(json.dumps(geolocation_geometry))
 
         # locations inside geolocation filter

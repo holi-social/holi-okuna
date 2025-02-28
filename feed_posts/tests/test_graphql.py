@@ -240,6 +240,9 @@ class TestFeedPosts(TestCase):
 
     def test_can_query_my_posts_if_authenticated_user(self):
         # first user creates 2 feed posts
+        import sys
+
+        print(f"INPUT={self.public_feed_post_input_data}", file=sys.stderr)
         first_mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
         assert first_mutation_response.errors is None
 
@@ -835,14 +838,15 @@ class TestFeedPosts(TestCase):
             title=input_data["title"],
             visibility=input_data["visibility"],
             description=input_data["description"],
-            topics=input_data["topicIds"],
+            topic_ids=input_data["topicIds"],
+            topics_v2=None,
             category=founder_update_category,
             creator=self.co_founder,
             image=input_data["image"],
-            location=input_data["location"],
-            geolocation=input_data["geolocation"],
             link_preview=None,
             language=None,
+            location=input_data["location"],
+            geolocation=input_data["geolocation"],
             images=None,
         )
 
@@ -850,14 +854,15 @@ class TestFeedPosts(TestCase):
             title=input_data["title"],
             visibility=input_data["visibility"],
             description=input_data["description"],
-            topics=input_data["topicIds"],
+            topic_ids=input_data["topicIds"],
+            topics_v2=None,
             category=regular_category,
             creator=self.user,
             image=input_data["image"],
-            location=input_data["location"],
-            geolocation=input_data["geolocation"],
             link_preview=None,
             language=None,
+            location=input_data["location"],
+            geolocation=input_data["geolocation"],
             images=None,
         )
 
