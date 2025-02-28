@@ -11,6 +11,8 @@ from requests import Session
 from requests.adapters import HTTPAdapter, Retry
 from requests.exceptions import ConnectionError
 
+from django.conf import settings
+
 from openbook_notifications.payloads import (
     PostCommentAuthorPayload,
     PostCommentMentionPayload,
@@ -30,6 +32,13 @@ from openbook_notifications.payloads import (
     CommentReactionPayload,
     WelcomeEmailSeriesPayload,
 )
+
+environment_id = settings.ENVIRONMENT_ID
+
+
+class EmailIdentifier(Enum):
+    DEV_SUPPORT_EMAIL = "DEV_SUPPORT_EMAIL"
+    PROD_SUPPORT_EMAIL = "PROD_SUPPORT_EMAIL"
 
 
 class Workflow(Enum):
@@ -66,7 +75,7 @@ class Notification:
         recipients: str | List[str],
         payload: dict,
         transaction_id: str,
-        email_override: dict = None,
+        email_identifier: EmailIdentifier = None,
     ):
         session = Session()
         retries = Retry(
@@ -82,7 +91,7 @@ class Notification:
         self.payload = payload
         self.session = session
         self.transaction_id = transaction_id
-        self.email_override = email_override
+        self.email_identifier = email_identifier
 
         # Android notifications only allow for key/value pairs in the data field to be of type string, not objects/JSON
         # (see https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#androidconfig).
@@ -97,8 +106,8 @@ class Notification:
             "apns": {"payload": payload},
         }
 
-        if email_override:
-            self.overrides["email"] = email_override
+        if email_identifier:
+            self.overrides["integrationIdentifier"] = email_identifier.value
 
     def send(self):
         if not self.recipients:
@@ -409,5 +418,7 @@ class WelcomeEmailSeriesNotification(Notification):
             recipients=user,
             payload=payload.to_dict(),
             transaction_id=token,  # token is used as transaction_id to cancel the workflow and unsubscribe the user from newsletter
-            email_override={"from": "support@holi.social", "replyTo": "support@holi.social"},
+            email_identifier=EmailIdentifier.PROD_SUPPORT_EMAIL
+            if environment_id == "production"
+            else EmailIdentifier.DEV_SUPPORT_EMAIL,
         )
