@@ -55,7 +55,7 @@ google-cloud-pubsub==2.28.0
 google-cloud-webrisk==1.17.0
 googleapis-common-protos==1.68.0
 graphql-core==3.2.6
-grpc-google-iam-v1==0.14.0
+grpc-google-iam-v1==0.14.1
 grpcio==1.70.0
 grpcio-status==1.70.0
 h11==0.14.0
