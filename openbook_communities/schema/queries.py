@@ -23,6 +23,7 @@ from openbook_communities.models import Task as TaskModel
 from openbook_communities.schema.helpers import (
     filtered_spaces,
     create_filtered_spaces_query,
+    DISCOVER_DEFAULT_SPACES_V2,
 )
 from openbook_communities.schema.types import (
     CollaborationTool,
@@ -33,15 +34,6 @@ from openbook_communities.schema.types import (
 )
 
 Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
-
-DISCOVER_DEFAULT_SPACES_V2 = [
-    "human-rights",
-    "animal-welfare",
-    "arts-culture",
-    "literacy-education",
-    "mental-physical-health",
-    "democracy-politics",
-]
 
 
 @strawberry.type

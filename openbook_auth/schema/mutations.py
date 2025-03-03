@@ -35,7 +35,7 @@ from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.helpers import is_parameter_null, to_input_dict
 from openbook_common.schema.types import Result
 from openbook_common.utils.model_loaders import get_insight_model, get_community_model, get_topic_model
-from openbook_communities.schema.helpers import create_filtered_spaces_query
+from openbook_communities.schema.helpers import create_filtered_spaces_query, DISCOVER_DEFAULT_SPACES_V2
 from openbook_notifications.api import NotificationApi
 from openbook_notifications.enums import NotificationProvider
 from openbook_devices.serializers import RegisterDeviceSerializer
@@ -139,22 +139,18 @@ class Mutation:
             topic_model = get_topic_model()
 
             whens = []
-            topic_ids = list(current_user.profile.interests.values_list("id", flat=True).all())
+            topics_v2 = list(current_user.profile.interests_v2)
             geolocation = current_user.geolocation
 
             if topic_ids:
                 whens.append(
-                    When(create_filtered_spaces_query(topic_ids=topic_ids, geolocation=geolocation), then=Value(10))
+                    When(create_filtered_spaces_query(topics_v2=topics_v2, geolocation=geolocation), then=Value(10))
                 )
 
             if geolocation:
                 whens.append(When(create_filtered_spaces_query(geolocation=geolocation), then=Value(20)))
 
-            default_topics = list(
-                topic_model.objects.filter(is_discover_spaces_default=True).values_list("id", flat=True)
-            )
-            if default_topics:
-                whens.append(When(create_filtered_spaces_query(topic_ids=default_topics), then=Value(30)))
+            whens.append(When(create_filtered_spaces_query(topics_v2=DISCOVER_DEFAULT_SPACES_V2), then=Value(30)))
 
             spaces = (
                 community_model.objects.prefetch_related("links", "memberships__user__profile")

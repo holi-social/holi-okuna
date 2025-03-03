@@ -9,6 +9,16 @@ from openbook_common.types import GeolocationFeature
 from openbook_communities.models import Community as CommunityModel
 
 
+DISCOVER_DEFAULT_SPACES_V2 = [
+    "human-rights",
+    "animal-welfare",
+    "arts-culture",
+    "literacy-education",
+    "mental-physical-health",
+    "democracy-politics",
+]
+
+
 @sync_to_async
 def filtered_spaces(
     topic_id: Optional[uuid.UUID] = None,
