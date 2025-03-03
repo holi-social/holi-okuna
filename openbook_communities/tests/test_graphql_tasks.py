@@ -218,6 +218,11 @@ class TestTasks:
                 "value": [non_existent_skill_id],
                 "expected_error": f"No skill with the id '{non_existent_skill_id}' found.",
             },
+            {
+                "field": "skillsV2",
+                "value": ["unknown"],
+                "expected_error": "SkillV2 'unknown' does not exist.",
+            },
         ]
 
         for testCase in expectedErrors:
@@ -239,7 +244,8 @@ class TestTasks:
 
         community = make_community(creator=user)
         task = make_community_task(community)
-        skill = make_skill()
+        [skill, skill2] = make_skills(2)
+        expected_skills_v2 = [skill.slug]
 
         update_task_mutation = """
             mutation test($input: UpdateTaskInput!) {
@@ -250,6 +256,7 @@ class TestTasks:
                     visibility
                     thumbnail
                     thumbnailBlurhash
+                    skillsV2
                 }
             }
             """
@@ -290,6 +297,7 @@ class TestTasks:
         assert valid_visibility == updateTask["visibility"]
         assert "thumbnail.jpg" in updateTask["thumbnail"]
         assert updateTask["thumbnailBlurhash"] is not None
+        assert expected_skills_v2 == updateTask["skillsV2"]
 
         valid_name = "New valid name"
         valid_description = "New valid description"
@@ -306,6 +314,7 @@ class TestTasks:
             "contactEmail": "email@email.com",
             "thumbnail": None,
             "slotsAvailable": 1,
+            "skillsV2": [skill2.slug],
         }
 
         response = async_to_sync(schema.execute)(
@@ -323,6 +332,7 @@ class TestTasks:
         assert valid_visibility == updateTask["visibility"]
         assert updateTask["thumbnail"] is None
         assert updateTask["thumbnailBlurhash"] is None
+        assert [skill2.slug] == updateTask["skillsV2"]
 
     def test_can_update_members_only_task_if_collaborator(self):
         user = make_user()
@@ -693,6 +703,11 @@ class TestTasks:
                 "value": [non_existent_skill_id],
                 "expected_error": f"No skill with the id '{non_existent_skill_id}' found.",
             },
+            {
+                "field": "skillsV2",
+                "value": ["unknown"],
+                "expected_error": "SkillV2 'unknown' does not exist.",
+            },
         ]
 
         for testCase in expectedErrors:
@@ -714,6 +729,7 @@ class TestTasks:
 
         community = make_community(creator=user)
         skill = make_skill()
+        expected_skills_v2 = [skill.slug]
 
         create_task_mutation = """
             mutation test($input: CreateTaskInput!) {
@@ -722,6 +738,7 @@ class TestTasks:
                     name
                     description
                     visibility
+                    skillsV2
                 }
             }
             """
@@ -752,11 +769,56 @@ class TestTasks:
 
         assert response.errors is None
 
-        added_collaboration_tool = response.data["createTask"]
-        assert "id" in added_collaboration_tool
-        assert valid_name == added_collaboration_tool["name"]
-        assert valid_description == added_collaboration_tool["description"]
-        assert valid_visibility == added_collaboration_tool["visibility"]
+        created_task = response.data["createTask"]
+        assert "id" in created_task
+        assert valid_name == created_task["name"]
+        assert valid_description == created_task["description"]
+        assert valid_visibility == created_task["visibility"]
+        assert expected_skills_v2 == created_task["skillsV2"]
+
+    def test_can_create_task_with_skills_v2(self):
+        user = make_user()
+
+        community = make_community(creator=user)
+        skills_v2 = [skill.slug for skill in make_skills(2)]
+
+        create_task_mutation = """
+            mutation test($input: CreateTaskInput!) {
+                createTask(input: $input) {
+                    id
+                    skillsV2
+                }
+            }
+            """
+
+        valid_name = "Valid name"
+        valid_description = "Valid description"
+        valid_visibility = "MEMBERS"
+
+        valid_input = {
+            "spaceId": str(community.id),
+            "name": valid_name,
+            "description": valid_description,
+            "visibility": valid_visibility,
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "skillsV2": skills_v2,
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
+        }
+
+        response = async_to_sync(schema.execute)(
+            create_task_mutation,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"input": valid_input},
+        )
+
+        assert response.errors is None
+
+        created_task = response.data["createTask"]
+        assert skills_v2 == created_task["skillsV2"]
 
     def test_can_create_members_only_task_if_collaborator(self):
         user = make_user()

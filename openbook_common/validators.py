@@ -2,7 +2,7 @@ import re
 from typing import get_args
 
 from graphql import GraphQLError
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, NotFound
 from django.utils.translation import gettext_lazy as _
 
 from openbook.graphql_errors import GraphQLErrorCodes
@@ -13,8 +13,8 @@ from openbook_common.utils.model_loaders import (
     get_emoji_group_model,
     get_language_model,
 )
-from openbook_common.topics import TopicV2, topic_v2_slugs
-from openbook_common.skills import SkillV2, skill_v2_slugs
+from openbook_common.topics import TopicV2
+from openbook_common.skills import SkillV2
 
 from openbook import settings
 
@@ -122,25 +122,11 @@ def sanitize_text(text: str):
         url_safety_validator(url)
 
 
-def topic_slug_exists(topic_slug):
-    for slugs in topic_v2_slugs.values():
-        if topic_slug in slugs:
-            return
-    raise ValidationError(_(f"Topic with slug '{topic_slug}' does not exist."))
-
-
 def topic_v2_exists(topic_v2_slug):
     if topic_v2_slug not in get_args(TopicV2):
-        raise ValidationError(_(f"TopicV2 '{topic_v2_slug}' does not exist."))
-
-
-def skill_slug_exists(skill_slug):
-    for slugs in skill_v2_slugs.values():
-        if skill_slug in slugs:
-            return
-    raise ValidationError(_(f"Skill with slug '{skill_slug}' does not exist."))
+        raise NotFound(_(f"TopicV2 '{topic_v2_slug}' does not exist."))
 
 
 def skill_v2_exists(skill_v2_slug):
     if skill_v2_slug not in get_args(SkillV2):
-        raise ValidationError(_(f"SkillV2 '{skill_v2_slug}' does not exist."))
+        raise NotFound(_(f"SkillV2 '{skill_v2_slug}' does not exist."))

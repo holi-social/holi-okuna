@@ -34,7 +34,6 @@ from openbook_common.tests.helpers import (
     make_user,
     simple_jpeg_bytes,
     make_topics,
-    make_topic,
 )
 from openbook_common.utils.model_loaders import (
     get_community_admin_privileges_granted_notification_model,
@@ -47,7 +46,6 @@ from openbook_communities.models import (
     CommunityNotificationsSubscription,
     SpaceUserConnectionType,
 )
-from openbook_communities.schema.queries import DISCOVER_DEFAULT_SPACES_V2
 from openbook_communities.tests.helpers import (
     assert_onboarding,
     get_space_by_id_with_posts,
@@ -60,6 +58,7 @@ from openbook_communities.tests.helpers import (
 from openbook_notifications.tests.helpers import get_notifications
 from openbook_posts.enums import VisibilityFilter
 from openbook_posts.tests.helpers import private_post_ids, public_post_ids
+from openbook_terms.helpers import topics_to_topic_v2_slugs
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +79,7 @@ class TestCommunities(TestCase):
     def test_filters_for_spaces(self):
         creator = make_user()
         [topic1, topic2] = make_topics(2)
+        topic1_v2 = topic1.slug
         # locations inside geolocation filter
         geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
         geolocation2 = geos.Point(8.5798387, 53.5590841, srid=4326)
@@ -89,13 +89,14 @@ class TestCommunities(TestCase):
         space2 = make_community(topics=[topic1], geolocation=geolocation2)
         space3 = make_community(topics=[topic2], geolocation=geolocation3)
         [skill1, skill2, skill3] = make_skills(3)
+        [skill1_v2, skill2_v2] = [skill1.slug, skill2.slug]
         make_community_task(space1, skills=[skill1, skill2])
         make_community_task(space2, skills=[skill2, skill3])
         make_community_task(space3, skills=[skill3])
 
         filter_query = """
-            query($topicId: UUID, $geolocation: GeoJSON, $skillIds: [UUID], $memberId: UUID, $topicSlug: String, $topicSlugs: [String]) {
-                spaces(topicId: $topicId, geolocation: $geolocation, skillIds: $skillIds, memberId: $memberId, topicSlug: $topicSlug, topicSlugs: $topicSlugs) {
+            query($topicId: UUID, $geolocation: GeoJSON, $skillIds: [UUID], $memberId: UUID, $topicSlug: String, $topicSlugs: [String], $topicsV2: [String!], $skillsV2: [String!]) {
+                spaces(topicId: $topicId, geolocation: $geolocation, skillIds: $skillIds, memberId: $memberId, topicSlug: $topicSlug, topicSlugs: $topicSlugs, topicsV2: $topicsV2, skillsV2: $skillsV2) {
                     totalResults
                     data {
                         id
@@ -119,6 +120,7 @@ class TestCommunities(TestCase):
         assert_filtered_spaces({"topicId": str(topic1.id)}, [space1, space2])
         assert_filtered_spaces({"topicSlug": topic1.slug}, [space1, space2])
         assert_filtered_spaces({"topicSlugs": [topic1.slug]}, [space1, space2])
+        assert_filtered_spaces({"topicsV2": [topic1_v2]}, [space1, space2])
         # topicSlug and topicSlugs can be combined
         assert_filtered_spaces({"topicSlugs": [topic1.slug], "topicSlug": topic2.slug}, [space1, space2, space3])
         assert_filtered_spaces({"topicSlugs": [topic1.slug, topic2.slug]}, [space1, space2, space3])
@@ -137,6 +139,7 @@ class TestCommunities(TestCase):
 
         # Filter by multiple skills
         assert_filtered_spaces({"skillIds": [str(skill1.id), str(skill2.id)]}, [space1, space2])
+        assert_filtered_spaces({"skillsV2": [skill1_v2, skill2_v2]}, [space1, space2])
 
         # Filter by skills and location
         assert_filtered_spaces({"skillIds": [str(skill3.id)], "geolocation": geolocation}, [space2])
@@ -156,6 +159,15 @@ class TestCommunities(TestCase):
                 "topicId": str(topic2.id),
             },
             [],
+        )
+
+        # Filter by skills V2, topics V2 and location
+        assert_filtered_spaces(
+            {
+                "skillsV2": [skill2_v2],
+                "topicsV2": [topic1_v2],
+            },
+            [space1, space2],
         )
 
     def test_filters_for_recommended_spaces(self):
@@ -285,10 +297,10 @@ class TestCommunities(TestCase):
         def transform_space(space):
             return {"id": str(space.id)}
 
-        def assert_filtered_spaces(user, filter_options, expected_spaces, total_results):
+        def assert_recommendended_spaces(user, paging_options, expected_spaces, total_results):
             filter_response = async_to_sync(schema.execute)(
                 recommended_spaces_query,
-                variable_values=filter_options,
+                variable_values=paging_options,
                 context_value=benedict({"request": {"user": user}}),
             )
             assert filter_response.errors is None
@@ -296,9 +308,9 @@ class TestCommunities(TestCase):
             assert filter_response.data["recommendedSpaces"]["data"] == expected_data
             assert filter_response.data["recommendedSpaces"]["totalResults"] == total_results
 
-        assert_filtered_spaces(
+        assert_recommendended_spaces(
             user,
-            {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 2, "limit": 3},
+            {"offset": 2, "limit": 3},
             [
                 topic1_inside_space1,
                 uninteresting_topic_inside_space3,
@@ -306,9 +318,9 @@ class TestCommunities(TestCase):
             ],
             9,
         )
-        assert_filtered_spaces(
+        assert_recommendended_spaces(
             user,
-            {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 2, "limit": 6},
+            {"offset": 2, "limit": 6},
             [
                 topic1_inside_space1,
                 uninteresting_topic_inside_space3,
@@ -319,9 +331,9 @@ class TestCommunities(TestCase):
             ],
             9,
         )
-        assert_filtered_spaces(
+        assert_recommendended_spaces(
             user,
-            {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 4, "limit": 3},
+            {"offset": 4, "limit": 3},
             [
                 uninteresting_topic_inside_space2,
                 uninteresting_topic_inside_space1,
@@ -329,9 +341,9 @@ class TestCommunities(TestCase):
             ],
             9,
         )
-        assert_filtered_spaces(
+        assert_recommendended_spaces(
             user,
-            {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 0, "limit": 20},
+            {"offset": 0, "limit": 20},
             [
                 topic1_inside_space3,
                 topic1_inside_space2,
@@ -345,15 +357,16 @@ class TestCommunities(TestCase):
             ],
             9,
         )
-        assert_filtered_spaces(
+        assert_recommendended_spaces(
             user,
-            {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 10, "limit": 20},
+            {"offset": 10, "limit": 20},
             [],
             9,
         )
 
     def test_filters_for_discover_spaces(self):
         [topic1, topic2] = make_topics(2)
+        [topic1_v2, topic2_v2] = [topic1.slug, topic2.slug]
         # locations inside geolocation filter
         geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
         geolocation2 = geos.Point(8.5798387, 53.5590841, srid=4326)
@@ -362,16 +375,19 @@ class TestCommunities(TestCase):
         space1 = make_community(topics=[topic1, topic2], geolocation=geolocation1)
         space2 = make_community(topics=[topic1], geolocation=geolocation2)
         space3 = make_community(topics=[topic2], geolocation=geolocation3)
-        make_community(topics=[topic1], geolocation=geolocation2, is_deleted=True)  # deleted spaces are not be shown
+        make_community(topics=[topic1], geolocation=geolocation2, is_deleted=True)  # deleted spaces are not shown
         [skill1, skill2, skill3] = make_skills(3)
+        skill3_v2 = skill3.slug
         make_community_task(space1, skills=[skill1, skill2])
         make_community_task(space2, skills=[skill2, skill3])
 
         filter_query = """
-            query($topicIds: [UUID], $geolocation: GeoJSON, $skillIds: [UUID]) {
-                discoverSpaces(topicIds: $topicIds, geolocation: $geolocation, skillIds: $skillIds) {
+            query($topicIds: [UUID], $geolocation: GeoJSON, $skillIds: [UUID], $topicsV2: [String!], $skillsV2: [String!]) {
+                discoverSpaces(topicIds: $topicIds, geolocation: $geolocation, skillIds: $skillIds, topicsV2: $topicsV2, skillsV2: $skillsV2) {
                     topicId
+                    topicV2
                     skillId
+                    skillV2
                     locationId
                     spaces {
                         totalResults
@@ -400,10 +416,13 @@ class TestCommunities(TestCase):
 
         # Filter by common topic
         assert_filtered_spaces({"topicIds": [str(topic1.id)]}, [space1, space2])
+        assert_filtered_spaces({"topicsV2": [topic1_v2]}, [space1, space2])
 
         # Filter by unique topic
         assert_filtered_spaces({"topicIds": [str(topic2.id)]}, [space1, space3])
+        assert_filtered_spaces({"topicsV2": [topic2_v2]}, [space1, space3])
 
+        # Filter by topics, skills and geolocation
         filter_response = async_to_sync(schema.execute)(
             filter_query,
             variable_values={
@@ -416,6 +435,53 @@ class TestCommunities(TestCase):
         assert len(filter_response.data["discoverSpaces"]) == 4
         location, t1, t2, skill = (
             (0, 1, 2, 3) if filter_response.data["discoverSpaces"][1]["topicId"] == str(topic1.id) else (0, 2, 1, 3)
+        )
+
+        # Filter by topics, skills and geolocation
+        filter_response = async_to_sync(schema.execute)(
+            filter_query,
+            variable_values={
+                "topicIds": [str(topic1.id), str(topic2.id)],
+                "skillIds": [str(skill3.id)],
+                "geolocation": geolocation,
+            },
+            context_value=benedict({"request": {"user": AnonymousUser}}),
+        )
+        assert len(filter_response.data["discoverSpaces"]) == 4
+        location, t1, t2, skill = (
+            (0, 1, 2, 3) if filter_response.data["discoverSpaces"][1]["topicId"] == str(topic1.id) else (0, 2, 1, 3)
+        )
+
+        assert_paged_results_equal(
+            filter_response.data["discoverSpaces"][location]["spaces"],
+            list(map(transform_space, [space1, space2])),
+        )
+        assert_paged_results_equal(
+            filter_response.data["discoverSpaces"][t1]["spaces"],
+            list(map(transform_space, [space1, space2])),
+        )
+        assert_paged_results_equal(
+            filter_response.data["discoverSpaces"][t2]["spaces"],
+            list(map(transform_space, [space1, space3])),
+        )
+        assert_paged_results_equal(
+            filter_response.data["discoverSpaces"][skill]["spaces"],
+            list(map(transform_space, [space2])),
+        )
+
+        # Filter by topics V2, skills V2 and geolocation
+        filter_response = async_to_sync(schema.execute)(
+            filter_query,
+            variable_values={
+                "topicsV2": [topic1_v2, topic2_v2],
+                "skillsV2": [skill3_v2],
+                "geolocation": geolocation,
+            },
+            context_value=benedict({"request": {"user": AnonymousUser}}),
+        )
+        assert len(filter_response.data["discoverSpaces"]) == 4
+        location, t1, t2, skill = (
+            (0, 1, 2, 3) if filter_response.data["discoverSpaces"][1]["topicV2"] == topic1_v2 else (0, 2, 1, 3)
         )
 
         assert_paged_results_equal(
@@ -2532,7 +2598,9 @@ class TestCommunities(TestCase):
 
     def test_invalid_spaces_do_not_pass_validation(self):
         user = make_user()
-        topic_ids = [str(t.id) for t in make_topics(7)]
+        topics = make_topics(7)
+        topic_ids = [str(t.id) for t in topics]
+        topics_v2 = topics_to_topic_v2_slugs(topics)
         empty_image = SimpleUploadedFile(name="cover.jpg", content="")
 
         validate_space_mutation = """
@@ -2566,6 +2634,14 @@ class TestCommunities(TestCase):
                 "value": [invalid_uuid],
                 "expected_error": f"No topic with the id '{invalid_uuid}' found.",
             },
+            {"field": "topicsV2", "value": None, "expected_code": "null"},
+            {"field": "topicsV2", "value": [], "expected_code": "min_length"},
+            {"field": "topicsV2", "value": topics_v2, "expected_code": "max_length"},
+            {
+                "field": "topicsV2",
+                "value": ["unknown"],
+                "expected_error": "TopicV2 'unknown' does not exist.",
+            },
             {"field": "cover", "value": None, "expected_code": "null"},
             {"field": "cover", "value": {}, "expected_code": "invalid"},
             {"field": "cover", "value": "", "expected_code": "invalid"},
@@ -2582,18 +2658,26 @@ class TestCommunities(TestCase):
                 variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
             )
 
-            assert (response.errors, testCase) is not None
+            assert (response.errors, testCase) is not None, "Expected error"
+            print(f"{testCase} {response.errors}")
             if "expected_code" in testCase:
                 field_errors = json.loads(response.errors[0].extensions["errors"])
-                assert testCase["expected_code"] == field_errors[testCase["field"]][0]["code"]
+                actual_code = field_errors[testCase["field"]][0]["code"]
+                assert testCase["expected_code"] == actual_code, (
+                    f"Expected error code {testCase['expected_code']} but got {actual_code} for input {testCase}"
+                )
             else:
-                assert testCase["expected_error"] in str(response.errors[0].message)
+                assert testCase["expected_error"] in str(response.errors[0].message), (
+                    f"Expected error {testCase['expected_error']} but got {str(response.errors[0].message)} for input {testCase}"
+                )
             assert response.data is None
 
     def test_valid_partial_spaces_pass_validation(self):
         user = make_user()
         valid_input = {"title": "valid", "description": "valid"}
-        topic_ids = [str(t.id) for t in make_topics(2)]
+        topics = make_topics(2)
+        topic_ids = [str(t.id) for t in topics]
+        topics_v2 = topics_to_topic_v2_slugs(topics)
         cover = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
         sdg_ids = [str(make_sdg().id) for _ in range(2)]
         location = "Hamburg, Germany"
@@ -2613,6 +2697,8 @@ class TestCommunities(TestCase):
             valid_input | {"location": location},
             valid_input | {"topics": topic_ids, "cover": cover, "sdgs": sdg_ids, "location": location},
             valid_input | {"topics": topic_ids, "cover": cover, "sdgs": []},
+            valid_input | {"topicsV2": topics_v2},
+            valid_input | {"topicsV2": topics_v2, "cover": cover, "sdgs": []},
         ]
 
         for input in valid_inputs:
@@ -2649,8 +2735,10 @@ class TestCommunities(TestCase):
         self, mock_publish_space_created_event, mock_invalidate_discover_spaces_query_cache
     ):
         user = make_user()
-        topic_ids = [str(t.id) for t in make_topics(7)]
+        topics = make_topics(7)
+        topic_ids = [str(t.id) for t in topics]
         valid_topics = topic_ids[:2]
+        valid_topics_v2 = topics_to_topic_v2_slugs(topics[:2])
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
 
         create_space_mutation = """
@@ -2678,6 +2766,10 @@ class TestCommunities(TestCase):
                 "input": {"description": "valid", "topics": valid_topics, "cover": valid_image},
                 "expected_error": "was not provided",
             },
+            {
+                "input": {"description": "valid", "topicsV2": valid_topics_v2, "cover": valid_image},
+                "expected_error": "was not provided",
+            },
         ]
 
         for testCase in expectedErrors:
@@ -2695,7 +2787,9 @@ class TestCommunities(TestCase):
 
     def test_validates_space_before_creation(self):
         user = make_user()
-        topic_ids = [str(t.id) for t in make_topics(7)]
+        topics = make_topics(7)
+        topic_ids = [str(t.id) for t in topics]
+        topics_v2 = topics_to_topic_v2_slugs(topics)
         valid_topics = topic_ids[:2]
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
         empty_image = SimpleUploadedFile(name="cover.jpg", content="")
@@ -2722,13 +2816,19 @@ class TestCommunities(TestCase):
                 "value": "f" * (COMMUNITY_DESCRIPTION_MAX_LENGTH + 1),
                 "expected_code": "max_length",
             },
-            # {"field": "topics", "value": None, "expected_error": "Expected non-nullable type"}, TODO adopt topics V2
-            # {"field": "topics", "value": [], "expected_code": "min_length"}, TODO adopt topics V2
+            {"field": "topics", "value": [], "expected_code": "min_length"},
             {"field": "topics", "value": topic_ids, "expected_code": "max_length"},
             {
                 "field": "topics",
                 "value": [invalid_uuid],
                 "expected_error": f"No topic with the id '{invalid_uuid}' found.",
+            },
+            {"field": "topicsV2", "value": [], "expected_code": "min_length"},
+            {"field": "topicsV2", "value": topics_v2, "expected_code": "max_length"},
+            {
+                "field": "topicsV2",
+                "value": ["unknown"],
+                "expected_error": "TopicV2 'unknown' does not exist.",
             },
             {"field": "cover", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "cover", "value": {}, "expected_code": "invalid"},
@@ -2746,6 +2846,7 @@ class TestCommunities(TestCase):
                 variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
             )
 
+            print(f"{testCase}, {response}")
             if "expected_code" in testCase:
                 field_errors = json.loads(response.errors[0].extensions["errors"])
                 assert testCase["expected_code"] == field_errors[testCase["field"]][0]["code"]
@@ -2757,7 +2858,9 @@ class TestCommunities(TestCase):
     @mock.patch("openbook_communities.schema.mutations.publish_space_created_event")
     def test_can_create_space(self, mock_publish_space_created_event, mock_invalidate_discover_spaces_query_cache):
         user = make_user()
-        topic_ids = [str(t.id) for t in make_topics(2)]
+        topics = make_topics(2)
+        topic_ids = [str(t.id) for t in topics]
+        expected_topics_v2 = topics_to_topic_v2_slugs(topics)
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
 
         create_space_mutation = """
@@ -2768,6 +2871,7 @@ class TestCommunities(TestCase):
                     title
                     description
                     topics { id }
+                    topicsV2
                     cover
                     members {
                         data {
@@ -2797,6 +2901,7 @@ class TestCommunities(TestCase):
         for topic in created_space["topics"]:
             assert topic["id"] in topic_ids
         assert "cover.jpg" in created_space["cover"]
+        assert expected_topics_v2 == created_space["topicsV2"]
 
         # Verify that creator is admin
         assert 1 == len(created_space["members"]["data"])
@@ -2807,6 +2912,36 @@ class TestCommunities(TestCase):
         community = Community.objects.get(id=created_space["id"])
         mock_publish_space_created_event.assert_called_once_with(community=community)
         mock_invalidate_discover_spaces_query_cache.assert_called_once()
+
+    @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
+    @mock.patch("openbook_communities.schema.mutations.publish_space_created_event")
+    def test_can_create_space_with_topics_v2(
+        self, mock_publish_space_created_event, mock_invalidate_discover_spaces_query_cache
+    ):
+        user = make_user()
+        topics_v2 = topics_to_topic_v2_slugs(make_topics(2))
+        valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+
+        create_space_mutation = """
+            mutation test($input: CreateSpaceInput!) {
+                createSpace(input: $input) {
+                    id
+                    topicsV2
+                }
+            }
+            """
+        valid_input = {"title": "valid", "description": "valid", "topicsV2": topics_v2, "cover": valid_image}
+
+        response = async_to_sync(schema.execute)(
+            create_space_mutation,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"input": valid_input},
+        )
+
+        assert response.errors is None
+
+        created_space = response.data["createSpace"]
+        assert sorted(topics_v2) == sorted(created_space["topicsV2"])
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_created_event")
@@ -2839,7 +2974,9 @@ class TestCommunities(TestCase):
     def test_validates_space_update(self):
         user = make_user()
         community = make_community()
-        topic_ids = [str(t.id) for t in make_topics(7)]
+        topics = make_topics(7)
+        topic_ids = [str(t.id) for t in topics]
+        topics_v2 = topics_to_topic_v2_slugs(topics)
         empty_image = SimpleUploadedFile(name="cover.jpg", content="")
 
         update_space_mutation = """
@@ -2870,6 +3007,13 @@ class TestCommunities(TestCase):
                 "field": "topics",
                 "value": [invalid_uuid],
                 "expected_error": f"No topic with the id '{invalid_uuid}' found.",
+            },
+            {"field": "topicsV2", "value": [], "expected_code": "min_length"},
+            {"field": "topicsV2", "value": topics_v2, "expected_code": "max_length"},
+            {
+                "field": "topicsV2",
+                "value": ["unknown"],
+                "expected_error": "TopicV2 'unknown' does not exist",
             },
             {"field": "cover", "value": {}, "expected_code": "invalid"},
             {"field": "cover", "value": "", "expected_code": "invalid"},
@@ -2954,7 +3098,9 @@ class TestCommunities(TestCase):
     def test_can_update_space(self, mock_invalidate_discover_spaces_query_cache):
         user = make_user()
         community = make_community(creator=user)
-        topic_ids = [str(t.id) for t in make_topics(3)]
+        topics = make_topics(3)
+        topic_ids = [str(t.id) for t in topics]
+        topics_v2 = topics_to_topic_v2_slugs(topics)
         cover = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
         cover2 = SimpleUploadedFile(name="cover2.jpg", content=simple_jpeg_bytes)
         avatar = SimpleUploadedFile(name="avatar.jpg", content=simple_jpeg_bytes)
@@ -2973,6 +3119,7 @@ class TestCommunities(TestCase):
             {"title": "new title"},
             {"description": "new description"},
             {"topics": topic_ids[:2]},
+            {"topicsV2": topics_v2[2:]},
             {"cover": cover},
             {"avatar": avatar},
             {"sdgs": sdg_ids[:2]},
@@ -3008,7 +3155,9 @@ class TestCommunities(TestCase):
     def test_updated_space_has_new_values(self):
         user = make_user()
         community = make_community(creator=user)
-        topic_ids = [str(t.id) for t in make_topics(2)]
+        topics = make_topics(2)
+        topic_ids = [str(t.id) for t in topics]
+        expected_topics_v2 = topics_to_topic_v2_slugs(topics)
 
         cover = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
         avatar = SimpleUploadedFile(name="avatar.jpg", content=simple_jpeg_bytes)
@@ -3025,6 +3174,7 @@ class TestCommunities(TestCase):
                     title
                     description
                     topics { id }
+                    topicsV2
                     cover
                     coverBlurhash
                     avatar
@@ -3066,6 +3216,7 @@ class TestCommunities(TestCase):
         assert len(topic_ids) == len(updated_space["topics"])
         for topic in updated_space["topics"]:
             assert topic["id"] in topic_ids
+        assert sorted(updated_space["topicsV2"]) == sorted(expected_topics_v2)
         assert "cover.jpg" in updated_space["cover"]
         assert "avatar.jpg" in updated_space["avatar"]
         assert blurhash_img == updated_space["coverBlurhash"]

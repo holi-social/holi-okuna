@@ -91,7 +91,7 @@ class CreateCommunitySerializer(serializers.Serializer):
         min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
         max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
         required=False,
-        child=serializers.UUIDField(validators=[topic_v2_exists]),
+        child=serializers.CharField(validators=[topic_v2_exists]),
     )
 
 
@@ -114,7 +114,7 @@ class ValidateCommunitySerializer(serializers.Serializer):
         min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
         max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
         required=False,
-        child=serializers.UUIDField(validators=[topic_v2_exists]),
+        child=serializers.CharField(validators=[topic_v2_exists]),
     )
     cover = RestrictedImageFileSizeField(
         allow_empty_file=False,
