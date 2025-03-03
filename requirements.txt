@@ -53,7 +53,7 @@ google-api-core==2.24.1
 google-auth==2.38.0
 google-cloud-pubsub==2.28.0
 google-cloud-webrisk==1.17.0
-googleapis-common-protos==1.68.0
+googleapis-common-protos==1.69.0
 graphql-core==3.2.6
 grpc-google-iam-v1==0.14.1
 grpcio==1.70.0
