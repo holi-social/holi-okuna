@@ -57,7 +57,7 @@ class CreateFeedPostSerializer(serializers.Serializer):
     topics_v2 = serializers.ListField(
         max_length=settings.FEED_POST_TOPICS_MAX_AMOUNT,
         required=False,
-        child=serializers.UUIDField(validators=[topic_v2_exists]),
+        child=serializers.CharField(validators=[topic_v2_exists]),
     )
     category_id = serializers.UUIDField(
         required=False, allow_null=True, validators=[validate_feed_post_category_exists_by_id]
@@ -103,7 +103,7 @@ class UpdateFeedPostSerializer(serializers.Serializer):
     topics_v2 = serializers.ListField(
         max_length=settings.FEED_POST_TOPICS_MAX_AMOUNT,
         required=False,
-        child=serializers.UUIDField(validators=[topic_v2_exists]),
+        child=serializers.CharField(validators=[topic_v2_exists]),
     )
     category_id = serializers.UUIDField(
         required=False, allow_null=True, validators=[validate_feed_post_category_exists_by_id]
