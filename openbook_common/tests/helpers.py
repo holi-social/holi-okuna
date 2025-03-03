@@ -744,6 +744,10 @@ def make_insight():
     return insight
 
 
+def make_feed_post():
+    return mixer.blend(FeedPost)
+
+
 def make_feed_post_category():
     return mixer.blend(FeedPostCategory)
 

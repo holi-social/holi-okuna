@@ -8,8 +8,9 @@ def migrate_topics(apps, schema_editor):
     Insight = apps.get_model("openbook_insights", "Insight")
 
     for insight in Insight.objects.all():
-        insight.topic_v2 = slug_to_topic_v2(insight.topic)
-        insight.save()
+        if insight.topic is not None:
+            insight.topic_v2 = slug_to_topic_v2(insight.topic.slug)
+            insight.save()
 
 
 class Migration(migrations.Migration):
