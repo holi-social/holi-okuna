@@ -2659,7 +2659,6 @@ class TestCommunities(TestCase):
             )
 
             assert (response.errors, testCase) is not None, "Expected error"
-            print(f"{testCase} {response.errors}")
             if "expected_code" in testCase:
                 field_errors = json.loads(response.errors[0].extensions["errors"])
                 actual_code = field_errors[testCase["field"]][0]["code"]
@@ -2846,7 +2845,6 @@ class TestCommunities(TestCase):
                 variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
             )
 
-            print(f"{testCase}, {response}")
             if "expected_code" in testCase:
                 field_errors = json.loads(response.errors[0].extensions["errors"])
                 assert testCase["expected_code"] == field_errors[testCase["field"]][0]["code"]
