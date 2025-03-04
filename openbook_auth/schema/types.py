@@ -1,6 +1,6 @@
 import logging
 import uuid
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING, Annotated
 
 import strawberry
 import strawberry_django
@@ -33,14 +33,16 @@ class UpdateAuthenticatedUserInput:
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeoJSONInput] = strawberry.UNSET
     engagement_level: Optional[str] = strawberry.UNSET
-    interests: Optional[List[Optional[uuid.UUID]]] = strawberry_django.field(
-        deprecation_reason="Deprecated since 1.52. Use interests_v2 instead.", default=strawberry.UNSET
-    )
+    interests: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.52. Use interests_v2 instead."),
+    ] = strawberry.UNSET
     interests_v2: Optional[List[str]] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
-    skills: Optional[List[Optional[uuid.UUID]]] = strawberry_django.field(
-        deprecation_reason="Deprecated since 1.52. Use skills_v2 instead.", default=strawberry.UNSET
-    )
+    skills: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.52. Use skills_v2 instead."),
+    ] = strawberry.UNSET
     skills_v2: Optional[List[str]] = strawberry.UNSET
     tracking_consent_analytics: Optional[bool] = strawberry.UNSET
     tracking_consent_personalization: Optional[bool] = strawberry.UNSET

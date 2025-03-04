@@ -125,9 +125,10 @@ class CreateFeedPostInput:
         strawberry.UNSET
     )  # This field is deprecated. Please use the new images field instead. Remove it after version 1.30.x
     visibility: VisibilityLevel
-    topic_ids: Optional[List[Optional[uuid.UUID]]] = strawberry_django.field(
-        deprecation_reason="Deprecated since 1.52. Use topics_v2 instead.", default=strawberry.UNSET
-    )
+    topic_ids: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.52. Use topics_v2 instead."),
+    ] = strawberry.UNSET
     topics_v2: Optional[List[str]] = strawberry.UNSET
     category_id: Optional[uuid.UUID] = strawberry.UNSET
     language: Optional[str] = strawberry.UNSET
@@ -153,9 +154,10 @@ class UpdateFeedPostInput:
         strawberry.UNSET
     )  # This field is deprecated. Please use the new images field instead. Remove it after version 1.30.x
     visibility: Optional[VisibilityLevel] = strawberry.UNSET
-    topic_ids: Optional[List[Optional[uuid.UUID]]] = strawberry_django.field(
-        deprecation_reason="Deprecated since 1.52. Use topics_v2 instead.", default=strawberry.UNSET
-    )
+    topic_ids: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.52. Use topics_v2 instead."),
+    ] = strawberry.UNSET
     topics_v2: Optional[List[str]] = strawberry.UNSET
     category_id: Optional[uuid.UUID] = strawberry.UNSET
     language: Optional[str] = strawberry.UNSET
