@@ -12,6 +12,7 @@ from openbook_communities.models import Community as CommunityModel
 DISCOVER_DEFAULT_SPACES_V2 = [
     "human-rights",
     "animal-welfare",
+    "climate-environment",
     "arts-culture",
     "literacy-education",
     "mental-physical-health",
