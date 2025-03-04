@@ -38,7 +38,7 @@ class TestSlugToTopicV2(unittest.TestCase):
         ("agriculture-food", "food-hunger-relief"),
         # GENDER_EQUALITY
         ("gender-equality", "gender-equality"),
-        ("diversity-genderequality", "gender-equality"),
+        ("diversity-gender-equality", "gender-equality"),
         # HOUSING
         ("housing", "housing"),
         ("building-housing", "housing"),

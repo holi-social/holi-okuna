@@ -17,7 +17,7 @@ topic_v2_slugs = {
     "elderly-care": ["elderly-care", "elderly-people"],
     "family-kids": ["family-kids"],
     "food-hunger-relief": ["food-hunger-relief", "agriculture-food"],
-    "gender-equality": ["gender-equality", "diversity-genderequality"],
+    "gender-equality": ["gender-equality", "diversity-gender-equality"],
     "housing": ["housing", "building-housing"],
     "human-rights": ["human-rights", "democracy-human-rights"],
     "lgbtqia-plus": ["lgbtqia-plus"],
