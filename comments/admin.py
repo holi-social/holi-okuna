@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
-from django.urls import reverse
+from django.urls import reverse, NoReverseMatch
 from django.utils.html import format_html
 from rangefilter.filters import DateRangeQuickSelectListFilterBuilder
 
@@ -30,13 +30,18 @@ class PostCommentAdmin(admin.ModelAdmin):
 
     def link_to_commentable(self, obj):
         content_type = ContentType.objects.get_for_model(model=obj.commentable_type.model_class())
-        link = reverse("admin:%s_%s_change" % (content_type.app_label, content_type.model), args=(obj.commentable_id,))
-        commentable_content_type = ContentType.objects.get_for_model(model=obj.commentable_type.model_class())
-        commentable = commentable_content_type.get_object_for_this_type(pk=obj.commentable_id)
-        return format_html(
-            '<a href="{}">{}</a>',
-            link,
-            commentable,
-        )
+        try:
+            link = reverse(
+                "admin:%s_%s_change" % (content_type.app_label, content_type.model), args=(obj.commentable_id,)
+            )
+            commentable_content_type = ContentType.objects.get_for_model(model=obj.commentable_type.model_class())
+            commentable = commentable_content_type.get_object_for_this_type(pk=obj.commentable_id)
+            return format_html(
+                '<a href="{}">{}</a>',
+                link,
+                commentable,
+            )
+        except NoReverseMatch:
+            return obj.commentable
 
     link_to_commentable.short_description = "Commentable"  # new
