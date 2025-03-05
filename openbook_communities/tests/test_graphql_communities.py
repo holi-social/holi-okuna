@@ -258,7 +258,8 @@ class TestCommunities(TestCase):
         )
 
     def test_filters_for_recommended_spaces_paging(self):
-        [topic1, default_topic, uninteresting_topic] = make_topics(3)
+        # skipping some default topics V2
+        [default_topic, _, _, _, _, topic1, uninteresting_topic] = make_topics(7)
         default_topic.is_discover_spaces_default = True
         default_topic.save()
 
