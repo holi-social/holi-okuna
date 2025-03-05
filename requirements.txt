@@ -7,7 +7,7 @@
 # Afterwards, some packages might need a downgrade or version tweak for the bundle fitting together and fitting the code
 adrf==0.1.9
 aiofiles==24.1.0
-aiohappyeyeballs==2.4.6
+aiohappyeyeballs==2.4.8
 aiohttp==3.11.13
 aiosignal==1.3.2
 ASGIMiddlewareStaticFile==0.6.1
@@ -53,9 +53,9 @@ google-api-core==2.24.1
 google-auth==2.38.0
 google-cloud-pubsub==2.28.0
 google-cloud-webrisk==1.17.0
-googleapis-common-protos==1.68.0
+googleapis-common-protos==1.69.0
 graphql-core==3.2.6
-grpc-google-iam-v1==0.14.0
+grpc-google-iam-v1==0.14.1
 grpcio==1.70.0
 grpcio-status==1.70.0
 h11==0.14.0
@@ -83,7 +83,7 @@ pilkit==3.0
 pillow==11.1.0
 platformdirs==4.3.6
 pluggy==1.5.0
-posthog==3.15.1
+posthog==3.18.1
 propcache==0.3.0
 proto-plus==1.26.0
 protobuf==5.29.3
@@ -93,7 +93,7 @@ pyasn1==0.6.1
 pyasn1_modules==0.4.1
 pycparser==2.22
 PyJWT==2.10.1
-pytest==8.3.4
+pytest==8.3.5
 pytest-asyncio==0.25.3
 pytest-cov==6.0.0
 pytest-django==4.10.0
@@ -115,7 +115,7 @@ rq==2.1.0
 rsa==4.9
 ruamel.yaml==0.18.10
 ruamel.yaml.clib==0.2.12
-ruff==0.9.7
+ruff==0.9.9
 sentry-sdk==2.22.0
 six==1.17.0
 soupsieve==2.6

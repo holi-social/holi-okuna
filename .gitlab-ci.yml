@@ -79,10 +79,10 @@ lint:
     - release/*
 
 build_docker:
-  image: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:27'
+  image: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:28'
   stage: 'build'
   services:
-    - name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:27-dind'
+    - name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:28-dind'
       alias: 'docker'
   variables:
     # this could be fetched via terraform output ("gcr_location" in infra project), but then we would need an extra job for terraform
@@ -153,7 +153,7 @@ review_smoketest:
 review_destroy:
   stage: destroy
   image:
-    name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/hashicorp/terraform:1.9.8'
+    name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/hashicorp/terraform:1.11.0'
     # default entrypoint is terraform command, but we want to run shell scripts
     entrypoint: ['/bin/sh', '-c']
   variables:
