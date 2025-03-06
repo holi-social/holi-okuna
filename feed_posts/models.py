@@ -88,7 +88,11 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
 
     @property
     def has_priority(self):
-        if self.creator.role == UserRole.CO_FOUNDER and self.category.slug == "founder-update":
+        if (
+            self.creator.role == UserRole.CO_FOUNDER
+            and self.category is not None
+            and self.category.slug == "founder-update"
+        ):
             return self.created_at + timedelta(days=self.priority_duration) >= timezone.now()
         return False
 
