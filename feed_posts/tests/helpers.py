@@ -23,6 +23,7 @@ def create_feed_post(user, input):
                 topics {
                     id
                 }
+                topicsV2
                 creator {
                     id
                 }
@@ -68,6 +69,7 @@ def update_feed_post(user, input):
                 topics {
                     id
                 }
+                topicsV2
                 creator {
                     id
                 }
@@ -175,6 +177,7 @@ def my_posts(user):
                     topics {
                         id
                     }
+                    topicsV2
                     creator {
                         id
                     }
@@ -211,6 +214,7 @@ def posts_by_user_id(user, user_id):
                     topics {
                         id
                     }
+                    topicsV2
                     creator {
                         id
                     }
@@ -248,6 +252,7 @@ def feed_posts(user):
                     topics {
                         id
                     }
+                    topicsV2
                     creator {
                         id
                     }
@@ -282,6 +287,7 @@ def post(user, id_or_slug):
                     topics {
                         id
                     }
+                    topicsV2
                     creator {
                         id
                     }

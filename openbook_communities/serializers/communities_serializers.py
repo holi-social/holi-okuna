@@ -7,7 +7,13 @@ from openbook_categories.validators import category_name_exists
 from openbook_common.serializers import CommonCommunityMembershipSerializer, GeolocationPointSerializer
 from openbook_common.serializers_fields.community import CommunityPostsCountField
 from openbook_common.serializers_fields.request import RestrictedImageFileSizeField
-from openbook_common.validators import hex_color_validator, url_safety_validator, sanitize_text
+from openbook_common.validators import (
+    hex_color_validator,
+    url_safety_validator,
+    sanitize_text,
+    topic_v2_exists,
+    skill_v2_exists,
+)
 from openbook_communities.models import CollaborationTool, Community, ExternalLinkType, Task, VisibilityType
 from openbook_communities.serializers_fields import (
     IsInvitedField,
@@ -78,8 +84,14 @@ class CreateCommunitySerializer(serializers.Serializer):
     topics = serializers.ListField(
         min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
         max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
-        required=True,
+        required=False,
         child=serializers.UUIDField(validators=[topic_with_id_exists]),
+    )
+    topics_v2 = serializers.ListField(
+        min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
+        max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
+        required=False,
+        child=serializers.CharField(validators=[topic_v2_exists]),
     )
 
 
@@ -97,6 +109,12 @@ class ValidateCommunitySerializer(serializers.Serializer):
         max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
         required=False,
         child=serializers.UUIDField(validators=[topic_with_id_exists]),
+    )
+    topics_v2 = serializers.ListField(
+        min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
+        max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
+        required=False,
+        child=serializers.CharField(validators=[topic_v2_exists]),
     )
     cover = RestrictedImageFileSizeField(
         allow_empty_file=False,
@@ -140,6 +158,12 @@ class UpdateCommunitySerializer(serializers.Serializer):
         max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
         required=False,
         child=serializers.UUIDField(validators=[topic_with_id_exists]),
+    )
+    topics_v2 = serializers.ListField(
+        min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
+        max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
+        required=False,
+        child=serializers.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH, validators=[topic_v2_exists]),
     )
     cover = RestrictedImageFileSizeField(
         allow_empty_file=False,
@@ -406,6 +430,12 @@ class CreateTaskSerializer(serializers.Serializer):
         required=False,
         child=serializers.UUIDField(validators=[skill_with_id_exists]),
     )
+    skills_v2 = serializers.ListField(
+        min_length=settings.TASK_SKILLS_MIN_AMOUNT,
+        max_length=settings.TASK_SKILLS_MAX_AMOUNT,
+        required=False,
+        child=serializers.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH, validators=[skill_v2_exists]),
+    )
     thumbnail = RestrictedImageFileSizeField(
         allow_empty_file=False,
         required=False,
@@ -454,6 +484,13 @@ class UpdateTaskSerializer(serializers.Serializer):
         max_length=settings.TASK_SKILLS_MAX_AMOUNT,
         required=False,
         child=serializers.UUIDField(validators=[skill_with_id_exists]),
+    )
+    skills_v2 = serializers.ListField(
+        min_length=settings.TASK_SKILLS_MIN_AMOUNT,
+        max_length=settings.TASK_SKILLS_MAX_AMOUNT,
+        required=False,
+        allow_empty=True,
+        child=serializers.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH, validators=[skill_v2_exists]),
     )
     thumbnail = RestrictedImageFileSizeField(
         allow_empty_file=False,

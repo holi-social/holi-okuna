@@ -177,6 +177,15 @@ class Mutation:
         serializer = CreateCommunitySerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+        if not data.get("topics") and not data.get("topics_v2"):
+            raise GraphQLError(
+                "Either topics or topics_v2 must be specified",
+                extensions={
+                    "code": GraphQLErrorCodes.BAD_USER_INPUT,
+                    "errors": [],
+                },
+            ) from None
+
         with transaction.atomic():
             space = current_user.create_community(
                 title=data.get("title"),
@@ -185,6 +194,7 @@ class Mutation:
                 cover=data.get("cover"),
                 invites_enabled=True,
                 topic_ids=data.get("topics"),
+                topics_v2=data.get("topics_v2"),
             )
 
         publish_space_created_event(community=space)
@@ -207,6 +217,7 @@ class Mutation:
             title=data.get("title"),
             description=data.get("description"),
             topic_ids=data.get("topics"),
+            topics_v2=data.get("topics_v2"),
             cover=data.get("cover"),
             remove_cover=is_parameter_null(data, "cover"),
             avatar=data.get("avatar"),
@@ -288,6 +299,7 @@ class Mutation:
                 contact_email=data.get("contact_email"),
                 contact_phone=data.get("contact_phone"),
                 skills=data.get("skills"),
+                skills_v2=data.get("skills_v2"),
                 thumbnail=data.get("thumbnail"),
             )
 
@@ -323,7 +335,8 @@ class Mutation:
                 regularity=data.get("regularity"),
                 contact_email=data.get("contact_email"),
                 contact_phone=data.get("contact_phone"),
-                skills=data.get("skills"),
+                skill_ids=data.get("skills"),
+                skills_v2=data.get("skills_v2"),
                 thumbnail=data.get("thumbnail"),
                 remove_thumbnail=is_parameter_null(data, "thumbnail"),
             )

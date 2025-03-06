@@ -5,14 +5,16 @@ import secrets
 from datetime import datetime, timedelta
 from enum import Enum
 from itertools import chain
-from typing import Iterable, Set, Callable, Type, Optional
+from typing import Iterable, Set, Callable, Type, Optional, List
 from uuid import UUID
 
 import strawberry
+from openbook_terms.helpers import topics_to_topic_v2_slugs, skills_to_skill_v2_slugs
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import ArrayField
 from django.core import validators
 from django.core.cache import caches
 from django.core.mail import EmailMultiAlternatives
@@ -38,6 +40,8 @@ from openbook_common.enums import VisibilityType
 from openbook_common.helpers import ExifRotate, generate_blurhash, PrefixedQ
 from openbook_common.models import Badge, ModelWithUUID
 from openbook_common.schema.types import Paged
+from openbook_common.skills import slug_to_skill_v2
+from openbook_common.topics import slug_to_topic_v2
 from openbook_common.types import GeolocationFeature, ReactableType
 from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import (
@@ -788,9 +792,11 @@ class User(ModelWithUUID, AbstractUser):
         last_name=None,
         pronouns=None,
         engagement_level=None,
-        interests=None,
+        interests: Optional[List[Topic]] = None,
+        interests_v2: Optional[List[str]] = None,
         sdgs=None,
-        skills=None,
+        skills: Optional[List[Skill]] = None,
+        skills_v2: Optional[List[str]] = None,
         save=True,
         update_location=False,
         remove_avatar=False,
@@ -851,11 +857,19 @@ class User(ModelWithUUID, AbstractUser):
         if engagement_level:
             self.profile.engagement_level = engagement_level
         if interests is not None:
-            self.profile.interests.set(interests)
+            updated_interests = Topic.objects.filter(id__in=interests)
+            self.profile.interests.set(updated_interests)
+            self.profile.interests_v2 = topics_to_topic_v2_slugs(updated_interests)
+        elif interests_v2 is not None:
+            self.profile.interests_v2 = interests_v2
         if sdgs is not None:
             self.profile.sdgs.set(sdgs)
         if skills is not None:
-            self.profile.skills.set(skills)
+            updated_skills = Skill.objects.filter(id__in=skills)
+            self.profile.skills.set(updated_skills)
+            self.profile.skills_v2 = skills_to_skill_v2_slugs(updated_skills)
+        elif skills_v2 is not None:
+            self.profile.skills_v2 = skills_v2
 
         if remove_avatar:
             self._delete_profile_avatar(save=False)
@@ -1721,6 +1735,7 @@ class User(ModelWithUUID, AbstractUser):
         invites_enabled=None,
         location=None,
         topic_ids=None,
+        topics_v2=None,
     ):
         Community = get_community_model()
         community = Community.create_community(
@@ -1738,6 +1753,7 @@ class User(ModelWithUUID, AbstractUser):
             invites_enabled=invites_enabled,
             location=location,
             topic_ids=topic_ids,
+            topics_v2=topics_v2,
         )
 
         return community
@@ -1803,6 +1819,7 @@ class User(ModelWithUUID, AbstractUser):
         categories_names=None,
         invites_enabled=None,
         topic_ids=None,
+        topics_v2=None,
         cover=None,
         remove_cover=False,
         avatar=None,
@@ -1830,6 +1847,7 @@ class User(ModelWithUUID, AbstractUser):
             categories_names=categories_names,
             invites_enabled=invites_enabled,
             topic_ids=topic_ids,
+            topics_v2=topics_v2,
             cover=cover,
             remove_cover=remove_cover,
             avatar=avatar,
@@ -1856,6 +1874,7 @@ class User(ModelWithUUID, AbstractUser):
         categories_names=None,
         invites_enabled=None,
         topic_ids=None,
+        topics_v2=None,
         cover=None,
         remove_cover=False,
         avatar=None,
@@ -1886,6 +1905,7 @@ class User(ModelWithUUID, AbstractUser):
             categories_names=categories_names,
             invites_enabled=invites_enabled,
             topic_ids=topic_ids,
+            topics_v2=topics_v2,
             cover=cover,
             remove_cover=remove_cover,
             avatar=avatar,
@@ -4938,6 +4958,7 @@ class User(ModelWithUUID, AbstractUser):
         regularity=None,
         contact_phone=None,
         skills=None,
+        skills_v2=None,
         thumbnail=None,
     ):
         Community = get_community_model()
@@ -4961,6 +4982,7 @@ class User(ModelWithUUID, AbstractUser):
             regularity=regularity,
             contact_phone=contact_phone,
             skills=skills,
+            skills_v2=skills_v2,
             thumbnail=thumbnail,
         )
 
@@ -4978,7 +5000,8 @@ class User(ModelWithUUID, AbstractUser):
         geolocation=None,
         regularity=None,
         contact_phone=None,
-        skills=None,
+        skill_ids=None,
+        skills_v2=None,
         thumbnail=None,
         remove_thumbnail=False,
     ):
@@ -5000,7 +5023,8 @@ class User(ModelWithUUID, AbstractUser):
             geolocation=geolocation,
             regularity=regularity,
             contact_phone=contact_phone,
-            skills=skills,
+            skill_ids=skill_ids,
+            skills_v2=skills_v2,
             thumbnail=thumbnail,
             remove_thumbnail=remove_thumbnail,
         )
@@ -5198,8 +5222,10 @@ class UserProfile(ModelWithUUID):
         null=True,
     )
     interests = models.ManyToManyField(Topic, blank=True)
+    interests_v2 = ArrayField(models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH), blank=True, default=list)
     sdgs = models.ManyToManyField(SDG, blank=True)
     skills = models.ManyToManyField(Skill, blank=True)
+    skills_v2 = ArrayField(models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH), blank=True, default=list)
     is_of_legal_age = models.BooleanField(default=False)
     avatar = ProcessedImageField(
         verbose_name=_("avatar"),

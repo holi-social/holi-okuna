@@ -21,7 +21,13 @@ from openbook_common.serializers_fields.request import (
     FriendlyUrlField,
     RestrictedImageFileSizeField,
 )
-from openbook_common.validators import name_characters_validator, sanitize_text, url_safety_validator
+from openbook_common.validators import (
+    name_characters_validator,
+    sanitize_text,
+    url_safety_validator,
+    topic_v2_exists,
+    skill_v2_exists,
+)
 
 
 class UpdateAuthenticatedUserSerializer(serializers.Serializer):
@@ -83,6 +89,11 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
         allow_empty=True,
         child=serializers.UUIDField(validators=[interest_with_id_exists]),
     )
+    interests_v2 = serializers.ListField(
+        required=False,
+        allow_empty=True,
+        child=serializers.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH, validators=[topic_v2_exists]),
+    )
     sdgs = serializers.ListField(
         required=False,
         allow_empty=True,
@@ -92,6 +103,11 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
         required=False,
         allow_empty=True,
         child=serializers.UUIDField(validators=[skill_with_id_exists]),
+    )
+    skills_v2 = serializers.ListField(
+        required=False,
+        allow_empty=True,
+        child=serializers.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH, validators=[skill_v2_exists]),
     )
     identity = serializers.CharField(
         min_length=1,
