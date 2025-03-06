@@ -142,7 +142,7 @@ class Mutation:
             topics_v2 = list(current_user.profile.interests_v2)
             geolocation = current_user.geolocation
 
-            if topic_ids:
+            if topics_v2:
                 whens.append(
                     When(create_filtered_spaces_query(topics_v2=topics_v2, geolocation=geolocation), then=Value(10))
                 )
