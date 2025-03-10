@@ -85,7 +85,7 @@ platformdirs==4.3.6
 pluggy==1.5.0
 posthog==3.19.0
 propcache==0.3.0
-proto-plus==1.26.0
+proto-plus==1.26.1
 protobuf==5.29.3
 psycopg==3.2.5
 psycopg-binary==3.2.5
