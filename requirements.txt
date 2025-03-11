@@ -7,7 +7,7 @@
 # Afterwards, some packages might need a downgrade or version tweak for the bundle fitting together and fitting the code
 adrf==0.1.9
 aiofiles==24.1.0
-aiohappyeyeballs==2.5.0
+aiohappyeyeballs==2.6.0
 aiohttp==3.11.13
 aiosignal==1.3.2
 ASGIMiddlewareStaticFile==0.6.1
