@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional, List
+from typing import Optional, List, Annotated
 
 import strawberry
 import strawberry_django
@@ -40,14 +40,20 @@ class FeedPost:
     description: strawberry.auto
     location: Optional[str]
     link_preview: Optional[LinkPreview]
-    image: Optional[
-        str
-    ]  # This field is deprecated. Please use the new images field instead. Remove it after version 1.30.x
-    image_blurhash: Optional[
-        str
-    ]  # This field is deprecated. Please use the new images field instead. Remove it after version 1.30.x
+    image: Annotated[
+        Optional[str],
+        strawberry.argument(description="This field is deprecated. Please use the new images field instead."),
+    ]  # Can be removed after version 1.30.x
+    image_blurhash: Annotated[
+        Optional[str],
+        strawberry.argument(description="This field is deprecated. Please use the new images field instead."),
+    ]  # Can be removed after version 1.30.x
     visibility: VisibilityLevel
-    topics: Optional[List[Topic]]
+    topics: Annotated[
+        Optional[List[Topic]],
+        strawberry.argument(description="Deprecated since 1.52. Use topics_v2 instead."),
+    ]
+    topics_v2: Optional[List[str]]
     category: Optional[FeedPostCategory]
     creator: Optional[User]
 
@@ -119,7 +125,11 @@ class CreateFeedPostInput:
         strawberry.UNSET
     )  # This field is deprecated. Please use the new images field instead. Remove it after version 1.30.x
     visibility: VisibilityLevel
-    topic_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    topic_ids: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.52. Use topics_v2 instead."),
+    ] = strawberry.UNSET
+    topics_v2: Optional[List[str]] = strawberry.UNSET
     category_id: Optional[uuid.UUID] = strawberry.UNSET
     language: Optional[str] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
@@ -144,7 +154,11 @@ class UpdateFeedPostInput:
         strawberry.UNSET
     )  # This field is deprecated. Please use the new images field instead. Remove it after version 1.30.x
     visibility: Optional[VisibilityLevel] = strawberry.UNSET
-    topic_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    topic_ids: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.52. Use topics_v2 instead."),
+    ] = strawberry.UNSET
+    topics_v2: Optional[List[str]] = strawberry.UNSET
     category_id: Optional[uuid.UUID] = strawberry.UNSET
     language: Optional[str] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET

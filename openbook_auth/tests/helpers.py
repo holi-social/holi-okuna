@@ -14,17 +14,21 @@ def get_user_with_id_data(user_to_get, calling_user=None):
     return response.data["userById"]
 
 
-def get_user_with_id_raw(user_to_get, calling_user=None):
+def get_user_by_id_raw(user_to_get, fields: str = "id", calling_user=None):
     return async_to_sync(schema.execute)(
         f"""
-        query {{
-            userById(id: "{user_to_get.username}") {{
-                id
+            query {{
+                userById(id: "{user_to_get.username}") {{
+                    {fields}
+                }}
             }}
-        }}
-        """,
+            """,
         context_value=benedict({"request": {"user": calling_user or AnonymousUser}}),
     )
+
+
+def get_user_with_id_raw(user_to_get, calling_user=None):
+    return get_user_by_id_raw(user_to_get, fields="id", calling_user=calling_user)
 
 
 def get_users_by_chat_identities(user: User, identities: List[str]):

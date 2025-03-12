@@ -5,7 +5,7 @@ import strawberry
 import strawberry_django
 from asgiref.sync import async_to_sync
 from django.core.exceptions import PermissionDenied
-from django.db.models import Count, Prefetch, F, Q, Case, When, Value, IntegerField, OuterRef, Exists
+from django.db.models import Count, Prefetch, F, Q, Case, When, Value, IntegerField
 from django.db.models.lookups import IContains
 from django.utils.translation import gettext_lazy as _
 from strawberry.django.context import StrawberryDjangoContext
@@ -20,10 +20,10 @@ from openbook_communities.models import CollaborationTool as CollaborationToolMo
 from openbook_communities.models import Community as CommunityModel
 from openbook_communities.models import SpaceUserConnectionType
 from openbook_communities.models import Task as TaskModel
-from openbook_communities.models import Topic as TopicModel
 from openbook_communities.schema.helpers import (
     filtered_spaces,
     create_filtered_spaces_query,
+    DISCOVER_DEFAULT_SPACES_V2,
 )
 from openbook_communities.schema.types import (
     CollaborationTool,
@@ -32,7 +32,6 @@ from openbook_communities.schema.types import (
     Space,
     Task,
 )
-from openbook_terms.models import Skill as SkillModel
 
 Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
 
@@ -40,9 +39,18 @@ Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
 @strawberry.type
 class Query:
     @strawberry_django.field()
+    def discover_spaces_default_topics_v2(self) -> List[str]:
+        return DISCOVER_DEFAULT_SPACES_V2
+
+    @strawberry_django.field()
     def spaces(
         self,
-        topic_id: Optional[uuid.UUID] = None,
+        topic_id: Annotated[
+            Optional[uuid.UUID],
+            strawberry.argument(
+                description="Deprecated since version 1.52, use topics_v2 instead",
+            ),
+        ] = None,
         location: Annotated[
             Optional[str],
             strawberry.argument(
@@ -51,10 +59,32 @@ class Query:
             ),
         ] = None,
         geolocation: Optional[GeoJSON] = None,
-        skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
-        topic_slug: Optional[str] = None,
-        topic_slugs: Optional[List[Optional[str]]] = None,
-        skill_slugs: Optional[List[Optional[str]]] = None,
+        skill_ids: Annotated[
+            Optional[List[Optional[uuid.UUID]]],
+            strawberry.argument(
+                description="Deprecated since version 1.52, use skills_v2 instead",
+            ),
+        ] = None,
+        topic_slug: Annotated[
+            Optional[str],
+            strawberry.argument(
+                description="Deprecated since version 1.52, use topics_v2 instead",
+            ),
+        ] = None,
+        topic_slugs: Annotated[
+            Optional[List[Optional[str]]],
+            strawberry.argument(
+                description="Deprecated since version 1.52, use topics_v2 instead",
+            ),
+        ] = None,
+        skill_slugs: Annotated[
+            Optional[List[Optional[str]]],
+            strawberry.argument(
+                description="Deprecated since version 1.52, use skills_v2 instead",
+            ),
+        ] = None,
+        topics_v2: Optional[List[str]] = None,
+        skills_v2: Optional[List[str]] = None,
         member_id: Optional[uuid.UUID] = None,
         offset: int = 0,
         limit: int = 10,
@@ -66,6 +96,8 @@ class Query:
             topic_slug=topic_slug,
             topic_slugs=topic_slugs,
             skill_slugs=skill_slugs,
+            topics_v2=topics_v2,
+            skills_v2=skills_v2,
             member_id=member_id,
         )
 
@@ -83,20 +115,18 @@ class Query:
         whens = []
 
         if current_user and not current_user.is_anonymous:
-            topic_ids = list(current_user.profile.interests.values_list("id", flat=True).all())
+            topics_v2 = list(current_user.profile.interests_v2)
             geolocation = current_user.geolocation
 
-            if topic_ids:
+            if topics_v2:
                 whens.append(
-                    When(create_filtered_spaces_query(topic_ids=topic_ids, geolocation=geolocation), then=Value(10))
+                    When(create_filtered_spaces_query(topics_v2=topics_v2, geolocation=geolocation), then=Value(10))
                 )
 
             if geolocation:
                 whens.append(When(create_filtered_spaces_query(geolocation=geolocation), then=Value(20)))
 
-        default_topics = list(TopicModel.objects.filter(is_discover_spaces_default=True).values_list("id", flat=True))
-        if default_topics:
-            whens.append(When(create_filtered_spaces_query(topic_ids=default_topics), then=Value(30)))
+        whens.append(When(create_filtered_spaces_query(topics_v2=DISCOVER_DEFAULT_SPACES_V2), then=Value(30)))
 
         return Paged.of(
             CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
@@ -119,14 +149,26 @@ class Query:
     def discover_spaces(
         self,
         info,
-        topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
+        topic_ids: Annotated[
+            Optional[List[Optional[uuid.UUID]]],
+            strawberry.argument(
+                description="Deprecated since version 1.52, use topics_v2 instead",
+            ),
+        ] = None,
+        topics_v2: Optional[List[str]] = None,
         location: Annotated[
             Optional[str],
             # Using description instead of deprecation_reason as deprecated arguments are removed in GraphQL Mesh
             strawberry.argument(description="Unsupported since version 1.0.16, use geolocation instead"),
         ] = None,
         geolocation: Optional[GeoJSON] = None,
-        skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
+        skill_ids: Annotated[
+            Optional[List[Optional[uuid.UUID]]],
+            strawberry.argument(
+                description="Deprecated since version 1.52, use skills_v2 instead",
+            ),
+        ] = None,
+        skills_v2: Optional[List[str]] = None,
         offset: int = 0,
         limit: int = 10,
     ) -> List[Optional[DiscoverSpaces]]:
@@ -153,6 +195,16 @@ class Query:
                     )
                 )
 
+        if topics_v2 is not None:
+            for topic_v2 in topics_v2:
+                spaces = async_to_sync(filtered_spaces)(topics_v2=[topic_v2])
+                result.append(
+                    DiscoverSpaces(
+                        topic_v2=topic_v2,
+                        spaces=Paged.of(spaces, offset, limit),
+                    )
+                )
+
         # get all spaces by skill_id (including geolocation filter)
         if skill_ids is not None:
             for skill_id in skill_ids:
@@ -164,6 +216,18 @@ class Query:
                         spaces=Paged.of(spaces, offset, limit),
                     )
                 )
+
+        if skills_v2 is not None:
+            for skill_v2 in skills_v2:
+                spaces = async_to_sync(filtered_spaces)(skills_v2=[skill_v2], geolocation=geolocation)
+                result.append(
+                    DiscoverSpaces(
+                        skill_v2=skill_v2,
+                        location_id=geolocation.id if geolocation else None,
+                        spaces=Paged.of(spaces, offset, limit),
+                    )
+                )
+
         return result
 
     @strawberry_django.field()
@@ -300,19 +364,17 @@ class Query:
                 limit,
             )
 
-        skills = list(current_user.profile.skills.all())
+        skills_v2 = list(current_user.profile.skills_v2)
         whens = []
 
         locations_match = Q(geolocation__within=current_user.profile.geolocation)
-        # We need to use a skill exists query, because we want to check that at least one skill from the user profile exists for the task.
-        skill_exists_subquery = SkillModel.objects.filter(id__in=[skill.id for skill in skills], tasks=OuterRef("id"))
 
-        if skills and current_user.profile.geolocation:
+        if skills_v2 and current_user.profile.geolocation:
             whens.append(
-                When(Q(Exists(skill_exists_subquery)) & (locations_match | Q(location_type="REMOTE")), then=Value(10))
+                When(Q(skills_v2__overlap=skills_v2) & (locations_match | Q(location_type="REMOTE")), then=Value(10))
             )
-        if skills:
-            whens.append(When(skills__in=skills, then=Value(20)))
+        if skills_v2:
+            whens.append(When(skills_v2__overlap=skills_v2, then=Value(20)))
         if current_user.profile.geolocation:
             whens.append(When(locations_match, then=Value(30)))
 
