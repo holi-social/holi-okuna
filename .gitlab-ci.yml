@@ -194,13 +194,15 @@ staging_deploy:
     url: https://staging.social.apis.holi.social
   variables:
     ENVIRONMENT_ID: staging
-  only:
-    - main
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
 
 staging_smoketest:
   extends: .smoketest
-  only:
-    - main
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
 
 staging_trigger_unified-api_redeployment:
   stage: downstream
@@ -210,8 +212,9 @@ staging_trigger_unified-api_redeployment:
     forward:
       yaml_variables: false
       pipeline_variables: false
-  only:
-    - main
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
   resource_group: unified-api-staging
 
 production_deploy:
@@ -223,13 +226,15 @@ production_deploy:
     url: https://production.social.apis.holi.social
   variables:
     ENVIRONMENT_ID: production
-  only:
-    - production
+  rules:
+    - if: $CI_COMMIT_BRANCH == "production"
+      when: on_success
 
 production_smoketest:
   extends: .smoketest
-  only:
-    - production
+  rules:
+    - if: $CI_COMMIT_BRANCH == "production"
+      when: on_success
 
 production_trigger_unified-api_redeployment:
   stage: downstream
@@ -239,6 +244,7 @@ production_trigger_unified-api_redeployment:
     forward:
       yaml_variables: false
       pipeline_variables: false
-  only:
-    - production
+  rules:
+    - if: $CI_COMMIT_BRANCH == "production"
+      when: on_success
   resource_group: unified-api-production
