@@ -24,6 +24,12 @@
       "groupName": "python"
     },
     {
+      "matchJsonata": [
+        "$match(depName,/opentelemetry$/)"
+      ],
+      "groupName": "opentelemetry"
+    },
+    {
       "matchManagers": [
         "pip_requirements"
       ],
