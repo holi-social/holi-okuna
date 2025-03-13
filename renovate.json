@@ -30,6 +30,12 @@
       "groupName": "opentelemetry"
     },
     {
+      "matchJsonata": [
+        "$match(depName,/psycopg$/)"
+      ],
+      "groupName": "psycopg"
+    },
+    {
       "matchManagers": [
         "pip_requirements"
       ],
