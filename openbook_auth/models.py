@@ -9,7 +9,6 @@ from typing import Iterable, Set, Callable, Type, Optional, List
 from uuid import UUID
 
 import strawberry
-from openbook_terms.helpers import topics_to_topic_v2_slugs, skills_to_skill_v2_slugs
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
@@ -26,11 +25,10 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
-from pilkit.processors import ResizeToFill, ResizeToFit
+from pilkit.processors import ResizeToFill
 from rest_framework.authtoken.models import Token
 from unidecode import unidecode
 
-from openbook_common.tracking import track, TrackingEvent
 from openbook.settings import USERBLOCK
 from openbook.utils import DEFAULT_EMAIL_LANGUAGE, get_supported_language_for_email
 from openbook_auth.checkers import *
@@ -40,8 +38,7 @@ from openbook_common.enums import VisibilityType
 from openbook_common.helpers import ExifRotate, generate_blurhash, PrefixedQ
 from openbook_common.models import Badge, ModelWithUUID
 from openbook_common.schema.types import Paged
-from openbook_common.skills import slug_to_skill_v2
-from openbook_common.topics import slug_to_topic_v2
+from openbook_common.tracking import track, TrackingEvent
 from openbook_common.types import GeolocationFeature, ReactableType
 from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import (
@@ -104,6 +101,7 @@ from openbook_hashtags.queries import (
 from openbook_notifications.toggles import mute_notifications
 from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
 from openbook_posts.query_collections import get_posts_for_user_collection
+from openbook_terms.helpers import topics_to_topic_v2_slugs, skills_to_skill_v2_slugs
 from openbook_terms.models import Topic, SDG, Skill
 
 if typing.TYPE_CHECKING:
@@ -5260,9 +5258,7 @@ class UserProfile(ModelWithUUID):
         verbose_name = _("user profile")
         verbose_name_plural = _("users profiles")
 
-        index_together = [
-            ("id", "user"),
-        ]
+        indexes = [models.Index(fields=["id", "user"])]
 
         # Django's Choices don't constrain other values in the db, it needs to be set here:
         constraints = [

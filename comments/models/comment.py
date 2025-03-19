@@ -35,7 +35,6 @@ from openbook_common.utils.model_loaders import (
 )
 from openbook_moderation.models import ModeratedObject
 from openbook_notifications.services import NotificationsService
-
 from .comment_reaction import CommentReaction
 from .enabled_commentable_type import EnabledCommentableType
 
@@ -240,7 +239,7 @@ class Comment(ModelWithUUID):
                 username = username.lower()
                 if username not in existing_mention_usernames:
                     try:
-                        user = User.objects.only("id", "username").get(username__iexact=username)
+                        user = User.objects.get(username__iexact=username)
                         user_can_see_commentable = self.commentable.can_be_viewed(user)
                         user_is_commenter = user.pk == self.commenter_id
 

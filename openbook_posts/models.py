@@ -39,6 +39,7 @@ from openbook_common.models import (
     ModelWithUUID,
     OrderedModelWithUUID,
 )
+from openbook_common.tracking import track, TrackingEvent
 from openbook_common.types import LanguageCode
 from openbook_common.utils.helpers import (
     delete_file_field,
@@ -46,7 +47,6 @@ from openbook_common.utils.helpers import (
     extract_usernames_from_string,
     get_magic,
 )
-from openbook_common.tracking import track, TrackingEvent
 from openbook_common.utils.model_loaders import (
     get_community_model,
     get_community_new_post_notification_model,
@@ -132,9 +132,7 @@ class Post(CommentNotificationMixin, ModelWithUUID):
     )
 
     class Meta:
-        index_together = [
-            ("creator", "community"),
-        ]
+        indexes = [models.Index(fields=["creator", "community"])]
 
     @classmethod
     def post_with_id_has_public_reactions(cls, post_id):
@@ -835,7 +833,7 @@ class Post(CommentNotificationMixin, ModelWithUUID):
                     username = username.lower()
                     if username not in existing_mention_usernames:
                         try:
-                            user = User.objects.only("id", "username").get(username__iexact=username)
+                            user = User.objects.get(username__iexact=username)
                             user_is_post_creator = user.pk == self.creator_id
                             if not user_is_post_creator:
                                 PostUserMention.create_post_user_mention(

@@ -1,11 +1,10 @@
-import os
 from . import *  # noqa: F403
 
 ENVIRONMENT = EnvironmentChecker.TEST_VALUE  # noqa: F405
 TESTING = True
 
-for queueConfig in RQ_QUEUES.values():  # noqa: F405, N816
-    queueConfig["ASYNC"] = False
+for queue_config in RQ_QUEUES.values():  # noqa: F405, N816
+    queue_config["ASYNC"] = False
 
 TEST_DB_NAME = os.environ.get("TEST_DB_NAME", "okuna_test_db")
 TEST_DB_USERNAME = os.environ.get("TEST_DB_USERNAME", "okuna_test_user")
@@ -29,7 +28,14 @@ MIN_UNIQUE_TOP_POST_REACTIONS_COUNT = 1
 MIN_UNIQUE_TOP_POST_COMMENTS_COUNT = 1
 MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT = 1
 
-DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 
 APPLE_APP_STORE_DEFAULT_URL = "itms-apps://apps.apple.com/app/HOLITEST"
 GOOGLE_PLAY_STORE_DEFAULT_URL = "market://details?id=foundation.holistic.HOLITEST"
