@@ -6,11 +6,11 @@ TESTING = True
 for queue_config in RQ_QUEUES.values():  # noqa: F405, N816
     queue_config["ASYNC"] = False
 
-TEST_DB_NAME = os.environ.get("TEST_DB_NAME", "okuna_test_db")
-TEST_DB_USERNAME = os.environ.get("TEST_DB_USERNAME", "okuna_test_user")
-TEST_DB_PASSWORD = os.environ.get("TEST_DB_PASSWORD", "okuna_test_password")
-TEST_DB_HOSTNAME = os.environ.get("TEST_DB_HOSTNAME", "postgres")
-TEST_DB_PORT = os.environ.get("TEST_DB_PORT")
+TEST_DB_NAME = os.environ.get("TEST_DB_NAME", "okuna_test_db")  # noqa: F405
+TEST_DB_USERNAME = os.environ.get("TEST_DB_USERNAME", "okuna_test_user")  # noqa: F405
+TEST_DB_PASSWORD = os.environ.get("TEST_DB_PASSWORD", "okuna_test_password")  # noqa: F405
+TEST_DB_HOSTNAME = os.environ.get("TEST_DB_HOSTNAME", "postgres")  # noqa: F405
+TEST_DB_PORT = os.environ.get("TEST_DB_PORT")  # noqa: F405
 
 DATABASES = {
     "default": {
