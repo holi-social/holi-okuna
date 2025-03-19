@@ -25,7 +25,7 @@ charset-normalizer==3.4.1
 colorama==0.4.6
 coverage==7.6.12
 Deprecated==1.2.18
-Django==5.1.7
+Django==5.0.13
 django-admin-rangefilter==0.13.2
 django-appconf==1.1.0
 django-cacheops==7.1

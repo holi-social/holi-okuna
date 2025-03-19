@@ -1,9 +1,11 @@
 # ruff: noqa
 
 from hashlib import sha256
+
 from django_rq import job
 
 from openbook_common.utils.model_loaders import get_user_model
+
 
 # TODO Think about what to do with OneSignal
 # onesignal_client = onesignal_sdk.Client(
@@ -16,7 +18,7 @@ from openbook_common.utils.model_loaders import get_user_model
 @job("default")
 def send_notification_to_user_with_id(user_id, notification):
     User = get_user_model()
-    user = User.objects.only("username", "uuid", "id").get(pk=user_id)
+    user = User.objects.get(pk=user_id)
 
     for device in user.devices.all():
         notification.set_parameter("ios_badgeType", "Increase")
