@@ -60,7 +60,7 @@ grpcio==1.71.0
 grpcio-status==1.71.0
 h11==0.14.0
 hiredis==3.1.0
-icalendar==6.1.1
+icalendar==6.1.2
 idna==3.10
 imagekitio==2.2.8 # version 3 contains many breaking changes
 importlib_metadata==8.6.1
