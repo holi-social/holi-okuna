@@ -63,7 +63,7 @@ hiredis==3.1.0
 icalendar==6.1.1
 idna==3.10
 imagekitio==2.2.8 # version 3 contains many breaking changes
-importlib_metadata==8.5.0
+importlib_metadata==8.6.1
 iniconfig==2.0.0
 Jinja2==3.1.6
 langdetect==1.0.9
@@ -74,9 +74,9 @@ monotonic==1.6
 multidict==6.1.0
 mypy-extensions==1.0.0
 novu==1.14.0
-opentelemetry-api==1.30.0
-opentelemetry-sdk==1.30.0
-opentelemetry-semantic-conventions==0.51b0
+opentelemetry-api==1.31.0
+opentelemetry-sdk==1.31.0
+opentelemetry-semantic-conventions==0.52b0
 packaging==24.2
 pathspec==0.12.1
 pilkit==3.0
