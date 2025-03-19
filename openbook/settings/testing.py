@@ -1,4 +1,7 @@
-from . import *  # noqa: F403
+import os
+
+from openbook.settings import RQ_QUEUES
+from openbook_common.utils.environment import EnvironmentChecker
 
 ENVIRONMENT = EnvironmentChecker.TEST_VALUE  # noqa: F405
 TESTING = True
