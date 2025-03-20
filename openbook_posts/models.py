@@ -1049,8 +1049,8 @@ class PostImage(ModelWithUUID):
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     image_blurhash = models.CharField(max_length=50, blank=True, null=True)
-    width = models.PositiveIntegerField(editable=False, null=False, blank=False)
-    height = models.PositiveIntegerField(editable=False, null=False, blank=False)
+    width = models.PositiveIntegerField(editable=False, null=True, blank=False)
+    height = models.PositiveIntegerField(editable=False, null=True, blank=False)
     media = GenericRelation(PostMedia)
 
     @classmethod
