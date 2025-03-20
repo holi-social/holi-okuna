@@ -20,7 +20,7 @@ from feed_posts.helpers import upload_to_feed_post_images_directory, upload_to_n
 from openbook import settings
 from openbook_auth.models import User, UserRole
 from openbook_common.enums import ReactionType
-from openbook_common.helpers import ExifRotate, generate_blurhash
+from openbook_common.helpers import ExifRotate, generate_blurhash, geojson_from_geolocation
 from openbook_common.models import ModelWithUUID, LinkPreview
 from openbook_common.types import LanguageCode
 from openbook_common.utils.helpers import delete_file_field
@@ -84,6 +84,8 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
     )
 
     geolocation = models.PointField(blank=True, null=True, spatial_index=True)
+    # also store as GeoJSON as downstream processes (Google Datastream) can't understand Postgis binary format
+    geolocation_geojson = models.JSONField(blank=True, null=True)
 
     priority_duration = models.PositiveIntegerField(
         default=0,
@@ -110,6 +112,10 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
             base_slug = slugify(self.title)
             suffix = str(uuid.uuid4())[:8]
             self.slug = f"{base_slug}-{suffix}"
+        if self.geolocation:
+            self.geolocation_geojson = geojson_from_geolocation(self.geolocation)
+        else:
+            self.geolocation_geojson = None
 
         super().save(*args, **kwargs)
 

@@ -38,6 +38,8 @@ class AppointmentAdminModel(admin.ModelAdmin):
         "space_name",
     )
 
+    exclude = ["geolocation_geojson"]
+
     def delete_queryset(self, request: HttpRequest, queryset: QuerySet) -> None:
         queryset.filter(is_deleted=False).update(is_deleted=True, deleted_at=timezone.now())
 

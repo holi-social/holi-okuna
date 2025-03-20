@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 import blurhash
 import requests
 import strawberry
+from django.contrib.gis.db.models import PointField
 from PIL import ExifTags, Image
 from PIL.Image import Transpose
 from django.conf import settings
@@ -163,3 +164,13 @@ def to_input_dict(input):
     converts a strawberry input object to a dict without null values, so it can be validated
     """
     return {k: v for k, v in strawberry.asdict(input).items() if v != strawberry.UNSET}
+
+
+def geojson_from_geolocation(geolocation: PointField) -> object:
+    return {
+        "type": "Point",
+        "coordinates": [
+            geolocation.x,  # longitude
+            geolocation.y,  # latitude
+        ],
+    }
