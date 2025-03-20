@@ -655,8 +655,10 @@ class Post(CommentNotificationMixin, ModelWithUUID):
         return self
 
     def delete(self, *args, **kwargs):
-        self.delete_media()
         super(Post, self).delete(*args, **kwargs)
+        # can only be deleted after deleting the post,
+        # because Django accesses the underlying file on the super.delete call
+        self.delete_media()
 
     def delete_media(self):
         if self.has_image():
