@@ -29,6 +29,8 @@ class FeedPostAdminModel(admin.ModelAdmin):
 
     search_fields = ("title", "creator")
 
+    exclude = ["geolocation_geojson"]
+
     def display_topics(self, obj):
         return ", ".join([topic.title for topic in obj.topics.all()])
 

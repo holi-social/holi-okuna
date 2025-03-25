@@ -22,7 +22,7 @@ from pilkit.processors import ResizeToFill, ResizeToFit
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
 from openbook_auth.models import User
 from openbook_common.enums import VisibilityType
-from openbook_common.helpers import ExifRotate, generate_blurhash, PrefixedQ
+from openbook_common.helpers import ExifRotate, generate_blurhash, PrefixedQ, geojson_from_geolocation
 from openbook_common.models import ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field, extract_and_capitalize_domain_name
 from openbook_common.utils.model_loaders import (
@@ -193,6 +193,8 @@ class Community(ModelWithUUID):
     topics_v2 = ArrayField(models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH), blank=True, default=list)
     sdgs = models.ManyToManyField(SDG, related_name="communities", blank=True, db_index=True)
     geolocation = models.PointField(blank=True, null=True, spatial_index=True)
+    # also store as GeoJSON as downstream processes (Google Datastream) can't understand Postgis binary format
+    geolocation_geojson = models.JSONField(blank=True, null=True)
     contact_description = models.CharField(
         max_length=settings.COMMUNITY_CONTACT_DESCRIPTION_MAX_LENGTH,
         blank=True,
@@ -809,6 +811,11 @@ class Community(ModelWithUUID):
         if self.users_adjective:
             self.users_adjective = self.users_adjective.title()
 
+        if self.geolocation:
+            self.geolocation_geojson = geojson_from_geolocation(self.geolocation)
+        else:
+            self.geolocation_geojson = None
+
         return super(Community, self).save(*args, **kwargs)
 
     def delete_notifications(self):
@@ -1279,6 +1286,8 @@ class Task(ModelWithUUID):
         db_index=True,
     )
     geolocation = models.PointField(blank=True, null=True, spatial_index=True)
+    # also store as GeoJSON as downstream processes (Google Datastream) can't understand Postgis binary format
+    geolocation_geojson = models.JSONField(blank=True, null=True)
     regularity = models.CharField(
         max_length=13,
         choices=Regularity.choices,
@@ -1317,6 +1326,13 @@ class Task(ModelWithUUID):
 
     class Meta:
         indexes = [GinIndex(fields=["skills_v2"])]
+
+    def save(self, *args, **kwargs):
+        if self.geolocation:
+            self.geolocation_geojson = geojson_from_geolocation(self.geolocation)
+        else:
+            self.geolocation_geojson = None
+        super().save(*args, **kwargs)
 
     @property
     def is_deleted(self) -> bool:

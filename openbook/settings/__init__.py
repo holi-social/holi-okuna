@@ -600,9 +600,14 @@ AWS_STATIC_LOCATION = "static"
 AWS_PRIVATE_MEDIA_LOCATION = os.environ.get("AWS_PRIVATE_MEDIA_LOCATION")
 AWS_DEFAULT_ACL = None
 
-# TODO Think about what to do for storage backend
-
-DEFAULT_FILE_STORAGE = "openbook.storage_imagekit_io.ImagekitIoStorage"
+STORAGES = {
+    "default": {
+        "BACKEND": "openbook.storage_imagekit_io.ImagekitIoStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 
 # ONE SIGNAL
 ONE_SIGNAL_APP_ID = os.environ.get("ONE_SIGNAL_APP_ID")
