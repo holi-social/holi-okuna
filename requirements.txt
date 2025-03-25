@@ -100,7 +100,7 @@ pytest-django==4.10.0
 pytest-xdist==3.6.1
 python-benedict==0.34.1
 python-dateutil==2.9.0.post0
-python-dotenv==1.0.1
+python-dotenv==1.1.0
 python-fsutil==0.15.0
 python-ipware==3.0.0
 python-magic==0.4.27
