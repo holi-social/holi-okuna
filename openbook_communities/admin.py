@@ -42,7 +42,7 @@ class CommunityAdmin(admin.ModelAdmin):
     readonly_fields = ["name"]
     list_display = ("name", "title", "creator", "created", "get_num_posts", "get_num_members", "is_deleted")
     search_fields = ("title", "creator__email", "creator__profile__name", "creator__profile__last_name")
-    exclude = ["banned_users", "starrers"]
+    exclude = ["banned_users", "starrers", "geolocation_geojson"]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -129,6 +129,7 @@ class CommunityTaskAdmin(admin.ModelAdmin):
         "slots_taken",
         "slots_available",
     )
+    exclude = ["geolocation_geojson"]
 
 
 @admin.register(OnboardingStep)

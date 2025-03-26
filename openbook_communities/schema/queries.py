@@ -5,8 +5,7 @@ import strawberry
 import strawberry_django
 from asgiref.sync import async_to_sync
 from django.core.exceptions import PermissionDenied
-from django.db.models import Count, Prefetch, F, Q, Case, When, Value, IntegerField
-from django.db.models.lookups import IContains
+from django.db.models import Count, Prefetch, Q, Case, When, Value, IntegerField
 from django.utils.translation import gettext_lazy as _
 from strawberry.django.context import StrawberryDjangoContext
 from strawberry.types import Info as StrawberryInfo
@@ -15,7 +14,6 @@ from openbook_auth.models import User as UserModel
 from openbook_auth.utils import verify_authorized_user
 from openbook_common.schema.types import GeoJSON, Paged
 from openbook_common.utils.helpers import is_uuid
-from openbook_common.validators import string_not_empty
 from openbook_communities.models import CollaborationTool as CollaborationToolModel
 from openbook_communities.models import Community as CommunityModel
 from openbook_communities.models import SpaceUserConnectionType
@@ -403,26 +401,6 @@ class Query:
 
         return Paged.of(
             CollaborationToolModel.objects.filter(community__id=space_id).order_by("-created_at"),
-            offset,
-            limit,
-        )
-
-    @strawberry_django.field()
-    def spaces_by_name(self, info, substring: str, offset: int = 0, limit: int = 5) -> Paged[Space]:
-        string_not_empty(substring)
-
-        title_query = IContains(
-            F("title"),
-            substring,
-        )
-
-        return Paged.of(
-            CommunityModel.objects.annotate(member_count=Count("memberships"))
-            .filter(title_query)
-            .filter(is_deleted=False)
-            # Bug HOLI-6780: added created as second order criterion for deterministic order.
-            # This still has wrong order if while paging the membership counts change. Signed off by Max.
-            .order_by("-member_count", "-created"),
             offset,
             limit,
         )

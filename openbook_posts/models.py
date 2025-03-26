@@ -39,6 +39,7 @@ from openbook_common.models import (
     ModelWithUUID,
     OrderedModelWithUUID,
 )
+from openbook_common.tracking import track, TrackingEvent
 from openbook_common.types import LanguageCode
 from openbook_common.utils.helpers import (
     delete_file_field,
@@ -46,7 +47,6 @@ from openbook_common.utils.helpers import (
     extract_usernames_from_string,
     get_magic,
 )
-from openbook_common.tracking import track, TrackingEvent
 from openbook_common.utils.model_loaders import (
     get_community_model,
     get_community_new_post_notification_model,
@@ -132,9 +132,7 @@ class Post(CommentNotificationMixin, ModelWithUUID):
     )
 
     class Meta:
-        index_together = [
-            ("creator", "community"),
-        ]
+        indexes = [models.Index(fields=["creator", "community"])]
 
     @classmethod
     def post_with_id_has_public_reactions(cls, post_id):
@@ -657,8 +655,10 @@ class Post(CommentNotificationMixin, ModelWithUUID):
         return self
 
     def delete(self, *args, **kwargs):
-        self.delete_media()
         super(Post, self).delete(*args, **kwargs)
+        # can only be deleted after deleting the post,
+        # because Django accesses the underlying file on the super.delete call
+        self.delete_media()
 
     def delete_media(self):
         if self.has_image():
@@ -835,7 +835,7 @@ class Post(CommentNotificationMixin, ModelWithUUID):
                     username = username.lower()
                     if username not in existing_mention_usernames:
                         try:
-                            user = User.objects.only("id", "username").get(username__iexact=username)
+                            user = User.objects.get(username__iexact=username)
                             user_is_post_creator = user.pk == self.creator_id
                             if not user_is_post_creator:
                                 PostUserMention.create_post_user_mention(
@@ -1051,8 +1051,8 @@ class PostImage(ModelWithUUID):
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     image_blurhash = models.CharField(max_length=50, blank=True, null=True)
-    width = models.PositiveIntegerField(editable=False, null=False, blank=False)
-    height = models.PositiveIntegerField(editable=False, null=False, blank=False)
+    width = models.PositiveIntegerField(editable=False, null=True, blank=False)
+    height = models.PositiveIntegerField(editable=False, null=True, blank=False)
     media = GenericRelation(PostMedia)
 
     @classmethod
