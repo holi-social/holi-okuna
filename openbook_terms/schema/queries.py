@@ -19,7 +19,7 @@ class Query:
     def topics(self, offset: int = 0, limit: int = 50) -> Paged[Topic]:
         return Paged.of(TopicModel.objects.all().order_by("title"), offset, limit)
 
-    @strawberry_django.field()
+    @strawberry_django.field(deprecation_reason="Deprecated since 1.53.")
     def sdgs(self, offset: int = 0, limit: int = 50) -> Paged[SDG]:
         return Paged.of(SDG_MODEL.objects.all().order_by("number"), offset, limit)
 
