@@ -54,7 +54,10 @@ class ValidateSpaceInput:
     ] = strawberry.UNSET
     topics_v2: Optional[List[str]] = strawberry.UNSET
     cover: Optional[Upload] = strawberry.UNSET
-    sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    sdgs: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.53."),
+    ] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
 
 
@@ -174,7 +177,10 @@ class UpdateSpaceInput:
     topics_v2: Optional[List[str]] = strawberry.UNSET
     cover: Optional[Upload] = strawberry.UNSET
     avatar: Optional[Upload] = strawberry.UNSET
-    sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    sdgs: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.53."),
+    ] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     contact_description: Optional[str] = strawberry.UNSET
@@ -285,7 +291,9 @@ class Space:
         deprecation_reason="Deprecated since version 1.52, use topics_v2 instead.", default=None
     )
     topics_v2: List[str]
-    sdgs: List[Optional[SDG]]
+    sdgs: List[Optional[SDG]] = strawberry_django.field(
+        deprecation_reason="Deprecated since version 1.53.", default=None
+    )
     contact_description: Optional[str]
     contact_email: Optional[str]
     contact_phone: Optional[str]

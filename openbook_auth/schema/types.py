@@ -38,7 +38,10 @@ class UpdateAuthenticatedUserInput:
         strawberry.argument(description="Deprecated since 1.52. Use interests_v2 instead."),
     ] = strawberry.UNSET
     interests_v2: Optional[List[str]] = strawberry.UNSET
-    sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    sdgs: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.53."),
+    ] = strawberry.UNSET
     skills: Annotated[
         Optional[List[Optional[uuid.UUID]]],
         strawberry.argument(description="Deprecated since 1.52. Use skills_v2 instead."),
@@ -112,7 +115,7 @@ class User:
     def interests_v2(self) -> List[Optional[str]]:
         return self.profile.interests_v2
 
-    @strawberry_django.field(select_related=["profile__sdgs"])
+    @strawberry_django.field(select_related=["profile__sdgs"], deprecation_reason="Deprecated since 1.53.")
     def sdgs(self) -> List[Optional[SDG]]:
         return self.profile.sdgs.all().order_by("number")
 
