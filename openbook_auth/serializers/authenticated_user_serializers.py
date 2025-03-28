@@ -118,3 +118,4 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
     )
     tracking_consent_analytics = serializers.BooleanField(required=False, default=None, allow_null=True)
     tracking_consent_personalization = serializers.BooleanField(required=False, default=None, allow_null=True)
+    tracking_consent_ad_partners = serializers.BooleanField(required=False, default=None, allow_null=True)

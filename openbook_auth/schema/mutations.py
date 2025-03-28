@@ -114,6 +114,7 @@ class Mutation:
             remove_avatar=remove_avatar,
             tracking_consent_analytics=data.get("tracking_consent_analytics"),
             tracking_consent_personalization=data.get("tracking_consent_personalization"),
+            tracking_consent_ad_partners=data.get("tracking_consent_ad_partners"),
             save=True,
         )
         current_user_fields_after = _capture_user_fields(current_user)

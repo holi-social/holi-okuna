@@ -49,6 +49,7 @@ class UpdateAuthenticatedUserInput:
     skills_v2: Optional[List[str]] = strawberry.UNSET
     tracking_consent_analytics: Optional[bool] = strawberry.UNSET
     tracking_consent_personalization: Optional[bool] = strawberry.UNSET
+    tracking_consent_ad_partners: Optional[bool] = strawberry.UNSET
 
 
 @strawberry.input
@@ -144,8 +145,10 @@ class User:
 
 @strawberry_django.type(UserModel)
 class AuthenticatedUser(User):
+    email: str
     tracking_consent_analytics: Optional[bool]
     tracking_consent_personalization: Optional[bool]
+    tracking_consent_ad_partners: Optional[bool]
     is_employee: bool
     is_verified: bool
     role: Optional[UserRole]
