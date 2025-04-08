@@ -1,19 +1,21 @@
-from django.core.cache import cache
-from django.conf import settings
-from django.db import transaction
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AnonymousUser
-from rest_framework import authentication
-from rest_framework import exceptions
-from django.utils.translation import gettext_lazy as _
 import logging
 
-from openbook_auth.tasks import extend_ory_session
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
+from django.core.cache import cache
+from django.db import transaction
+from django.utils.translation import gettext_lazy as _
+from rest_framework import authentication, exceptions
+
+from openbook_auth.tasks import extend_ory_session, generate_identity_when_needed, get_oidc
 
 CACHE_TIMEOUT = 300
 
 HEADER_USER_ID = "X-Holi-User-ID"
 HEADER_USER_EMAIL = "X-Holi-User-Email"
+HEADER_USER_GIVEN_NAME = "X-Holi-User-given_name"
+HEADER_USER_FAMILY_NAME = "X-Holi-User-family_name"
 HEADER_SESSION = "X-Holi-Session"
 HEADER_SESSION_EXPIRY = "X-Holi-Session-Expiry"
 
@@ -49,12 +51,23 @@ class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
                     if not user_email:
                         return None
                     try:
+                        is_oidc = get_oidc(user_id)
+                        user_give_name = request.headers.get(
+                            HEADER_USER_GIVEN_NAME, request.META.get(HEADER_USER_GIVEN_NAME)
+                        )
+                        user_family_name = request.headers.get(
+                            HEADER_USER_FAMILY_NAME, request.META.get(HEADER_USER_FAMILY_NAME)
+                        )
                         user = User.create_user(
                             username=user_id,
                             email=user_email,
                             is_of_legal_age=True,
                             are_guidelines_accepted=True,
+                            is_oidc=is_oidc,
+                            name=user_give_name,
+                            last_name=user_family_name,
                         )
+                        generate_identity_when_needed(user)
                         cache.set(cache_key, user, timeout=CACHE_TIMEOUT)
                     except Exception as ex:
                         logger.info(

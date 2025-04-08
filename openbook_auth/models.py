@@ -279,6 +279,7 @@ class User(ModelWithUUID, AbstractUser):
     invite_count = models.SmallIntegerField(default=0)
 
     is_moderator = models.BooleanField(default=False)
+    is_oidc = models.BooleanField(null=True, blank=True, default=None)
 
     # introduced in HOLI-8545 as a means to be able to filter out employees within PostHog analytics
     is_employee = models.BooleanField(
@@ -339,10 +340,12 @@ class User(ModelWithUUID, AbstractUser):
         email=None,
         password=None,
         name=None,
+        last_name=None,
         avatar=None,
         is_of_legal_age=None,
         are_guidelines_accepted=None,
         badge=None,
+        is_oidc=False,
     ):
         if not is_of_legal_age:
             raise ValidationError(
@@ -359,9 +362,12 @@ class User(ModelWithUUID, AbstractUser):
             email=email,
             password=password,
             are_guidelines_accepted=are_guidelines_accepted,
+            is_oidc=is_oidc,
         )
 
-        user_profile = bootstrap_user_profile(name=name, user=new_user, avatar=avatar, is_of_legal_age=is_of_legal_age)
+        user_profile = bootstrap_user_profile(
+            name=name, last_name=last_name, user=new_user, avatar=avatar, is_of_legal_age=is_of_legal_age
+        )
 
         try:
             new_user.send_pending_community_invites_to_new_user()
@@ -5485,11 +5491,13 @@ def bootstrap_user_auth_token(user):
 def bootstrap_user_profile(
     user,
     name,
+    last_name,
     is_of_legal_age,
     avatar=None,
 ):
     return UserProfile.objects.create(
         name=name,
+        last_name=last_name,
         user=user,
         avatar=avatar,
         avatar_blurhash=generate_blurhash(avatar),
