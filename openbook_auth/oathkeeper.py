@@ -52,19 +52,22 @@ class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
                         return None
                     try:
                         is_oidc = get_oidc(user_id)
-                        user_give_name = request.headers.get(
-                            HEADER_USER_GIVEN_NAME, request.META.get(HEADER_USER_GIVEN_NAME)
-                        )
-                        user_family_name = request.headers.get(
-                            HEADER_USER_FAMILY_NAME, request.META.get(HEADER_USER_FAMILY_NAME)
-                        )
+                        user_given_name = None
+                        user_family_name = None
+                        if is_oidc:
+                            user_given_name = request.headers.get(
+                                HEADER_USER_GIVEN_NAME, request.META.get(HEADER_USER_GIVEN_NAME)
+                            )
+                            user_family_name = request.headers.get(
+                                HEADER_USER_FAMILY_NAME, request.META.get(HEADER_USER_FAMILY_NAME)
+                            )
                         user = User.create_user(
                             username=user_id,
                             email=user_email,
                             is_of_legal_age=True,
                             are_guidelines_accepted=True,
                             is_oidc=is_oidc,
-                            name=user_give_name,
+                            name=user_given_name,
                             last_name=user_family_name,
                         )
                         generate_identity_when_needed(user)
