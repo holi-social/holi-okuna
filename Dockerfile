@@ -18,8 +18,8 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 COPY . /opt/okuna-api
 WORKDIR /opt/okuna-api
-#RUN pip install --no-cache-dir --upgrade pip && \
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip setuptools wheel build && \
+    pip install --no-cache-dir -r requirements.txt
 RUN ENVIRONMENT=build SECRET_KEY=foo python manage.py collectstatic --no-input
 
 EXPOSE 80
