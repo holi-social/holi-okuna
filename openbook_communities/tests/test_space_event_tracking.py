@@ -181,6 +181,7 @@ class TestSpaceEvents(TestCase):
             "visibility": "MEMBERS",
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
+            "duration": "INDETERMINATE",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
