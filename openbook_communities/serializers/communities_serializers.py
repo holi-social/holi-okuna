@@ -416,6 +416,9 @@ class CreateTaskSerializer(serializers.Serializer):
     visibility = serializers.ChoiceField(required=True, choices=VisibilityType.choices)
     location_type = serializers.ChoiceField(required=True, choices=Task.LocationType.choices)
     regularity = serializers.ChoiceField(required=False, choices=Task.Regularity.choices)
+    duration = serializers.ChoiceField(required=True, choices=Task.Duration.choices)
+    timeframe_start_date = serializers.DateField(required=False)
+    timeframe_end_date = serializers.DateField(required=False)
     contact_email = serializers.EmailField(
         required=True,
     )
@@ -442,6 +445,21 @@ class CreateTaskSerializer(serializers.Serializer):
         max_upload_size=settings.TASK_THUMBNAIL_MAX_SIZE,
     )
     remove_thumbnail = serializers.BooleanField(default=False)
+
+    def validate(self, data):
+        if "timeframe_start_date" not in data and "timeframe_end_date" not in data:
+            return data
+
+        if "timeframe_start_date" not in data and "timeframe_end_date" in data:
+            raise serializers.ValidationError("Timeframe incomplete start missing")
+
+        if "timeframe_start_date" in data and "timeframe_end_date" not in data:
+            raise serializers.ValidationError("Timeframe incomplete end missing")
+
+        if data["timeframe_end_date"] > data["timeframe_start_date"]:
+            raise serializers.ValidationError("Timeframe end must occur after start")
+
+        return data
 
 
 class UpdateTaskSerializer(serializers.Serializer):
@@ -471,6 +489,9 @@ class UpdateTaskSerializer(serializers.Serializer):
     visibility = serializers.ChoiceField(required=True, choices=VisibilityType.choices)
     location_type = serializers.ChoiceField(required=True, choices=Task.LocationType.choices)
     regularity = serializers.ChoiceField(required=False, choices=Task.Regularity.choices)
+    duration = serializers.ChoiceField(required=True, choices=Task.Duration.choices)
+    timeframe_start_date = serializers.DateField(required=False)
+    timeframe_end_date = serializers.DateField(required=False)
     contact_email = serializers.EmailField(
         required=True,
     )
