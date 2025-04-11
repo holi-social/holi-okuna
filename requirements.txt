@@ -32,7 +32,7 @@ django-cacheops==7.1
 django-cors-headers==4.7.0
 django-cursor-pagination==0.3.0
 django-debug-toolbar==5.0.1
-django-extensions==3.2.3
+django-extensions==4.1
 django-imagekit==5.0.0
 django-ipware==7.0.1
 django-modeltranslation==0.19.13
