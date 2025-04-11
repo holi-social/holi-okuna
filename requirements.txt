@@ -116,7 +116,7 @@ rsa==4.9
 ruamel.yaml==0.18.10
 ruamel.yaml.clib==0.2.12
 ruff==0.11.5
-sentry-sdk==2.25.0
+sentry-sdk==2.25.1
 six==1.17.0
 soupsieve==2.6
 spinners==0.0.24
