@@ -71,7 +71,7 @@ log-symbols==0.0.14
 MarkupSafe==3.0.2
 mixer==7.2.2
 monotonic==1.6
-multidict==6.2.0
+multidict==6.4.3
 mypy-extensions==1.0.0
 novu==1.14.0
 opentelemetry-api==1.31.1
