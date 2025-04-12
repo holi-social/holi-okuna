@@ -1,4 +1,4 @@
-FROM europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/python:3.11-slim
+FROM europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/python:3.13-slim
 
 RUN apt-get -y update && \
     apt-get -y upgrade && \
