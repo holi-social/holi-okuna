@@ -5,7 +5,7 @@ import pytest
 
 from openbook_auth.events import UserPayload
 from openbook_auth.models import User
-from openbook_common.tests.helpers import make_community, make_user
+from openbook_common.tests.helpers import make_community, make_user, make_community_task
 from openbook_communities.events import (
     SpacePayload,
     SpaceUserRemovedEvent,
@@ -14,8 +14,11 @@ from openbook_communities.events import (
     SpaceUserAddedEvent,
     SpaceCreatedEvent,
     SpaceUpdatedEvent,
+    TaskCreatedEvent,
+    TaskUpdatedEvent,
+    TaskDeletedEvent,
 )
-from openbook_communities.models import Community
+from openbook_communities.models import Community, Task
 
 
 # noinspection DuplicatedCode
@@ -48,6 +51,28 @@ def expected_space_payload(community: Community) -> dict[str, Any]:
             if community.geolocation
             else None
         ),
+    }
+
+
+def expected_task_payload(task: Task) -> dict[str, Any]:
+    return {
+        "name": task.name,
+        "description": task.description,
+        "created": task.created.isoformat() if task.created else None,
+        "timeframeStartDate": task.timeframe_start_date.isoformat() if task.timeframe_start_date else None,
+        "timeframeEndDate": task.timeframe_end_date.isoformat() if task.timeframe_end_date else None,
+        "regularity": task.regularity,
+        "duration": task.duration,
+        "slotsAvailable": task.slots_available,
+        "slotsTaken": task.slots_taken,
+        "visibility": task.visibility,
+        "locationType": task.location_type,
+        "location": task.location,
+        "geolocationGeoJSON": task.geolocation_geojson,
+        "skillsV2": task.skills_v2,
+        "thumbnail": task.thumbnail.url if task.thumbnail else None,
+        "contactEmail": task.contact_email,
+        "contactPhone": task.contact_phone,
     }
 
 
@@ -167,6 +192,84 @@ def test_serialization_space_user_removed_event():
         "eventVersion": "1.1.0",
         "data": (
             json.dumps({"user": expected_user_payload(user), "space": expected_space_payload(space)}).encode("utf-8")
+        ),
+    }
+    assert event.to_dict() == expected_event_dict
+
+
+@pytest.mark.django_db
+def test_serialization_task_created_event():
+    # GIVEN
+    user = make_user()
+    space = make_community()
+    task = make_community_task(space)
+
+    # WHEN
+    event = TaskCreatedEvent(user, task)
+
+    expected_event_dict = {
+        "eventType": "TaskCreated",
+        "eventVersion": "1.0.0",
+        "data": (
+            json.dumps(
+                {
+                    "user": expected_user_payload(user),
+                    "space": expected_space_payload(space),
+                    "task": expected_task_payload(task),
+                }
+            ).encode("utf-8")
+        ),
+    }
+    assert event.to_dict() == expected_event_dict
+
+
+@pytest.mark.django_db
+def test_serialization_task_updated_event():
+    # GIVEN
+    user = make_user()
+    space = make_community()
+    task = make_community_task(space)
+
+    # WHEN
+    event = TaskUpdatedEvent(user, task)
+
+    expected_event_dict = {
+        "eventType": "TaskUpdated",
+        "eventVersion": "1.0.0",
+        "data": (
+            json.dumps(
+                {
+                    "user": expected_user_payload(user),
+                    "space": expected_space_payload(space),
+                    "task": expected_task_payload(task),
+                }
+            ).encode("utf-8")
+        ),
+    }
+    assert event.to_dict() == expected_event_dict
+
+
+@pytest.mark.django_db
+def test_serialization_task_deleted_event():
+    # GIVEN
+    user = make_user()
+    space = make_community()
+    task = make_community_task(space)
+
+    # WHEN
+    event = TaskDeletedEvent(user, task)
+
+    expected_event_dict = {
+        "eventType": "TaskDeleted",
+        "eventVersion": "1.0.0",
+        "data": (
+            json.dumps(
+                {
+                    "user": expected_user_payload(user),
+                    "space": expected_space_payload(space),
+                    "task": expected_task_payload(task),
+                }
+            ).encode("utf-8")
         ),
     }
     assert event.to_dict() == expected_event_dict

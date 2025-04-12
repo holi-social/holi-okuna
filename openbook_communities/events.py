@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional
+from typing import Optional, Dict, Any
 
 import structlog
 from django.contrib.gis.geos.point import Point
@@ -9,7 +9,7 @@ from openbook_auth.models import User
 from openbook_common.pubsub.event import Event
 from openbook_common.pubsub.publisher import publish_event
 from openbook_common.pubsub.topic import Topic as PubSubTopic
-from openbook_communities.models import Community
+from openbook_communities.models import Community, Task
 
 logger = structlog.getLogger(__name__)
 
@@ -32,6 +32,7 @@ class SpacePayload:
         self.description = description
         self.location = location
         self.location_lat_lng = location_lat_lng
+        # TODO add topics_v2
 
     def to_dict(self):
         return {
@@ -145,6 +146,67 @@ class SpaceEventType(Enum):
     SPACE_USER_REMOVED = "SpaceUserRemoved"
 
 
+def _task_to_dict(task: Task) -> Dict[str, Any]:
+    return {
+        "name": task.name,
+        "description": task.description,
+        "created": task.created.isoformat() if task.created else None,
+        "timeframeStartDate": task.timeframe_start_date.isoformat() if task.timeframe_start_date else None,
+        "timeframeEndDate": task.timeframe_end_date.isoformat() if task.timeframe_end_date else None,
+        "regularity": task.regularity,
+        "duration": task.duration,
+        "slotsAvailable": task.slots_available,
+        "slotsTaken": task.slots_taken,
+        "visibility": task.visibility,
+        "locationType": task.location_type,
+        "location": task.location,
+        "geolocationGeoJSON": task.geolocation_geojson,
+        "skillsV2": task.skills_v2,
+        "thumbnail": task.thumbnail.url if task.thumbnail else None,
+        "contactEmail": task.contact_email,
+        "contactPhone": task.contact_phone,
+    }
+
+
+class TaskCreatedEvent(Event):
+    def __init__(self, user: User, task: Task):
+        super().__init__(
+            data={
+                "user": UserPayload.from_user(user).to_dict(),
+                "space": SpacePayload.from_community(task.community).to_dict(),
+                "task": _task_to_dict(task),
+            },
+            event_type="TaskCreated",
+            event_version="1.0.0",
+        )
+
+
+class TaskUpdatedEvent(Event):
+    def __init__(self, user: User, task: Task):
+        super().__init__(
+            data={
+                "user": UserPayload.from_user(user).to_dict(),
+                "space": SpacePayload.from_community(task.community).to_dict(),
+                "task": _task_to_dict(task),
+            },
+            event_type="TaskUpdated",
+            event_version="1.0.0",
+        )
+
+
+class TaskDeletedEvent(Event):
+    def __init__(self, user: User, task: Task):
+        super().__init__(
+            data={
+                "user": UserPayload.from_user(user).to_dict(),
+                "space": SpacePayload.from_community(task.community).to_dict(),
+                "task": _task_to_dict(task),
+            },
+            event_type="TaskDeleted",
+            event_version="1.0.0",
+        )
+
+
 def publish_space_created_event(community: Community):
     creator = UserPayload.from_user(community.creator)
     space = SpacePayload.from_community(community)
@@ -185,3 +247,15 @@ def publish_space_user_removed_event(user: User, community: Community):
     space = SpacePayload.from_community(community)
     event = SpaceUserRemovedEvent(user, space)
     publish_event(event=event, topic=PubSubTopic.OKUNA.value)
+
+
+def publish_task_created_event(user: User, task: Task) -> None:
+    publish_event(event=TaskCreatedEvent(user, task), topic=PubSubTopic.OKUNA.value)
+
+
+def publish_task_updated_event(user: User, task: Task) -> None:
+    publish_event(event=TaskUpdatedEvent(user, task), topic=PubSubTopic.OKUNA.value)
+
+
+def publish_task_deleted_event(user: User, task: Task) -> None:
+    publish_event(event=TaskDeletedEvent(user, task), topic=PubSubTopic.OKUNA.value)
