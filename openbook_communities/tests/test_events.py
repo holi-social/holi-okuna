@@ -56,6 +56,7 @@ def expected_space_payload(community: Community) -> dict[str, Any]:
 
 def expected_task_payload(task: Task) -> dict[str, Any]:
     return {
+        "id": task.id,
         "name": task.name,
         "description": task.description,
         "created": task.created.isoformat() if task.created else None,

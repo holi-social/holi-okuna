@@ -148,6 +148,7 @@ class SpaceEventType(Enum):
 
 def _task_to_dict(task: Task) -> Dict[str, Any]:
     return {
+        "id": task.id,
         "name": task.name,
         "description": task.description,
         "created": task.created.isoformat() if task.created else None,
