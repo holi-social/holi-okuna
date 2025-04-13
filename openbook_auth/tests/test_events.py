@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 
-from openbook_auth.events import UserNameUpdatedEvent, UserPayload, UserDeletedEvent, UserEmailUpdatedEvent
+from openbook_auth.events import UserNameUpdatedEvent, UserDeletedEvent, UserEmailUpdatedEvent
 from openbook_auth.models import User
 from openbook_common.tests.helpers import make_user
 
@@ -27,7 +27,7 @@ def test_serialization_user_name_updated_event():
     user = make_user()
 
     # WHEN
-    event = UserNameUpdatedEvent(UserPayload.from_user(user))
+    event = UserNameUpdatedEvent(user)
 
     # THEN
     expected_event_dict = {
@@ -44,7 +44,7 @@ def test_serialization_user_email_updated_event():
     user = make_user()
 
     # WHEN
-    event = UserEmailUpdatedEvent(UserPayload.from_user(user))
+    event = UserEmailUpdatedEvent(user)
 
     # THEN
     expected_event_dict = {
@@ -61,7 +61,7 @@ def test_serialization_user_deleted_event():
     user = make_user()
 
     # WHEN
-    event = UserDeletedEvent(UserPayload.from_user(user))
+    event = UserDeletedEvent(user)
 
     # THEN
     expected_event_dict = {

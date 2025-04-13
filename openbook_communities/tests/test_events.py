@@ -3,11 +3,9 @@ from typing import Any
 
 import pytest
 
-from openbook_auth.events import UserPayload
 from openbook_auth.models import User
 from openbook_common.tests.helpers import make_community, make_user, make_community_task
 from openbook_communities.events import (
-    SpacePayload,
     SpaceUserRemovedEvent,
     SpaceUserLeftEvent,
     SpaceDeletedEvent,
@@ -85,7 +83,7 @@ def test_serialization_space_created_event():
     space = make_community(creator=user)
 
     # WHEN
-    event = SpaceCreatedEvent(UserPayload.from_user(user), SpacePayload.from_community(space))
+    event = SpaceCreatedEvent(user, space)
 
     # THEN
     expected_event_dict = {
@@ -107,7 +105,7 @@ def test_serialization_space_updated_event():
     space = make_community(creator=user)
 
     # WHEN
-    event = SpaceUpdatedEvent(UserPayload.from_user(user), SpacePayload.from_community(space))
+    event = SpaceUpdatedEvent(user, space)
 
     # THEN
     expected_event_dict = {
@@ -128,7 +126,7 @@ def test_serialization_space_deleted_event():
     space = make_community()
 
     # WHEN
-    event = SpaceDeletedEvent(SpacePayload.from_community(space))
+    event = SpaceDeletedEvent(space)
 
     # THEN
     expected_event_dict = {
@@ -146,7 +144,7 @@ def test_serialization_space_user_added_event():
     space = make_community()
 
     # WHEN
-    event = SpaceUserAddedEvent(UserPayload.from_user(user), SpacePayload.from_community(space))
+    event = SpaceUserAddedEvent(user, space)
 
     # THEN
     expected_event_dict = {
@@ -166,7 +164,7 @@ def test_serialization_space_user_left_event():
     space = make_community()
 
     # WHEN
-    event = SpaceUserLeftEvent(UserPayload.from_user(user), SpacePayload.from_community(space))
+    event = SpaceUserLeftEvent(user, space)
 
     # THEN
     expected_event_dict = {
@@ -186,7 +184,7 @@ def test_serialization_space_user_removed_event():
     space = make_community()
 
     # WHEN
-    event = SpaceUserRemovedEvent(UserPayload.from_user(user), SpacePayload.from_community(space))
+    event = SpaceUserRemovedEvent(user, space)
 
     # THEN
     expected_event_dict = {

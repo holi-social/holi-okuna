@@ -2,7 +2,7 @@ from typing import Dict, Any
 
 import structlog
 
-from openbook_auth.events import UserPayload, user_to_event_payload
+from openbook_auth.events import user_to_event_payload
 from openbook_auth.models import User
 from openbook_common.pubsub.event import Event
 from openbook_common.pubsub.publisher import publish_event
@@ -23,23 +23,23 @@ def space_to_event_payload(community):
         "locationLatLng": {"latitude": community.geolocation.x, "longitude": community.geolocation.y}
         if community.geolocation
         else None,
-        "topics_v2": community.topics_v2,
+        "topicsV2": community.topics_v2,
     }
 
 
 class SpaceUserRemovedEvent(Event):
-    def __init__(self, user: UserPayload, space: Community):
+    def __init__(self, user: User, space: Community):
         super().__init__(
-            data={"user": user.to_dict(), "space": space_to_event_payload(space)},
+            data={"user": user_to_event_payload(user), "space": space_to_event_payload(space)},
             event_type="SpaceUserRemoved",
             event_version="1.2.0",
         )
 
 
 class SpaceUserLeftEvent(Event):
-    def __init__(self, user: UserPayload, space: Community):
+    def __init__(self, user: User, space: Community):
         super().__init__(
-            data={"user": user.to_dict(), "space": space_to_event_payload(space)},
+            data={"user": user_to_event_payload(user), "space": space_to_event_payload(space)},
             event_type="SpaceUserLeft",
             event_version="1.2.0",
         )
@@ -55,27 +55,27 @@ class SpaceDeletedEvent(Event):
 
 
 class SpaceUserAddedEvent(Event):
-    def __init__(self, user: UserPayload, space: Community):
+    def __init__(self, user: User, space: Community):
         super().__init__(
-            data={"user": user.to_dict(), "space": space_to_event_payload(space)},
+            data={"user": user_to_event_payload(user), "space": space_to_event_payload(space)},
             event_type="SpaceUserAdded",
             event_version="1.2.0",
         )
 
 
 class SpaceUpdatedEvent(Event):
-    def __init__(self, creator: UserPayload, space: Community):
+    def __init__(self, creator: User, space: Community):
         super().__init__(
-            data={"creator": creator.to_dict(), "space": space_to_event_payload(space)},
+            data={"creator": user_to_event_payload(creator), "space": space_to_event_payload(space)},
             event_type="SpaceUpdated",
             event_version="1.2.0",
         )
 
 
 class SpaceCreatedEvent(Event):
-    def __init__(self, creator: UserPayload, space: Community):
+    def __init__(self, creator: User, space: Community):
         super().__init__(
-            data={"creator": creator.to_dict(), "space": space_to_event_payload(space)},
+            data={"creator": user_to_event_payload(creator), "space": space_to_event_payload(space)},
             event_type="SpaceCreated",
             event_version="1.2.0",
         )
