@@ -32,7 +32,7 @@ class SpaceUserRemovedEvent(Event):
         super().__init__(
             data={"user": user.to_dict(), "space": space_to_event_payload(space)},
             event_type="SpaceUserRemoved",
-            event_version="1.1.0",
+            event_version="1.2.0",
         )
 
 
@@ -41,7 +41,7 @@ class SpaceUserLeftEvent(Event):
         super().__init__(
             data={"user": user.to_dict(), "space": space_to_event_payload(space)},
             event_type="SpaceUserLeft",
-            event_version="1.1.0",
+            event_version="1.2.0",
         )
 
 
@@ -50,7 +50,7 @@ class SpaceDeletedEvent(Event):
         super().__init__(
             data={"space": space_to_event_payload(space)},
             event_type="SpaceDeleted",
-            event_version="1.1.0",
+            event_version="1.2.0",
         )
 
 
@@ -59,7 +59,7 @@ class SpaceUserAddedEvent(Event):
         super().__init__(
             data={"user": user.to_dict(), "space": space_to_event_payload(space)},
             event_type="SpaceUserAdded",
-            event_version="1.1.0",
+            event_version="1.2.0",
         )
 
 
@@ -68,7 +68,7 @@ class SpaceUpdatedEvent(Event):
         super().__init__(
             data={"creator": creator.to_dict(), "space": space_to_event_payload(space)},
             event_type="SpaceUpdated",
-            event_version="1.1.0",
+            event_version="1.2.0",
         )
 
 
@@ -77,7 +77,7 @@ class SpaceCreatedEvent(Event):
         super().__init__(
             data={"creator": creator.to_dict(), "space": space_to_event_payload(space)},
             event_type="SpaceCreated",
-            event_version="1.1.0",
+            event_version="1.2.0",
         )
 
 

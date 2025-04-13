@@ -51,6 +51,7 @@ def expected_space_payload(community: Community) -> dict[str, Any]:
             if community.geolocation
             else None
         ),
+        "topicsV2": community.topics_v2,
     }
 
 
@@ -89,7 +90,7 @@ def test_serialization_space_created_event():
     # THEN
     expected_event_dict = {
         "eventType": "SpaceCreated",
-        "eventVersion": "1.1.0",
+        "eventVersion": "1.2.0",
         "data": (
             json.dumps({"creator": expected_user_payload(user), "space": expected_space_payload(space)}).encode(
                 "utf-8"
@@ -111,7 +112,7 @@ def test_serialization_space_updated_event():
     # THEN
     expected_event_dict = {
         "eventType": "SpaceUpdated",
-        "eventVersion": "1.1.0",
+        "eventVersion": "1.2.0",
         "data": (
             json.dumps({"creator": expected_user_payload(user), "space": expected_space_payload(space)}).encode(
                 "utf-8"
@@ -132,7 +133,7 @@ def test_serialization_space_deleted_event():
     # THEN
     expected_event_dict = {
         "eventType": "SpaceDeleted",
-        "eventVersion": "1.1.0",
+        "eventVersion": "1.2.0",
         "data": (json.dumps({"space": expected_space_payload(space)}).encode("utf-8")),
     }
     assert event.to_dict() == expected_event_dict
@@ -150,7 +151,7 @@ def test_serialization_space_user_added_event():
     # THEN
     expected_event_dict = {
         "eventType": "SpaceUserAdded",
-        "eventVersion": "1.1.0",
+        "eventVersion": "1.2.0",
         "data": (
             json.dumps({"user": expected_user_payload(user), "space": expected_space_payload(space)}).encode("utf-8")
         ),
@@ -170,7 +171,7 @@ def test_serialization_space_user_left_event():
     # THEN
     expected_event_dict = {
         "eventType": "SpaceUserLeft",
-        "eventVersion": "1.1.0",
+        "eventVersion": "1.2.0",
         "data": (
             json.dumps({"user": expected_user_payload(user), "space": expected_space_payload(space)}).encode("utf-8")
         ),
@@ -190,7 +191,7 @@ def test_serialization_space_user_removed_event():
     # THEN
     expected_event_dict = {
         "eventType": "SpaceUserRemoved",
-        "eventVersion": "1.1.0",
+        "eventVersion": "1.2.0",
         "data": (
             json.dumps({"user": expected_user_payload(user), "space": expected_space_payload(space)}).encode("utf-8")
         ),
