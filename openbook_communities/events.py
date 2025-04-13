@@ -83,7 +83,7 @@ class SpaceCreatedEvent(Event):
 
 def task_to_event_payload(task: Task) -> Dict[str, Any]:
     return {
-        "id": task.id,
+        "id": str(task.id),
         "name": task.name,
         "description": task.description,
         "created": task.created.isoformat() if task.created else None,
