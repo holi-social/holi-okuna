@@ -491,7 +491,7 @@ class UpdateTaskSerializer(serializers.Serializer):
     location_type = serializers.ChoiceField(required=True, choices=Task.LocationType.choices)
     regularity = serializers.ChoiceField(required=False, choices=Task.Regularity.choices)
     # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
-    duration = serializers.ChoiceField(required=True, choices=Task.Duration.choices)
+    duration = serializers.ChoiceField(required=False, choices=Task.Duration.choices)
     timeframe_start_date = serializers.DateField(required=False)
     timeframe_end_date = serializers.DateField(required=False)
     contact_email = serializers.EmailField(
