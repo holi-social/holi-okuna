@@ -147,7 +147,8 @@ class TestTasks:
             "visibility": "MEMBERS",
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
-            "duration": "INDETERMINATE",
+            # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+            # "duration": "INDETERMINATE",
             "contactEmail": "email@email.com",
         }
         expected_errors = {
@@ -158,7 +159,8 @@ class TestTasks:
             "visibility": "Field 'visibility' of required type 'VisibilityType!' was not provided.",
             "locationType": "Field 'locationType' of required type 'LocationType!' was not provided.",
             "regularity": "Field 'regularity' of required type 'Regularity!' was not provided.",
-            "duration": "Field 'duration' of required type 'Duration!' was not provided.",
+            # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+            # "duration": "Field 'duration' of required type 'Duration!' was not provided.",
             "contactEmail": "Field 'contactEmail' of required type 'String!' was not provided.",
         }
         valid_input_keys = valid_input.keys()
@@ -943,7 +945,8 @@ class TestTasks:
             "visibility": "MEMBERS",
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
-            "duration": "INDETERMINATE",
+            # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+            # "duration": "INDETERMINATE",
             "contactEmail": "email@email.com",
         }
         expected_errors = {
@@ -953,7 +956,8 @@ class TestTasks:
             "visibility": "Field 'visibility' of required type 'VisibilityType!' was not provided.",
             "locationType": "Field 'locationType' of required type 'LocationType!' was not provided.",
             "regularity": "Field 'regularity' of required type 'Regularity!' was not provided.",
-            "duration": "Field 'duration' of required type 'Duration!' was not provided.",
+            # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+            # "duration": "Field 'duration' of required type 'Duration!' was not provided.",
             "contactEmail": "Field 'contactEmail' of required type 'String!' was not provided.",
         }
         valid_input_keys = valid_input.keys()
