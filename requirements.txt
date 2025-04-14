@@ -52,7 +52,7 @@ funcy==2.0
 google-api-core==2.24.2
 google-auth==2.38.0
 google-cloud-pubsub==2.29.0
-google-cloud-webrisk==1.17.1
+google-cloud-webrisk==1.18.0
 googleapis-common-protos==1.70.0
 graphql-core==3.2.6
 grpc-google-iam-v1==0.14.2
