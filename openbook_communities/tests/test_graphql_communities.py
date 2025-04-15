@@ -2,6 +2,7 @@ import json
 import logging
 from unittest import TestCase
 from unittest import mock
+from unittest.mock import call
 from uuid import uuid4
 
 import blurhash
@@ -2458,11 +2459,20 @@ class TestCommunities(TestCase):
         mock_invalidate_discover_spaces_query_cache.assert_not_called()
         mock_publish_space_deleted_event.assert_not_called()
 
+    @mock.patch("openbook_communities.schema.mutations.publish_task_deleted_event")
     @mock.patch("openbook_communities.schema.mutations.publish_space_deleted_event")
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
-    def test_can_delete_space(self, mock_invalidate_discover_spaces_query_cache, mock_publish_space_deleted_event):
+    def test_can_delete_space(
+        self,
+        mock_invalidate_discover_spaces_query_cache,
+        mock_publish_space_deleted_event,
+        mock_publish_task_deleted_event,
+    ):
         user = make_user()
         community = make_community(creator=user)
+        task1 = make_community_task(community)
+        task2 = make_community_task(community, is_deleted=True)
+        task3 = make_community_task(community)
 
         delete_space_mutation = """
             mutation test($id: UUID!) {
@@ -2483,6 +2493,13 @@ class TestCommunities(TestCase):
 
         mock_invalidate_discover_spaces_query_cache.assert_called_once()
         mock_publish_space_deleted_event.assert_called_once_with(community)
+        assert mock_publish_task_deleted_event.call_count == 2
+        mock_publish_task_deleted_event.assert_has_calls(
+            [
+                call(user, task1),
+                call(user, task3),
+            ]
+        )
 
     @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_request_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_invite_notification")
