@@ -153,7 +153,7 @@ class Query:
         user_connections = user.connections.values_list("target_user_id", flat=True)
         current_time = timezone.now()
 
-        unsorted_posts = (list(feed_posts) + list(space_posts),)
+        unsorted_posts = list(feed_posts) + list(space_posts)
 
         sorted_posts = sorted(
             unsorted_posts,
