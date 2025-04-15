@@ -3110,8 +3110,9 @@ class TestCommunities(TestCase):
         assert "Field 'id' of required type 'UUID!' was not provided" in response.errors[0].message
         mock_invalidate_discover_spaces_query_cache.assert_not_called()
 
+    @mock.patch("openbook_communities.schema.mutations.publish_space_updated_event")
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
-    def test_can_update_space(self, mock_invalidate_discover_spaces_query_cache):
+    def test_can_update_space(self, mock_invalidate_discover_spaces_query_cache, mock_publish_space_updated_event):
         user = make_user()
         community = make_community(creator=user)
         topics = make_topics(3)
@@ -3167,6 +3168,9 @@ class TestCommunities(TestCase):
             assert response.errors is None
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
+        assert mock_publish_space_updated_event.call_count == len(valid_inputs)
+        for call_args in mock_publish_space_updated_event.call_args_list:
+            assert call_args.kwargs["community"] == community
 
     def test_updated_space_has_new_values(self):
         user = make_user()
