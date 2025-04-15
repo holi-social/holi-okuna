@@ -792,6 +792,53 @@ class TestTasks:
         assert valid_visibility == created_task["visibility"]
         assert expected_skills_v2 == created_task["skillsV2"]
 
+    # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+    # remove this then
+    def test_can_create_task_without_timing_metadata_as_older__client(self):
+        user = make_user()
+
+        community = make_community(creator=user)
+        skill = make_skill()
+
+        create_task_mutation = """
+            mutation test($input: CreateTaskInput!) {
+                createTask(input: $input) {
+                    id
+                    name
+                    description
+                    visibility
+                    skillsV2
+                }
+            }
+            """
+
+        valid_name = "Valid name"
+        valid_description = "Valid description"
+        valid_visibility = "MEMBERS"
+        valid_input = {
+            "spaceId": str(community.id),
+            "name": valid_name,
+            "description": valid_description,
+            "visibility": valid_visibility,
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
+        }
+
+        response = async_to_sync(schema.execute)(
+            create_task_mutation,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"input": valid_input},
+        )
+
+        assert response.errors is None
+        created_task = response.data["createTask"]
+        assert "id" in created_task
+
     def test_can_create_task_with_skills_v2(self):
         user = make_user()
 

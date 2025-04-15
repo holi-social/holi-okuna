@@ -23,6 +23,7 @@ from openbook_auth.utils import verify_authorized_user
 from openbook_common.helpers import is_parameter_null, to_input_dict
 from openbook_common.schema.types import GeolocationPointInput, Result
 from openbook_communities.models import Community as CommunityModel
+from openbook_communities.models import Task as TaskModel
 from openbook_communities.models import SpaceUserConnectionType
 from openbook_communities.schema.types import (
     AddCollaborationToolInput,
@@ -284,7 +285,10 @@ class Mutation:
         serializer = CreateTaskSerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+
         space_id = data.get("space_id")
+        duration = data.get("duration", TaskModel.Duration.INDETERMINATE)
+
         with transaction.atomic():
             task = current_user.create_task(
                 space_id=space_id,
@@ -296,7 +300,7 @@ class Mutation:
                 location=data.get("location"),
                 geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
                 regularity=data.get("regularity"),
-                duration=data.get("duration"),
+                duration=duration,
                 timeframe_start_date=data.get("timeframe_start_date"),
                 timeframe_end_date=data.get("timeframe_end_date"),
                 contact_email=data.get("contact_email"),
@@ -324,6 +328,8 @@ class Mutation:
 
         space_id = data.get("space_id")
         task_id = data.get("task_id")
+        duration = data.get("duration", TaskModel.Duration.INDETERMINATE)
+
         with transaction.atomic():
             task = current_user.update_task(
                 task_id=task_id,
@@ -336,7 +342,7 @@ class Mutation:
                 location=data.get("location"),
                 geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
                 regularity=data.get("regularity"),
-                duration=data.get("duration"),
+                duration=duration,
                 timeframe_start_date=data.get("timeframe_start_date"),
                 timeframe_end_date=data.get("timeframe_end_date"),
                 contact_email=data.get("contact_email"),

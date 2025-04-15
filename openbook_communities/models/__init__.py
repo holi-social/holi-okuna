@@ -1414,7 +1414,7 @@ class Task(ModelWithUUID):
             location=location,
             geolocation=geolocation,
             regularity=regularity,
-            duration=duration or cls.Duration.INDETERMINATE,
+            duration=duration,
             timeframe_start_date=timeframe_start_date,
             timeframe_end_date=timeframe_end_date,
             contact_phone=contact_phone,
@@ -1456,7 +1456,7 @@ class Task(ModelWithUUID):
         self.contact_email = contact_email
         self.regularity = regularity
         self.slots_available = slots_available
-        self.duration = duration or self.Duration.INDETERMINATE
+        self.duration = duration
         self.timeframe_start_date = timeframe_start_date
         self.timeframe_end_date = timeframe_end_date
 
