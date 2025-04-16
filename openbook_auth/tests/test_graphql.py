@@ -61,6 +61,7 @@ from openbook_communities.tests.helpers import (
 from openbook_connections.tests.helpers import connect_to_user
 from openbook_notifications.enums import NotificationProvider
 from openbook_posts.tests.helpers import get_post_with_id_data, get_post_with_id_raw
+from openbook_common.utils.test import MockJsonResponse
 
 logger = logging.getLogger(__name__)
 
@@ -149,11 +150,11 @@ class TestUsers:
         assert authenticated_user["connectionStatusToMyself"] is None
 
     @pytest.mark.asyncio
-    @mock.patch("openbook_auth.tasks.get_oidc", return_value=False)
+    @mock.patch("openbook_auth.tasks.requests.get", return_value=MockJsonResponse({}))
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     async def test_creates_user_if_not_exists(
-        self, mock_create_or_update_subscriber, mock_get_language_from_request, mock_get_oidc, client
+        self, mock_create_or_update_subscriber, mock_get_language_from_request, mock_get, client
     ):
         username = uuid.uuid4()
         email = "test@example.com"
@@ -189,11 +190,11 @@ class TestUsers:
         assert user.email == email
 
     @pytest.mark.asyncio
-    @mock.patch("openbook_auth.tasks.get_oidc", return_value=False)
+    @mock.patch("openbook_auth.tasks.requests.get", return_value=MockJsonResponse({}))
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     async def test_creates_user_with_invalid_email(
-        self, mock_create_or_update_subscriber, mock_get_language_from_request, mock_get_oidc, client
+        self, mock_create_or_update_subscriber, mock_get_language_from_request, mock_get, client
     ):
         username = uuid.uuid4()
         email = "invalid address"
