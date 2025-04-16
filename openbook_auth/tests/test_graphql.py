@@ -149,10 +149,11 @@ class TestUsers:
         assert authenticated_user["connectionStatusToMyself"] is None
 
     @pytest.mark.asyncio
+    @mock.patch("openbook_auth.tasks.get_oidc", return_value=False)
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     async def test_creates_user_if_not_exists(
-        self, mock_create_or_update_subscriber, mock_get_language_from_request, client
+        self, mock_create_or_update_subscriber, mock_get_language_from_request, mock_get_oidc, client
     ):
         username = uuid.uuid4()
         email = "test@example.com"
@@ -188,10 +189,11 @@ class TestUsers:
         assert user.email == email
 
     @pytest.mark.asyncio
+    @mock.patch("openbook_auth.tasks.get_oidc", return_value=False)
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     async def test_creates_user_with_invalid_email(
-        self, mock_create_or_update_subscriber, mock_get_language_from_request, client
+        self, mock_create_or_update_subscriber, mock_get_language_from_request, mock_get_oidc, client
     ):
         username = uuid.uuid4()
         email = "invalid address"
