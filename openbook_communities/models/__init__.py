@@ -1269,6 +1269,12 @@ class Task(ModelWithUUID):
         DAYS_3_OR_MORE = ("DAYS_3_OR_MORE",)
         INDETERMINATE = ("INDETERMINATE",)
 
+    @strawberry.enum
+    class InteractionType(models.TextChoices):
+        CHAT = (("CHAT",),)
+        LINK = (("LINK",),)
+        READY = ("READY",)
+
     name = models.CharField(
         max_length=settings.TASK_NAME_MAX_LENGTH,
         blank=False,
@@ -1296,6 +1302,7 @@ class Task(ModelWithUUID):
     timeframe_end_date = models.DateField(null=True, blank=True)
     regularity = models.CharField(max_length=20, choices=Regularity.choices)
     duration = models.CharField(max_length=20, choices=Duration.choices, default=Duration.INDETERMINATE)
+    interaction_type = models.CharField(max_length=20, choices=InteractionType.choices)
     slots_available = models.PositiveIntegerField(blank=False)
     slots_taken = models.PositiveIntegerField(blank=False, default=0)
     visibility = models.CharField(max_length=12, choices=VisibilityType.choices, default=VisibilityType.PUBLIC)
@@ -1389,6 +1396,7 @@ class Task(ModelWithUUID):
         contact_email,
         slots_available,
         duration=None,
+        interaction_type=None,
         location=None,
         geolocation=None,
         regularity=None,
@@ -1415,6 +1423,7 @@ class Task(ModelWithUUID):
             geolocation=geolocation,
             regularity=regularity,
             duration=duration,
+            interaction_type=interaction_type,
             timeframe_start_date=timeframe_start_date,
             timeframe_end_date=timeframe_end_date,
             contact_phone=contact_phone,
@@ -1441,6 +1450,7 @@ class Task(ModelWithUUID):
         location=None,
         geolocation=None,
         regularity=None,
+        interaction_type=None,
         timeframe_start_date=None,
         timeframe_end_date=None,
         contact_phone=None,
@@ -1457,6 +1467,7 @@ class Task(ModelWithUUID):
         self.regularity = regularity
         self.slots_available = slots_available
         self.duration = duration
+        self.interaction_type = interaction_type
         self.timeframe_start_date = timeframe_start_date
         self.timeframe_end_date = timeframe_end_date
 
