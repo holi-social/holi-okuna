@@ -1271,8 +1271,8 @@ class Task(ModelWithUUID):
 
     @strawberry.enum
     class InteractionType(models.TextChoices):
-        CHAT = (("CHAT",),)
-        LINK = (("LINK",),)
+        CHAT = ("CHAT",)
+        LINK = ("LINK",)
         READY = ("READY",)
 
     name = models.CharField(
@@ -1302,7 +1302,7 @@ class Task(ModelWithUUID):
     timeframe_end_date = models.DateField(null=True, blank=True)
     regularity = models.CharField(max_length=20, choices=Regularity.choices)
     duration = models.CharField(max_length=20, choices=Duration.choices, default=Duration.INDETERMINATE)
-    interaction_type = models.CharField(max_length=20, choices=InteractionType.choices)
+    interaction_type = models.CharField(max_length=20, choices=InteractionType.choices, default=InteractionType.CHAT)
     slots_available = models.PositiveIntegerField(blank=False)
     slots_taken = models.PositiveIntegerField(blank=False, default=0)
     visibility = models.CharField(max_length=12, choices=VisibilityType.choices, default=VisibilityType.PUBLIC)

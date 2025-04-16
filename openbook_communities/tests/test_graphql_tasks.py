@@ -1363,6 +1363,7 @@ class TestTaskRecommendations:
             contact_email="some@email.de",
             regularity="ONE_TIME",
             duration="INDETERMINATE",
+            interaction_type="CHAT",
         )
 
     def assert_filtered_tasks(self, filter_options, expected_spaces, total_results=None):
