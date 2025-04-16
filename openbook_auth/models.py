@@ -279,7 +279,7 @@ class User(ModelWithUUID, AbstractUser):
     invite_count = models.SmallIntegerField(default=0)
 
     is_moderator = models.BooleanField(default=False)
-    is_oidc = models.BooleanField(null=True, blank=True, default=None)
+    is_oidc = models.BooleanField(null=False, blank=False, default=False)
 
     # introduced in HOLI-8545 as a means to be able to filter out employees within PostHog analytics
     is_employee = models.BooleanField(
