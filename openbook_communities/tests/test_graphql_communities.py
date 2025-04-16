@@ -2471,7 +2471,7 @@ class TestCommunities(TestCase):
         user = make_user()
         community = make_community(creator=user)
         task1 = make_community_task(community)
-        task2 = make_community_task(community, is_deleted=True)
+        make_community_task(community, is_deleted=True)
         task3 = make_community_task(community)
 
         delete_space_mutation = """

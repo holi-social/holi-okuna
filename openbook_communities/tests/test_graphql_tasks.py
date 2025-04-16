@@ -154,7 +154,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
-            # "duration": "INDETERMINATE",
+            # "duration": "INDETERMINATE",  # noqa: ERA001
             "contactEmail": "email@email.com",
         }
         expected_errors = {
@@ -166,7 +166,7 @@ class TestTasks:
             "locationType": "Field 'locationType' of required type 'LocationType!' was not provided.",
             "regularity": "Field 'regularity' of required type 'Regularity!' was not provided.",
             # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
-            # "duration": "Field 'duration' of required type 'Duration!' was not provided.",
+            # "duration": "Field 'duration' of required type 'Duration!' was not provided.",  # noqa: ERA001
             "contactEmail": "Field 'contactEmail' of required type 'String!' was not provided.",
         }
         valid_input_keys = valid_input.keys()
@@ -1056,7 +1056,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
-            # "duration": "INDETERMINATE",
+            # "duration": "INDETERMINATE",  # noqa: ERA001
             "contactEmail": "email@email.com",
         }
         expected_errors = {
@@ -1067,7 +1067,7 @@ class TestTasks:
             "locationType": "Field 'locationType' of required type 'LocationType!' was not provided.",
             "regularity": "Field 'regularity' of required type 'Regularity!' was not provided.",
             # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
-            # "duration": "Field 'duration' of required type 'Duration!' was not provided.",
+            # "duration": "Field 'duration' of required type 'Duration!' was not provided.",  # noqa: ERA001
             "contactEmail": "Field 'contactEmail' of required type 'String!' was not provided.",
         }
         valid_input_keys = valid_input.keys()
