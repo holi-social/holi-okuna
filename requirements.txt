@@ -83,7 +83,7 @@ pilkit==3.0
 pillow==11.2.1
 platformdirs==4.3.7
 pluggy==1.5.0
-posthog==3.24.3
+posthog==3.25.0
 propcache==0.3.1
 proto-plus==1.26.1
 protobuf==5.29.4
