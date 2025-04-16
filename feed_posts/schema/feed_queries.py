@@ -37,6 +37,13 @@ def map_to_feed_item(post):
         return None
 
 
+def get_creation_date(post):
+    if hasattr(post, "created_at"):
+        return post.created_at
+    else:
+        return post.created
+
+
 @strawberry.type
 class Query:
     # This is the first iteration of home feed personalization.
@@ -110,13 +117,17 @@ class Query:
                 .order_by("-created_at", "-reaction_count", "-total_comments")
             )
 
+            posts = list(feed_posts) + list(space_posts)
+
             sorted_posts = sorted(
-                feed_posts,
-                key=lambda post: (-int(getattr(post, "has_priority", False)),),
+                posts,
+                key=lambda post: (
+                    -int(getattr(post, "has_priority", False)),
+                    -get_creation_date(post).timestamp(),
+                ),
             )
 
-            posts = sorted_posts + list(space_posts)
-            feed_items = [map_to_feed_item(post) for post in posts]
+            feed_items = [map_to_feed_item(post) for post in sorted_posts]
             result = paginate_posts(feed_items, offset, limit)
 
             # Cache anonymous results for 10 minutes
@@ -141,6 +152,13 @@ class Query:
         user_interests_v2 = user.profile.interests_v2
         user_connections = user.connections.values_list("target_user_id", flat=True)
         current_time = timezone.now()
+
+        unsorted_posts = list(feed_posts) + list(space_posts)
+
+        sorted_posts = sorted(
+            unsorted_posts,
+            key=lambda post: (-get_creation_date(post).timestamp(),),
+        )
 
         # Build post lists in order of priority
         post_lists = [
@@ -187,10 +205,7 @@ class Query:
             .defer("mentions")
             .order_by("-created")
             .distinct(),
-            # All feed posts
-            feed_posts,
-            # All space posts
-            space_posts,
+            sorted_posts,
         ]
 
         # Combine all posts while preserving order and removing duplicates

@@ -81,7 +81,8 @@ class CreateTaskInput:
     visibility: VisibilityType
     location_type: TaskModel.LocationType
     regularity: TaskModel.Regularity
-    duration: TaskModel.Duration
+    # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+    duration: Optional[TaskModel.Duration] = strawberry.UNSET
     timeframe_start_date: Optional[str] = strawberry.UNSET
     timeframe_end_date: Optional[str] = strawberry.UNSET
     contact_email: str
@@ -106,7 +107,8 @@ class UpdateTaskInput:
     visibility: VisibilityType
     location_type: TaskModel.LocationType
     regularity: TaskModel.Regularity
-    duration: TaskModel.Duration
+    # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+    duration: Optional[TaskModel.Duration] = strawberry.UNSET
     timeframe_start_date: Optional[str] = strawberry.UNSET
     timeframe_end_date: Optional[str] = strawberry.UNSET
     contact_email: str
@@ -221,7 +223,7 @@ class Task:
     location_type: TaskModel.LocationType
     location: strawberry.auto
     regularity: TaskModel.Regularity
-    duration: TaskModel.Duration
+    duration: Optional[TaskModel.Duration]
     timeframe_start_date: strawberry.auto
     timeframe_end_date: strawberry.auto
     skills: List[Skill] = strawberry_django.field(

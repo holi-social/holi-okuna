@@ -153,7 +153,8 @@ class TestTasks:
             "visibility": "MEMBERS",
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
-            "duration": "INDETERMINATE",
+            # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+            # "duration": "INDETERMINATE",
             "contactEmail": "email@email.com",
         }
         expected_errors = {
@@ -164,7 +165,8 @@ class TestTasks:
             "visibility": "Field 'visibility' of required type 'VisibilityType!' was not provided.",
             "locationType": "Field 'locationType' of required type 'LocationType!' was not provided.",
             "regularity": "Field 'regularity' of required type 'Regularity!' was not provided.",
-            "duration": "Field 'duration' of required type 'Duration!' was not provided.",
+            # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+            # "duration": "Field 'duration' of required type 'Duration!' was not provided.",
             "contactEmail": "Field 'contactEmail' of required type 'String!' was not provided.",
         }
         valid_input_keys = valid_input.keys()
@@ -843,6 +845,53 @@ class TestTasks:
 
         mock_publish_task_created_event.assert_called_once()
 
+    # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+    # remove this then
+    def test_can_create_task_without_timing_metadata_as_older__client(self):
+        user = make_user()
+
+        community = make_community(creator=user)
+        skill = make_skill()
+
+        create_task_mutation = """
+            mutation test($input: CreateTaskInput!) {
+                createTask(input: $input) {
+                    id
+                    name
+                    description
+                    visibility
+                    skillsV2
+                }
+            }
+            """
+
+        valid_name = "Valid name"
+        valid_description = "Valid description"
+        valid_visibility = "MEMBERS"
+        valid_input = {
+            "spaceId": str(community.id),
+            "name": valid_name,
+            "description": valid_description,
+            "visibility": valid_visibility,
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
+        }
+
+        response = async_to_sync(schema.execute)(
+            create_task_mutation,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"input": valid_input},
+        )
+
+        assert response.errors is None
+        created_task = response.data["createTask"]
+        assert "id" in created_task
+
     @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
     def test_can_create_task_with_skills_v2(self, mock_publish_task_created_event):
         user = make_user()
@@ -1006,7 +1055,8 @@ class TestTasks:
             "visibility": "MEMBERS",
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
-            "duration": "INDETERMINATE",
+            # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+            # "duration": "INDETERMINATE",
             "contactEmail": "email@email.com",
         }
         expected_errors = {
@@ -1016,7 +1066,8 @@ class TestTasks:
             "visibility": "Field 'visibility' of required type 'VisibilityType!' was not provided.",
             "locationType": "Field 'locationType' of required type 'LocationType!' was not provided.",
             "regularity": "Field 'regularity' of required type 'Regularity!' was not provided.",
-            "duration": "Field 'duration' of required type 'Duration!' was not provided.",
+            # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+            # "duration": "Field 'duration' of required type 'Duration!' was not provided.",
             "contactEmail": "Field 'contactEmail' of required type 'String!' was not provided.",
         }
         valid_input_keys = valid_input.keys()
