@@ -158,7 +158,7 @@ class TestTasks:
             # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
             # "duration": "INDETERMINATE",  # noqa: ERA001
             # make interaction_type required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
-            # "interactionType": "CHAT",
+            # "interactionType": "CHAT",    # noqa: ERA001
             "contactEmail": "email@email.com",
         }
         expected_errors = {
@@ -172,7 +172,7 @@ class TestTasks:
             # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
             # "duration": "Field 'duration' of required type 'Duration!' was not provided.",  # noqa: ERA001
             # make interaction_type required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
-            # "interactionType": "Field 'interactionType' of required type 'InteractionType!' was not provided.",
+            # "interactionType": "Field 'interactionType' of required type 'InteractionType!' was not provided.",   # noqa: ERA001
             "contactEmail": "Field 'contactEmail' of required type 'String!' was not provided.",
         }
         valid_input_keys = valid_input.keys()
@@ -1076,7 +1076,7 @@ class TestTasks:
             "regularity": "REGULARLY",
             # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
             # "duration": "INDETERMINATE",  # noqa: ERA001
-            # "interactionType": "CHAT",
+            # "interactionType": "CHAT",    # noqa: ERA001
             "contactEmail": "email@email.com",
         }
         expected_errors = {
@@ -1089,7 +1089,7 @@ class TestTasks:
             # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
             # "duration": "Field 'duration' of required type 'Duration!' was not provided.",  # noqa: ERA001
             # make interaction_type required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
-            # "interactionType": "Field 'interactionType' of required type 'InteractionType!' was not provided.",
+            # "interactionType": "Field 'interactionType' of required type 'InteractionType!' was not provided.",   # noqa: ERA001
             "contactEmail": "Field 'contactEmail' of required type 'String!' was not provided.",
         }
         valid_input_keys = valid_input.keys()
