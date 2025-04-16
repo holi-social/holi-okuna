@@ -2,6 +2,7 @@ import copy
 import json
 import logging
 from uuid import uuid4
+from unittest import mock
 
 import pytest
 from asgiref.sync import async_to_sync
@@ -44,7 +45,8 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 @pytest.mark.django_db
 class TestTasks:
-    def test_can_not_create_task_if_not_admin_or_member(self):
+    @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
+    def test_can_not_create_task_if_not_admin_or_member(self, mock_publish_task_created_event):
         user = make_user()
         community = make_community()
 
@@ -83,8 +85,10 @@ class TestTasks:
         field_errors = json.loads(response.errors[0].extensions["errors"])
 
         assert field_errors[0]["message"] in "You cannot add a task to a community you are not a member of"
+        mock_publish_task_created_event.assert_not_called()
 
-    def test_can_not_create_public_task_if_not_admin(self):
+    @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
+    def test_can_not_create_public_task_if_not_admin(self, mock_publish_task_created_event):
         user = make_user()
         community = make_community()
         community.add_member(user)
@@ -124,8 +128,10 @@ class TestTasks:
         field_errors = json.loads(response.errors[0].extensions["errors"])
 
         assert field_errors[0]["message"] in "Only administrators can add public tasks"
+        mock_publish_task_created_event.assert_not_called()
 
-    def test_can_not_update_task_missing_required_fields(self):
+    @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
+    def test_can_not_update_task_missing_required_fields(self, mock_publish_task_created_event):
         user = make_user()
 
         community = make_community(creator=user)
@@ -148,7 +154,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
-            # "duration": "INDETERMINATE",
+            # "duration": "INDETERMINATE",  # noqa: ERA001
             "contactEmail": "email@email.com",
         }
         expected_errors = {
@@ -160,7 +166,7 @@ class TestTasks:
             "locationType": "Field 'locationType' of required type 'LocationType!' was not provided.",
             "regularity": "Field 'regularity' of required type 'Regularity!' was not provided.",
             # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
-            # "duration": "Field 'duration' of required type 'Duration!' was not provided.",
+            # "duration": "Field 'duration' of required type 'Duration!' was not provided.",  # noqa: ERA001
             "contactEmail": "Field 'contactEmail' of required type 'String!' was not provided.",
         }
         valid_input_keys = valid_input.keys()
@@ -177,7 +183,10 @@ class TestTasks:
             assert expected_errors[input_key] in str(response.errors[0].message)
             assert (response.data["updateTask"] if response.data else response.data) is None
 
-    def test_validates_task_before_update(self):
+        mock_publish_task_created_event.assert_not_called()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
+    def test_validates_task_before_update(self, mock_publish_task_created_event):
         user = make_user()
 
         community = make_community(creator=user)
@@ -246,7 +255,10 @@ class TestTasks:
                 assert testCase["expected_error"] in str(response.errors[0].message)
             assert (response.data["createTask"] if response.data else response.data) is None
 
-    def test_can_update_task(self):
+        mock_publish_task_created_event.assert_not_called()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_updated_event")
+    def test_can_update_task(self, mock_publish_task_updated_event):
         user = make_user()
 
         community = make_community(creator=user)
@@ -326,6 +338,9 @@ class TestTasks:
             "skillsV2": [skill2.slug],
         }
 
+        mock_publish_task_updated_event.assert_called_once()
+        mock_publish_task_updated_event.reset_mock()
+
         response = async_to_sync(schema.execute)(
             update_task_mutation,
             context_value=benedict({"request": {"user": user}}),
@@ -343,7 +358,10 @@ class TestTasks:
         assert updateTask["thumbnailBlurhash"] is None
         assert [skill2.slug] == updateTask["skillsV2"]
 
-    def test_can_update_members_only_task_if_collaborator(self):
+        mock_publish_task_updated_event.assert_called_once()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_updated_event")
+    def test_can_update_members_only_task_if_collaborator(self, mock_publish_task_updated_event):
         user = make_user()
 
         community = make_community()
@@ -402,6 +420,9 @@ class TestTasks:
         assert "thumbnail.jpg" in updateTask["thumbnail"]
         assert updateTask["thumbnailBlurhash"] is not None
 
+        mock_publish_task_updated_event.assert_called_once()
+        mock_publish_task_updated_event.reset_mock()
+
         valid_name = "New valid name"
         valid_description = "New valid description"
         valid_visibility = "PUBLIC"
@@ -436,7 +457,10 @@ class TestTasks:
         assert updateTask["thumbnail"] is None
         assert updateTask["thumbnailBlurhash"] is None
 
-    def test_can_not_update_task_if_not_logged_in(self):
+        mock_publish_task_updated_event.assert_called_once()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_updated_event")
+    def test_can_not_update_task_if_not_logged_in(self, mock_publish_task_updated_event):
         community = make_community()
         task = make_community_task(community)
         skill = make_skill()
@@ -474,7 +498,10 @@ class TestTasks:
 
         assert_is_unauthorized(response)
 
-    def test_can_not_update_task_if_not_admin_or_member(self):
+        mock_publish_task_updated_event.assert_not_called()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_updated_event")
+    def test_can_not_update_task_if_not_admin_or_member(self, mock_publish_task_updated_event):
         user = make_user()
         community = make_community()
         skill = make_skill()
@@ -517,7 +544,10 @@ class TestTasks:
 
         assert field_errors[0]["message"] in "You cannot update a task of a community you are not a member of"
 
-    def test_can_not_update_public_task_if_not_admin(self):
+        mock_publish_task_updated_event.assert_not_called()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_updated_event")
+    def test_can_not_update_public_task_if_not_admin(self, mock_publish_task_updated_event):
         user = make_user()
         community = make_community()
         community.add_member(user=user)
@@ -561,7 +591,10 @@ class TestTasks:
 
         assert field_errors[0]["message"] in "Only administrators can update public tasks"
 
-    def test_can_not_delete_task_if_member(self):
+        mock_publish_task_updated_event.assert_not_called()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_deleted_event")
+    def test_can_not_delete_task_if_member(self, mock_publish_task_deleted_event):
         user = make_user()
         community = make_community()
         task = make_community_task(community)
@@ -585,7 +618,10 @@ class TestTasks:
             response.errors[0].extensions["errors"]
         )
 
-    def test_can_not_delete_public_task_if_not_admin(self):
+        mock_publish_task_deleted_event.assert_not_called()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_deleted_event")
+    def test_can_not_delete_public_task_if_not_admin(self, mock_publish_task_deleted_event):
         user = make_user()
         community = make_community()
         community.add_member(user=user)
@@ -608,7 +644,10 @@ class TestTasks:
         assert response.data is None
         assert "Only administrators can delete public tasks" in str(response.errors[0].extensions["errors"])
 
-    def test_can_not_delete_task_if_not_logged_in(self):
+        mock_publish_task_deleted_event.assert_not_called()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_deleted_event")
+    def test_can_not_delete_task_if_not_logged_in(self, mock_publish_task_deleted_event):
         community = make_community()
         task = make_community_task(community)
 
@@ -628,7 +667,10 @@ class TestTasks:
 
         assert_is_unauthorized(response)
 
-    def test_can_delete_task(self):
+        mock_publish_task_deleted_event.assert_not_called()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_deleted_event")
+    def test_can_delete_task(self, mock_publish_task_deleted_event):
         user = make_user()
         community = make_community(creator=user)
         task = make_community_task(community)
@@ -650,7 +692,10 @@ class TestTasks:
         assert response.data["deleteTask"]["success"] is True
         assert response.errors is None
 
-    def test_can_delete_members_only_task_if_collaborator(self):
+        mock_publish_task_deleted_event.assert_called_once()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_deleted_event")
+    def test_can_delete_members_only_task_if_collaborator(self, mock_publish_task_deleted_event):
         user = make_user()
         community = make_community()
         community.add_member(user=user)
@@ -673,7 +718,10 @@ class TestTasks:
         assert response.data["deleteTask"]["success"] is True
         assert response.errors is None
 
-    def test_validates_task_before_creation(self):
+        mock_publish_task_deleted_event.assert_called_once()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
+    def test_validates_task_before_creation(self, mock_publish_task_created_event):
         user = make_user()
 
         community = make_community(creator=user)
@@ -739,7 +787,10 @@ class TestTasks:
                 assert testCase["expected_error"] in str(response.errors[0].message)
             assert (response.data["createTask"] if response.data else response.data) is None
 
-    def test_can_create_task(self):
+        mock_publish_task_created_event.assert_not_called()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
+    def test_can_create_task(self, mock_publish_task_created_event):
         user = make_user()
 
         community = make_community(creator=user)
@@ -792,6 +843,8 @@ class TestTasks:
         assert valid_visibility == created_task["visibility"]
         assert expected_skills_v2 == created_task["skillsV2"]
 
+        mock_publish_task_created_event.assert_called_once()
+
     # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
     # remove this then
     def test_can_create_task_without_timing_metadata_as_older__client(self):
@@ -839,7 +892,8 @@ class TestTasks:
         created_task = response.data["createTask"]
         assert "id" in created_task
 
-    def test_can_create_task_with_skills_v2(self):
+    @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
+    def test_can_create_task_with_skills_v2(self, mock_publish_task_created_event):
         user = make_user()
 
         community = make_community(creator=user)
@@ -884,7 +938,10 @@ class TestTasks:
         created_task = response.data["createTask"]
         assert skills_v2 == created_task["skillsV2"]
 
-    def test_can_create_members_only_task_if_collaborator(self):
+        mock_publish_task_created_event.assert_called_once()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
+    def test_can_create_members_only_task_if_collaborator(self, mock_publish_task_created_event):
         user = make_user()
 
         community = make_community()
@@ -936,7 +993,10 @@ class TestTasks:
         assert valid_description == added_collaboration_tool["description"]
         assert valid_visibility == added_collaboration_tool["visibility"]
 
-    def test_can_not_create_task_if_not_logged_in(self):
+        mock_publish_task_created_event.assert_called_once()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
+    def test_can_not_create_task_if_not_logged_in(self, mock_publish_task_created_event):
         community = make_community()
         skill = make_skill()
 
@@ -972,7 +1032,10 @@ class TestTasks:
 
         assert_is_unauthorized(response)
 
-    def test_can_not_create_task_missing_required_fields(self):
+        mock_publish_task_created_event.assert_not_called()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
+    def test_can_not_create_task_missing_required_fields(self, mock_publish_task_created_event):
         user = make_user()
 
         community = make_community(creator=user)
@@ -993,7 +1056,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
-            # "duration": "INDETERMINATE",
+            # "duration": "INDETERMINATE",  # noqa: ERA001
             "contactEmail": "email@email.com",
         }
         expected_errors = {
@@ -1004,7 +1067,7 @@ class TestTasks:
             "locationType": "Field 'locationType' of required type 'LocationType!' was not provided.",
             "regularity": "Field 'regularity' of required type 'Regularity!' was not provided.",
             # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
-            # "duration": "Field 'duration' of required type 'Duration!' was not provided.",
+            # "duration": "Field 'duration' of required type 'Duration!' was not provided.",  # noqa: ERA001
             "contactEmail": "Field 'contactEmail' of required type 'String!' was not provided.",
         }
         valid_input_keys = valid_input.keys()
@@ -1020,6 +1083,8 @@ class TestTasks:
 
             assert expected_errors[input_key] in str(response.errors[0].message)
             assert (response.data["createTask"] if response.data else response.data) is None
+
+        mock_publish_task_created_event.assert_not_called()
 
     def test_anonymous_and_non_members_only_sees_public_tasks_by_space(self):
         user = make_user()
