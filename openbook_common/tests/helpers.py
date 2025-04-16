@@ -339,7 +339,13 @@ def make_community_task(
     deleted_at = timezone.now() if is_deleted else None
 
     return mixer.blend(
-        Task, community=community, skills=skills, skills_v2=skills_v2, visibility=visibility, deleted_at=deleted_at
+        Task,
+        community=community,
+        skills=skills,
+        skills_v2=skills_v2,
+        visibility=visibility,
+        deleted_at=deleted_at,
+        duration="INDETERMINATE",
     )
 
 

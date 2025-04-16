@@ -24,7 +24,7 @@ from openbook_common.tests.helpers import (
     make_users,
 )
 from openbook_common.enums import ReactionType, VisibilityType
-from openbook_communities.models import Community
+from openbook_communities.models import Community, Task
 from openbook_insights.models import Insight, Discussion
 from openbook_polls.models import Poll, Choice
 from openbook_posts.models import Post
@@ -190,6 +190,7 @@ class Command(BaseCommand):
                     name=fake.text(max_nb_chars=20),
                     description=fake.catch_phrase(),
                     visibility=VisibilityType.PUBLIC,
+                    duration=Task.Duration.HOURS_2to4,
                     location_type="REMOTE",
                     contact_email=fake.email(),
                     slots_available=10,

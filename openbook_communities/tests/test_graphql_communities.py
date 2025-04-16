@@ -2,6 +2,7 @@ import json
 import logging
 from unittest import TestCase
 from unittest import mock
+from unittest.mock import call
 from uuid import uuid4
 
 import blurhash
@@ -663,10 +664,10 @@ class TestCommunities(TestCase):
         request_kwargs = mock_send_space_membership_request_notification.call_args.kwargs
         request_recipients = [space_creator.username]
 
-        self.assertEquals([r.username for r in request_kwargs["recipients"]], request_recipients)
-        self.assertEquals(request_kwargs["requester"], membership_requestor)
-        self.assertEquals(request_kwargs["space"], space)
-        self.assertEquals(request_kwargs["message"], message)
+        self.assertEqual([r.username for r in request_kwargs["recipients"]], request_recipients)
+        self.assertEqual(request_kwargs["requester"], membership_requestor)
+        self.assertEqual(request_kwargs["space"], space)
+        self.assertEqual(request_kwargs["message"], message)
 
         # WHEN space creator approves user join request
         space_after_approval = mutate_update_space_user_connection_data(
@@ -700,9 +701,9 @@ class TestCommunities(TestCase):
         mock_send_space_membership_request_approval_user_notification.assert_called_once()
         approval_kwargs = mock_send_space_membership_request_approval_user_notification.call_args.kwargs
 
-        self.assertEquals(approval_kwargs["requester"], membership_requestor)
-        self.assertEquals(approval_kwargs["space"], space)
-        self.assertEquals(approval_kwargs["approver"], space_creator)
+        self.assertEqual(approval_kwargs["requester"], membership_requestor)
+        self.assertEqual(approval_kwargs["space"], space)
+        self.assertEqual(approval_kwargs["approver"], space_creator)
 
         # THEN space membership request workflow should be cancelled to avoid sending emails to staff members
         mock_notification_api_cancel_workflow.assert_called_once_with(transaction_id=str(membership_request.id))
@@ -723,9 +724,9 @@ class TestCommunities(TestCase):
         kwargs = mock_send_space_membership_request_approval_admin_notification.call_args.kwargs
         expected_recipients = [space_creator.username]
 
-        self.assertEquals([r.username for r in kwargs["recipients"]], expected_recipients)
-        self.assertEquals(kwargs["requester"], membership_requestor)
-        self.assertEquals(kwargs["space"], space)
+        self.assertEqual([r.username for r in kwargs["recipients"]], expected_recipients)
+        self.assertEqual(kwargs["requester"], membership_requestor)
+        self.assertEqual(kwargs["space"], space)
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
@@ -869,10 +870,10 @@ class TestCommunities(TestCase):
         kwargs = mock_send_space_membership_request_notification.call_args.kwargs
         expected_recipients = [space_creator.username, admin.username, moderator.username]
 
-        self.assertEquals([r.username for r in kwargs["recipients"]], expected_recipients)
-        self.assertEquals(kwargs["requester"], membership_requestor)
-        self.assertEquals(kwargs["space"], space)
-        self.assertEquals(kwargs["message"], message)
+        self.assertEqual([r.username for r in kwargs["recipients"]], expected_recipients)
+        self.assertEqual(kwargs["requester"], membership_requestor)
+        self.assertEqual(kwargs["space"], space)
+        self.assertEqual(kwargs["message"], message)
 
     def test_validates_space_membership_request(self):
         membership_requestor = make_user()
@@ -980,10 +981,10 @@ class TestCommunities(TestCase):
         kwargs = mock_send_space_membership_request_notification.call_args.kwargs
         expected_recipients = [space_creator.username]
 
-        self.assertEquals([r.username for r in kwargs["recipients"]], expected_recipients)
-        self.assertEquals(kwargs["requester"], membership_requestor)
-        self.assertEquals(kwargs["space"], space)
-        self.assertEquals(kwargs["message"], message)
+        self.assertEqual([r.username for r in kwargs["recipients"]], expected_recipients)
+        self.assertEqual(kwargs["requester"], membership_requestor)
+        self.assertEqual(kwargs["space"], space)
+        self.assertEqual(kwargs["message"], message)
 
         # WHEN admin rejects user membership request
         space_after_rejection = mutate_update_space_user_connection_data(
@@ -1022,19 +1023,19 @@ class TestCommunities(TestCase):
         mock_send_space_membership_request_decline_user_notification.assert_called_once()
         kwargs = mock_send_space_membership_request_decline_user_notification.call_args.kwargs
 
-        self.assertEquals(kwargs["requester"], membership_requestor)
-        self.assertEquals(kwargs["space"], space)
-        self.assertEquals(kwargs["denier"], space_creator)
+        self.assertEqual(kwargs["requester"], membership_requestor)
+        self.assertEqual(kwargs["space"], space)
+        self.assertEqual(kwargs["denier"], space_creator)
 
         # THEN admin should receive notification via Notifications system
         mock_send_space_membership_request_decline_admin_notification.assert_called_once()
         kwargs = mock_send_space_membership_request_decline_admin_notification.call_args.kwargs
         expected_recipients = [space_creator.username]
 
-        self.assertEquals([r.username for r in kwargs["recipients"]], expected_recipients)
-        self.assertEquals(kwargs["requester"], membership_requestor)
-        self.assertEquals(kwargs["space"], space)
-        self.assertEquals(kwargs["denier"], space_creator)
+        self.assertEqual([r.username for r in kwargs["recipients"]], expected_recipients)
+        self.assertEqual(kwargs["requester"], membership_requestor)
+        self.assertEqual(kwargs["space"], space)
+        self.assertEqual(kwargs["denier"], space_creator)
 
         mock_publish_space_user_added_event.assert_not_called()
         mock_invalidate_discover_spaces_query_cache.assert_called()
@@ -1122,10 +1123,10 @@ class TestCommunities(TestCase):
         kwargs = mock_send_space_membership_request_notification.call_args.kwargs
         expected_recipients = [admin.username]
 
-        self.assertEquals([r.username for r in kwargs["recipients"]], expected_recipients)
-        self.assertEquals(kwargs["requester"], membership_requestor)
-        self.assertEquals(kwargs["space"], community)
-        self.assertEquals(kwargs["message"], message)
+        self.assertEqual([r.username for r in kwargs["recipients"]], expected_recipients)
+        self.assertEqual(kwargs["requester"], membership_requestor)
+        self.assertEqual(kwargs["space"], community)
+        self.assertEqual(kwargs["message"], message)
 
     def test_space_invites_only_visible_to_admins(
         self,
@@ -1714,9 +1715,9 @@ class TestCommunities(TestCase):
         kwargs = mock_send_space_membership_invite_approval_admin_notification.call_args.kwargs
         expected_recipients = [space_creator.username]
 
-        self.assertEquals([r.username for r in kwargs["recipients"]], expected_recipients)
-        self.assertEquals(kwargs["invitee"], invitee)
-        self.assertEquals(kwargs["space"], space)
+        self.assertEqual([r.username for r in kwargs["recipients"]], expected_recipients)
+        self.assertEqual(kwargs["invitee"], invitee)
+        self.assertEqual(kwargs["space"], space)
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
@@ -2458,11 +2459,20 @@ class TestCommunities(TestCase):
         mock_invalidate_discover_spaces_query_cache.assert_not_called()
         mock_publish_space_deleted_event.assert_not_called()
 
+    @mock.patch("openbook_communities.schema.mutations.publish_task_deleted_event")
     @mock.patch("openbook_communities.schema.mutations.publish_space_deleted_event")
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
-    def test_can_delete_space(self, mock_invalidate_discover_spaces_query_cache, mock_publish_space_deleted_event):
+    def test_can_delete_space(
+        self,
+        mock_invalidate_discover_spaces_query_cache,
+        mock_publish_space_deleted_event,
+        mock_publish_task_deleted_event,
+    ):
         user = make_user()
         community = make_community(creator=user)
+        task1 = make_community_task(community)
+        make_community_task(community, is_deleted=True)
+        task3 = make_community_task(community)
 
         delete_space_mutation = """
             mutation test($id: UUID!) {
@@ -2483,6 +2493,13 @@ class TestCommunities(TestCase):
 
         mock_invalidate_discover_spaces_query_cache.assert_called_once()
         mock_publish_space_deleted_event.assert_called_once_with(community)
+        assert mock_publish_task_deleted_event.call_count == 2
+        mock_publish_task_deleted_event.assert_has_calls(
+            [
+                call(user, task1),
+                call(user, task3),
+            ]
+        )
 
     @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_request_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_invite_notification")
@@ -3093,8 +3110,9 @@ class TestCommunities(TestCase):
         assert "Field 'id' of required type 'UUID!' was not provided" in response.errors[0].message
         mock_invalidate_discover_spaces_query_cache.assert_not_called()
 
+    @mock.patch("openbook_communities.schema.mutations.publish_space_updated_event")
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
-    def test_can_update_space(self, mock_invalidate_discover_spaces_query_cache):
+    def test_can_update_space(self, mock_invalidate_discover_spaces_query_cache, mock_publish_space_updated_event):
         user = make_user()
         community = make_community(creator=user)
         topics = make_topics(3)
@@ -3150,6 +3168,9 @@ class TestCommunities(TestCase):
             assert response.errors is None
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
+        assert mock_publish_space_updated_event.call_count == len(valid_inputs)
+        for call_args in mock_publish_space_updated_event.call_args_list:
+            assert call_args.kwargs["community"] == community
 
     def test_updated_space_has_new_values(self):
         user = make_user()
@@ -3264,6 +3285,7 @@ class TestCommunities(TestCase):
             description="test_description",
             visibility=VisibilityType.PUBLIC,
             regularity="ONE_TIME",
+            duration="INDETERMINATE",
             location_type="REMOTE",
             contact_email="test@test.com",
             slots_available=1,
@@ -3276,6 +3298,7 @@ class TestCommunities(TestCase):
             description="test_description",
             visibility=VisibilityType.MEMBERS,
             regularity="ONE_TIME",
+            duration="INDETERMINATE",
             location_type="REMOTE",
             contact_email="test@test.com",
             slots_available=1,

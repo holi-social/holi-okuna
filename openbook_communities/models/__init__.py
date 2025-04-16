@@ -1250,7 +1250,24 @@ class Task(ModelWithUUID):
     class Regularity(models.TextChoices):
         REGULARLY = ("REGULARLY",)
         PROJECT_BASED = ("PROJECT_BASED",)
-        ONE_TIME = "ONE_TIME"
+        ONE_TIME = ("ONE_TIME",)
+        ONCE_WEEK = ("ONCE_WEEK",)
+        SEVERAL_TIMES_WEEK = ("SEVERAL_TIMES_WEEK",)
+        ONCE_MONTH = ("ONCE_MONTH",)
+        NEGOTIABLE = ("NEGOTIABLE",)
+
+    @strawberry.enum
+    class Duration(models.TextChoices):
+        MINUTES_10to15 = ("MINUTES_10to15",)
+        MINUTES_15to30 = ("MINUTES_15to30",)
+        MINUTES_30to60 = ("MINUTES_30to60",)
+        HOURS_1to2 = ("HOURS_1to2",)
+        HOURS_2to4 = ("HOURS_2to4",)
+        HOURS_4to6 = ("HOURS_4to6",)
+        DAYS_1 = ("DAYS_1",)
+        DAYS_2 = ("DAYS_2",)
+        DAYS_3_OR_MORE = ("DAYS_3_OR_MORE",)
+        INDETERMINATE = ("INDETERMINATE",)
 
     name = models.CharField(
         max_length=settings.TASK_NAME_MAX_LENGTH,
@@ -1275,6 +1292,10 @@ class Task(ModelWithUUID):
         null=True,
     )
     created = models.DateTimeField(default=timezone.now, editable=False)
+    timeframe_start_date = models.DateField(null=True, blank=True)
+    timeframe_end_date = models.DateField(null=True, blank=True)
+    regularity = models.CharField(max_length=20, choices=Regularity.choices)
+    duration = models.CharField(max_length=20, choices=Duration.choices, default=Duration.INDETERMINATE)
     slots_available = models.PositiveIntegerField(blank=False)
     slots_taken = models.PositiveIntegerField(blank=False, default=0)
     visibility = models.CharField(max_length=12, choices=VisibilityType.choices, default=VisibilityType.PUBLIC)
@@ -1288,10 +1309,6 @@ class Task(ModelWithUUID):
     geolocation = models.PointField(blank=True, null=True, spatial_index=True)
     # also store as GeoJSON as downstream processes (Google Datastream) can't understand Postgis binary format
     geolocation_geojson = models.JSONField(blank=True, null=True)
-    regularity = models.CharField(
-        max_length=13,
-        choices=Regularity.choices,
-    )
     skills = models.ManyToManyField(Skill, related_name="tasks", blank=True, db_index=True)
     skills_v2 = ArrayField(models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH), blank=True, default=list)
     thumbnail = ProcessedImageField(
@@ -1371,9 +1388,12 @@ class Task(ModelWithUUID):
         location_type,
         contact_email,
         slots_available,
+        duration=None,
         location=None,
         geolocation=None,
         regularity=None,
+        timeframe_start_date=None,
+        timeframe_end_date=None,
         contact_phone=None,
         skills=None,
         skills_v2=None,
@@ -1394,6 +1414,9 @@ class Task(ModelWithUUID):
             location=location,
             geolocation=geolocation,
             regularity=regularity,
+            duration=duration,
+            timeframe_start_date=timeframe_start_date,
+            timeframe_end_date=timeframe_end_date,
             contact_phone=contact_phone,
             thumbnail=thumbnail,
             thumbnail_blurhash=generate_blurhash(thumbnail),
@@ -1414,9 +1437,12 @@ class Task(ModelWithUUID):
         location_type,
         contact_email,
         slots_available,
+        duration=None,
         location=None,
         geolocation=None,
         regularity=None,
+        timeframe_start_date=None,
+        timeframe_end_date=None,
         contact_phone=None,
         skill_ids=None,
         skills_v2=None,
@@ -1430,6 +1456,9 @@ class Task(ModelWithUUID):
         self.contact_email = contact_email
         self.regularity = regularity
         self.slots_available = slots_available
+        self.duration = duration
+        self.timeframe_start_date = timeframe_start_date
+        self.timeframe_end_date = timeframe_end_date
 
         if location is not None:
             self.location = location

@@ -15,6 +15,9 @@ from openbook_communities.events import (
     publish_space_deleted_event,
     publish_space_user_left_event,
     publish_space_user_removed_event,
+    publish_task_created_event,
+    publish_task_updated_event,
+    publish_task_deleted_event,
 )
 from openbook.utils import invalidate_discover_spaces_query_cache
 from openbook_auth.models import User as UserModel
@@ -23,6 +26,7 @@ from openbook_auth.utils import verify_authorized_user
 from openbook_common.helpers import is_parameter_null, to_input_dict
 from openbook_common.schema.types import GeolocationPointInput, Result
 from openbook_communities.models import Community as CommunityModel
+from openbook_communities.models import Task as TaskModel
 from openbook_communities.models import SpaceUserConnectionType
 from openbook_communities.schema.types import (
     AddCollaborationToolInput,
@@ -243,6 +247,7 @@ class Mutation:
         current_user = verify_authorized_user(info)
         try:
             space = CommunityModel.objects.get(id=id)
+            tasks = list(TaskModel.objects.filter(deleted_at=None).all())
 
             with transaction.atomic():
                 space.delete_pending_notifications()
@@ -250,6 +255,8 @@ class Mutation:
                     community_id=id,
                 )
 
+            for task in tasks:
+                publish_task_deleted_event(current_user, task)
             publish_space_deleted_event(space)
             track(current_user, TrackingEvent("spaceDeleted", {"spaceId": str(space.id)}))
             invalidate_discover_spaces_query_cache()
@@ -284,7 +291,10 @@ class Mutation:
         serializer = CreateTaskSerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+
         space_id = data.get("space_id")
+        duration = data.get("duration", TaskModel.Duration.INDETERMINATE)
+
         with transaction.atomic():
             task = current_user.create_task(
                 space_id=space_id,
@@ -296,6 +306,9 @@ class Mutation:
                 location=data.get("location"),
                 geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
                 regularity=data.get("regularity"),
+                duration=duration,
+                timeframe_start_date=data.get("timeframe_start_date"),
+                timeframe_end_date=data.get("timeframe_end_date"),
                 contact_email=data.get("contact_email"),
                 contact_phone=data.get("contact_phone"),
                 skills=data.get("skills"),
@@ -303,6 +316,7 @@ class Mutation:
                 thumbnail=data.get("thumbnail"),
             )
 
+        publish_task_created_event(current_user, task)
         track(
             current_user,
             TrackingEvent("taskCreated", {"spaceId": str(space_id), "taskId": str(task.id)}),
@@ -321,6 +335,8 @@ class Mutation:
 
         space_id = data.get("space_id")
         task_id = data.get("task_id")
+        duration = data.get("duration", TaskModel.Duration.INDETERMINATE)
+
         with transaction.atomic():
             task = current_user.update_task(
                 task_id=task_id,
@@ -333,6 +349,9 @@ class Mutation:
                 location=data.get("location"),
                 geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
                 regularity=data.get("regularity"),
+                duration=duration,
+                timeframe_start_date=data.get("timeframe_start_date"),
+                timeframe_end_date=data.get("timeframe_end_date"),
                 contact_email=data.get("contact_email"),
                 contact_phone=data.get("contact_phone"),
                 skill_ids=data.get("skills"),
@@ -341,6 +360,7 @@ class Mutation:
                 remove_thumbnail=is_parameter_null(data, "thumbnail"),
             )
 
+        publish_task_updated_event(current_user, task)
         track(
             current_user,
             TrackingEvent("taskUpdated", {"spaceId": str(space_id), "taskId": str(task.id)}),
@@ -356,6 +376,7 @@ class Mutation:
         with transaction.atomic():
             task = current_user.delete_task_with_id(task_id=id)
 
+        publish_task_deleted_event(current_user, task)
         track(
             current_user,
             TrackingEvent("taskDeleted", {"spaceId": str(task.community_id), "taskId": str(task.id)}),
