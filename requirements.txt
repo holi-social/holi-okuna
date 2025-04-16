@@ -112,7 +112,7 @@ requests-file==2.1.0
 requests-toolbelt==1.0.0
 rest-framework-generic-relations==2.2.0
 rq==2.3.2
-rsa==4.9
+rsa==4.9.1
 ruamel.yaml==0.18.10
 ruamel.yaml.clib==0.2.12
 ruff==0.11.5
