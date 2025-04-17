@@ -329,7 +329,7 @@ def make_community_invites_enabled():
 
 
 def make_community_task(
-    community, skills=None, skills_v2=None, visibility=VisibilityType.MEMBERS, is_deleted=False
+    community, skills=None, skills_v2=None, visibility=VisibilityType.MEMBERS, is_deleted=False, **kwargs
 ) -> Task:
     if not skills:
         skills = [make_skill()]
@@ -345,7 +345,8 @@ def make_community_task(
         skills_v2=skills_v2,
         visibility=visibility,
         deleted_at=deleted_at,
-        duration="INDETERMINATE",
+        duration=kwargs.get("duration", "INDETERMINATE"),
+        **kwargs,
     )
 
 
