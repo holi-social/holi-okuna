@@ -1,6 +1,8 @@
 import copy
 import json
 import logging
+from datetime import timedelta
+from typing import Callable
 from uuid import uuid4
 from unittest import mock
 
@@ -12,7 +14,9 @@ from django.contrib.gis import geos
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.test import AsyncClient
+from django.utils import timezone
 from faker import Faker
+from strawberry.types import ExecutionResult
 
 from openbook.graphql_schema import schema
 from openbook.tests.test_data import geolocation_geometry
@@ -153,8 +157,6 @@ class TestTasks:
             "visibility": "MEMBERS",
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
-            # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
-            # "duration": "INDETERMINATE",  # noqa: ERA001
             "contactEmail": "email@email.com",
         }
         expected_errors = {
@@ -165,8 +167,6 @@ class TestTasks:
             "visibility": "Field 'visibility' of required type 'VisibilityType!' was not provided.",
             "locationType": "Field 'locationType' of required type 'LocationType!' was not provided.",
             "regularity": "Field 'regularity' of required type 'Regularity!' was not provided.",
-            # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
-            # "duration": "Field 'duration' of required type 'Duration!' was not provided.",  # noqa: ERA001
             "contactEmail": "Field 'contactEmail' of required type 'String!' was not provided.",
         }
         valid_input_keys = valid_input.keys()
@@ -1055,8 +1055,6 @@ class TestTasks:
             "visibility": "MEMBERS",
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
-            # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
-            # "duration": "INDETERMINATE",  # noqa: ERA001
             "contactEmail": "email@email.com",
         }
         expected_errors = {
@@ -1066,8 +1064,6 @@ class TestTasks:
             "visibility": "Field 'visibility' of required type 'VisibilityType!' was not provided.",
             "locationType": "Field 'locationType' of required type 'LocationType!' was not provided.",
             "regularity": "Field 'regularity' of required type 'Regularity!' was not provided.",
-            # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
-            # "duration": "Field 'duration' of required type 'Duration!' was not provided.",  # noqa: ERA001
             "contactEmail": "Field 'contactEmail' of required type 'String!' was not provided.",
         }
         valid_input_keys = valid_input.keys()
@@ -1313,6 +1309,143 @@ class TestTasks:
         assert response.errors is None
         assert str(deleted_task.id) not in [task["id"] for task in response.data["spaceById"]["tasks"]]
         assert len(response.data["spaceById"]["tasks"]) == 1
+
+    class FilterExpiredTasksTestData:
+        via_space_id = (
+            """ 
+                query Space($spaceId: String!) {
+                    spaceById(idOrName: $spaceId) {
+                        id
+                        tasks {
+                            id
+                        }
+                    }
+                }
+            """,
+            lambda resp: [task["id"] for task in resp.data["spaceById"]["tasks"]],
+        )
+
+        tasks_by_space_id = (
+            """
+                query Space($spaceId: UUID!) {
+                    tasksBySpaceId(spaceId: $spaceId) {
+                        data {
+                            id
+                        }
+                    }
+                }
+            """,
+            lambda resp: [task["id"] for task in resp.data["tasksBySpaceId"]["data"]],
+        )
+
+        recommended_tasks = (
+            """
+                query RecommendedTasks {
+                    recommendedTasks {
+                        data {
+                            id
+                        }
+                    }
+                }
+            """,
+            lambda resp: [task["id"] for task in resp.data["recommendedTasks"]["data"]],
+        )
+
+    @pytest.mark.parametrize(
+        "query,task_ids_from_response,request_with,should_contain_expired",
+        [
+            pytest.param(*FilterExpiredTasksTestData.via_space_id, "ANON", False, id="via_space_id_anon_no_expired"),
+            pytest.param(*FilterExpiredTasksTestData.via_space_id, "USER", False, id="via_space_id_user_no_expired"),
+            pytest.param(
+                *FilterExpiredTasksTestData.via_space_id, "ADMIN", True, id="via_space_id_admin_include_expired"
+            ),
+            pytest.param(
+                *FilterExpiredTasksTestData.tasks_by_space_id, "ANON", False, id="tasks_by_space_id_anon_no_expired"
+            ),
+            pytest.param(
+                *FilterExpiredTasksTestData.tasks_by_space_id, "USER", False, id="tasks_by_space_id_user_no_expired"
+            ),
+            pytest.param(
+                *FilterExpiredTasksTestData.tasks_by_space_id,
+                "ADMIN",
+                True,
+                id="tasks_by_space_id_admin_include_expired",
+            ),
+            pytest.param(
+                *FilterExpiredTasksTestData.recommended_tasks,
+                "ANON",
+                False,
+                id="recommended_tasks_anon_no_expired",
+            ),
+            pytest.param(
+                *FilterExpiredTasksTestData.recommended_tasks,
+                "USER",
+                False,
+                id="recommended_tasks_user_no_expired",
+            ),
+            pytest.param(
+                *FilterExpiredTasksTestData.recommended_tasks,
+                "ADMIN",
+                False,
+                id="recommended_tasks_admin_no_expired",
+            ),
+        ],
+    )
+    def test_expired_tasks_are_filtered_correctly_on_lists(
+        self,
+        query: str,
+        request_with: str,
+        task_ids_from_response: Callable[[ExecutionResult], list[str]],
+        should_contain_expired: bool,
+    ):
+        """
+        Given: we have a space with an expired task and a current task
+        When: we run a query fetching tasks
+        Then: we verify that the business rules regarding filtering out expired tasks are kept
+        """
+        user = make_user()
+        space = make_community(creator=user)
+
+        timeframe_start_date = timezone.now() - timedelta(days=7)
+        timeframe_end_date_future = timezone.now() + timedelta(days=3)
+        timeframe_end_date_past = timezone.now() - timedelta(days=1)
+
+        current_task = make_community_task(
+            space,
+            visibility=VisibilityType.PUBLIC,
+            timeframe_start_date=timeframe_start_date,
+            timeframe_end_date=timeframe_end_date_future,
+        )
+
+        expired_task = make_community_task(
+            space,
+            visibility=VisibilityType.PUBLIC,
+            timeframe_start_date=timeframe_start_date,
+            timeframe_end_date=timeframe_end_date_past,
+        )
+
+        match request_with:
+            case "ANON":
+                request_user = AnonymousUser
+            case "ADMIN":
+                request_user = user
+            case _:
+                request_user = make_user()
+
+        response = async_to_sync(schema.execute)(
+            query,
+            variable_values={"spaceId": str(space.id)},
+            context_value=benedict({"request": {"user": request_user}}),
+        )
+        response_task_ids = task_ids_from_response(response)
+
+        assert response.errors is None
+        assert str(current_task.id) in response_task_ids
+
+        if should_contain_expired:
+            assert str(expired_task.id) in response_task_ids
+        else:
+            assert str(expired_task.id) not in response_task_ids
 
 
 @pytest.mark.django_db
