@@ -223,6 +223,7 @@ class Task:
     slots_taken: strawberry.auto
     visibility: VisibilityType
     location_type: TaskModel.LocationType
+    interaction_type: Optional[TaskModel.InteractionType]
     location: strawberry.auto
     regularity: TaskModel.Regularity
     duration: Optional[TaskModel.Duration]
