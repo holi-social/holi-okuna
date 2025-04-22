@@ -341,19 +341,19 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "EMAIL_HOST"
-          value = "smtp.mailbox.org"
+          value = "smtp.gmail.com"
         }
         env {
           name  = "DEFAULT_FROM_EMAIL"
-          value = "noreply@holi.social"
+          value = "no-reply@holi.social"
         }
         env {
           name  = "SERVICE_EMAIL_ADDRESS"
-          value = "development@holi.team"
+          value = "no-reply@holi.social"
         }
         env {
           name  = "SERVER_EMAIL"
-          value = "development@holi.team"
+          value = "no-reply@holi.social"
         }
         env {
           name = "EMAIL_HOST_USER"

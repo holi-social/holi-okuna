@@ -1377,6 +1377,11 @@ class Task(ModelWithUUID):
             & (pQ(visibility=VisibilityType.PUBLIC) | pQ(community__memberships__user__id=user.id))
         )
 
+    @staticmethod
+    def is_not_expired_query(prefix=None) -> Q:
+        pQ = PrefixedQ(prefix)
+        return pQ(timeframe_end_date__isnull=True) | pQ(timeframe_end_date__gte=timezone.now())
+
     def set_skills_with_ids(self, skill_ids):
         self.skills.clear()
         Skill = get_skill_model()

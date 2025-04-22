@@ -101,17 +101,15 @@ def send_extend_ory_session(session_id: str):
 
 
 def get_oidc(user_id: str):
-    try:
-        response = requests.get(f"{settings.ORY_BASE_URL}/admin/identities/{user_id}", headers=ORY_HEADERS, timeout=30)
-        if response.status_code != http.HTTPStatus.OK:
-            response_data = response.json()
-            error = response_data.get("error")
-            logger.error("Getting Ory User: %s failed with Error: %s", user_id, error["message"])
-        else:
-            json = response.json()
-            return "oidc" in json.get("credentials", {})
-    except Exception as ex:
-        logger.error("Could not process Session Expiry. Exception: %s", repr(ex))
+    response = requests.get(f"{settings.ORY_BASE_URL}/admin/identities/{user_id}", headers=ORY_HEADERS, timeout=30)
+    if response.status_code != http.HTTPStatus.OK:
+        response_data = response.json()
+        error = response_data.get("error")
+        logger.error("Getting Ory User: %s failed with Error: %s", user_id, error["message"])
+        raise error
+    else:
+        json = response.json()
+        return "oidc" in json.get("credentials", {})
 
 
 def extend_ory_session(user_session: str, user_session_expiry: str):

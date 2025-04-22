@@ -4,6 +4,7 @@ from typing import Annotated, List, Optional, TypeVar, TypeAlias, Any
 
 import strawberry
 import strawberry_django
+from django.contrib.auth.models import AnonymousUser
 from django.db.models import Q
 from django.utils import timezone
 from strawberry.django.context import StrawberryDjangoContext
@@ -471,8 +472,15 @@ class Space:
 
     @strawberry_django.field()
     def tasks(self, info: Info) -> list[Task]:
-        current_user: UserModel = info.context.request.user
-        return TaskModel.objects.filter(community=self).filter(TaskModel.is_visible_query(current_user)).distinct()
+        current_user: UserModel | AnonymousUser = info.context.request.user
+        filtered_tasks_query = (
+            TaskModel.objects.filter(community=self).filter(TaskModel.is_visible_query(current_user)).distinct()
+        )
+
+        if current_user.is_anonymous or not current_user.is_member_of_community_with_id(self.id):
+            filtered_tasks_query = filtered_tasks_query.filter(TaskModel.is_not_expired_query())
+
+        return filtered_tasks_query
 
 
 @strawberry.type
