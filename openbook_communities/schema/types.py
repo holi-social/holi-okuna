@@ -98,6 +98,7 @@ class CreateTaskInput:
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     contact_phone: Optional[str] = strawberry.UNSET
+    signup_link: Optional[str] = strawberry.UNSET
 
 
 @strawberry.input
@@ -125,6 +126,7 @@ class UpdateTaskInput:
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     contact_phone: Optional[str] = strawberry.UNSET
+    signup_link: Optional[str] = strawberry.UNSET
 
 
 @strawberry.input
@@ -238,6 +240,7 @@ class Task:
     thumbnail_blurhash: Optional[str]
     contact_email: str
     contact_phone: Optional[str]
+    signup_link: strawberry.auto
 
     @strawberry_django.field()
     def geolocation(self) -> Optional[GeolocationPoint]:

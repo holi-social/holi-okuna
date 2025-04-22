@@ -1275,6 +1275,11 @@ class Task(ModelWithUUID):
         LINK = ("LINK",)
         READY = ("READY",)
 
+    signup_link = models.URLField(
+        max_length=settings.TASK_SIGNUP_LINK_MAX_LENGTH,
+        blank=True,
+    )
+
     name = models.CharField(
         max_length=settings.TASK_NAME_MAX_LENGTH,
         blank=False,
@@ -1411,6 +1416,7 @@ class Task(ModelWithUUID):
         skills=None,
         skills_v2=None,
         thumbnail=None,
+        signup_link=None,
     ):
         if skills_v2 is None:
             skills_v2 = []
@@ -1435,6 +1441,7 @@ class Task(ModelWithUUID):
             thumbnail=thumbnail,
             thumbnail_blurhash=generate_blurhash(thumbnail),
             skills_v2=skills_v2,
+            signup_link=signup_link,
         )
 
         if skills:
@@ -1463,6 +1470,7 @@ class Task(ModelWithUUID):
         skills_v2=None,
         thumbnail=None,
         remove_thumbnail=False,
+        signup_link=None,
     ):
         self.name = name
         self.description = description
@@ -1475,6 +1483,7 @@ class Task(ModelWithUUID):
         self.interaction_type = interaction_type
         self.timeframe_start_date = timeframe_start_date
         self.timeframe_end_date = timeframe_end_date
+        self.signup_link = signup_link
 
         if location is not None:
             self.location = location

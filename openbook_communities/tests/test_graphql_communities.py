@@ -3290,6 +3290,7 @@ class TestCommunities(TestCase):
             location_type="REMOTE",
             contact_email="test@test.com",
             slots_available=1,
+            signup_link="https://test.com",
         )
 
         # create members-only task
@@ -3304,6 +3305,7 @@ class TestCommunities(TestCase):
             location_type="REMOTE",
             contact_email="test@test.com",
             slots_available=1,
+            signup_link="https://test.com",
         )
 
         space_by_id_query = f"""

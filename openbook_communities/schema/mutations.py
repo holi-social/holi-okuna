@@ -316,6 +316,7 @@ class Mutation:
                 skills=data.get("skills"),
                 skills_v2=data.get("skills_v2"),
                 thumbnail=data.get("thumbnail"),
+                signup_link=data.get("signup_link"),
             )
 
         publish_task_created_event(current_user, task)
@@ -362,6 +363,7 @@ class Mutation:
                 skills_v2=data.get("skills_v2"),
                 thumbnail=data.get("thumbnail"),
                 remove_thumbnail=is_parameter_null(data, "thumbnail"),
+                signup_link=data.get("signup_link"),
             )
 
         publish_task_updated_event(current_user, task)

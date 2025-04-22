@@ -4972,6 +4972,7 @@ class User(ModelWithUUID, AbstractUser):
         skills=None,
         skills_v2=None,
         thumbnail=None,
+        signup_link=None,
     ):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
@@ -5000,6 +5001,7 @@ class User(ModelWithUUID, AbstractUser):
             skills=skills,
             skills_v2=skills_v2,
             thumbnail=thumbnail,
+            signup_link=signup_link,
         )
 
     def update_task(
@@ -5024,6 +5026,7 @@ class User(ModelWithUUID, AbstractUser):
         skills_v2=None,
         thumbnail=None,
         remove_thumbnail=False,
+        signup_link=None,
     ):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
@@ -5051,6 +5054,7 @@ class User(ModelWithUUID, AbstractUser):
             skills_v2=skills_v2,
             thumbnail=thumbnail,
             remove_thumbnail=remove_thumbnail,
+            signup_link=signup_link,
         )
 
     def delete_task_with_id(self, task_id):
