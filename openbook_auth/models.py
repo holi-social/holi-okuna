@@ -106,7 +106,7 @@ from openbook_terms.models import Topic, SDG, Skill
 
 if typing.TYPE_CHECKING:
     from comments.models import Comment
-    from openbook_communities.models import Task
+    from openbook_communities.models import Task, Community
     from feed_posts.models import FeedPost
     from openbook_appointments.models import Appointment
 
@@ -1782,38 +1782,6 @@ class User(ModelWithUUID, AbstractUser):
 
         community.delete()
 
-    def update_community(
-        self,
-        community,
-        title=None,
-        description=None,
-        color=None,
-        type=None,
-        user_adjective=None,
-        users_adjective=None,
-        rules=None,
-        topic_ids=None,
-        cover=None,
-        sdg_ids=None,
-        location=None,
-        geolocation=None,
-    ):
-        return self.update_community_with_name(
-            community.name,
-            title=title,
-            description=description,
-            color=color,
-            type=type,
-            user_adjective=user_adjective,
-            users_adjective=users_adjective,
-            rules=rules,
-            topic_ids=topic_ids,
-            cover=cover,
-            sdg_ids=sdg_ids,
-            location=location,
-            geolocation=geolocation,
-        )
-
     def update_community_with_id(
         self,
         community_id,
@@ -1842,9 +1810,8 @@ class User(ModelWithUUID, AbstractUser):
     ):
         Community = get_community_model()
         community = Community.objects.get(id=community_id)
-
-        return self.update_community_with_name(
-            community.name,
+        return self.update_community(
+            community,
             title=title,
             description=description,
             color=color,
@@ -1895,14 +1862,10 @@ class User(ModelWithUUID, AbstractUser):
         contact_phone=None,
         onboarding_steps=None,
     ):
-        check_can_update_community_with_name(user=self, community_name=community_name)
-
         Community = get_community_model()
-        community_to_update = Community.objects.get(name=community_name)
-
-        check_community_data(user=self, community=community_to_update, type=type)
-
-        community_to_update.update(
+        community = Community.objects.get(name=community_name)
+        return self.update_community(
+            community=community,
             title=title,
             description=description,
             color=color,
@@ -1927,7 +1890,60 @@ class User(ModelWithUUID, AbstractUser):
             onboarding_steps=onboarding_steps,
         )
 
-        return community_to_update
+    def update_community(
+        self,
+        community,
+        title=None,
+        description=None,
+        color=None,
+        type=None,
+        user_adjective=None,
+        users_adjective=None,
+        rules=None,
+        categories_names=None,
+        invites_enabled=None,
+        topic_ids=None,
+        topics_v2=None,
+        cover=None,
+        remove_cover=False,
+        avatar=None,
+        remove_avatar=False,
+        sdg_ids=None,
+        location=None,
+        geolocation=None,
+        contact_description=None,
+        contact_email=None,
+        contact_phone=None,
+        onboarding_steps=None,
+    ):
+        check_can_update_community_with_name(user=self, community_name=community.name)
+        check_community_data(user=self, community=community, type=type)
+        community.update(
+            title=title,
+            description=description,
+            color=color,
+            type=type,
+            user_adjective=user_adjective,
+            users_adjective=users_adjective,
+            rules=rules,
+            categories_names=categories_names,
+            invites_enabled=invites_enabled,
+            topic_ids=topic_ids,
+            topics_v2=topics_v2,
+            cover=cover,
+            remove_cover=remove_cover,
+            avatar=avatar,
+            remove_avatar=remove_avatar,
+            sdg_ids=sdg_ids,
+            location=location,
+            geolocation=geolocation,
+            contact_description=contact_description,
+            contact_email=contact_email,
+            contact_phone=contact_phone,
+            onboarding_steps=onboarding_steps,
+        )
+
+        return community
 
     def update_community_with_name_avatar(self, community_name, avatar):
         check_can_update_community_with_name(user=self, community_name=community_name)

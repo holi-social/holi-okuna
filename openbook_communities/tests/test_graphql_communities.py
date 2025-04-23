@@ -3110,11 +3110,19 @@ class TestCommunities(TestCase):
         assert "Field 'id' of required type 'UUID!' was not provided" in response.errors[0].message
         mock_invalidate_discover_spaces_query_cache.assert_not_called()
 
+    @mock.patch("openbook_communities.schema.mutations.publish_task_updated_event")
     @mock.patch("openbook_communities.schema.mutations.publish_space_updated_event")
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
-    def test_can_update_space(self, mock_invalidate_discover_spaces_query_cache, mock_publish_space_updated_event):
+    def test_can_update_space(
+        self,
+        mock_invalidate_discover_spaces_query_cache,
+        mock_publish_space_updated_event,
+        mock_publish_task_updated_event,
+    ):
         user = make_user()
         community = make_community(creator=user)
+        task_1 = make_community_task(community)
+        task_2 = make_community_task(community)
         topics = make_topics(3)
         topic_ids = [str(t.id) for t in topics]
         topics_v2 = topics_to_topic_v2_slugs(topics)
@@ -3167,7 +3175,10 @@ class TestCommunities(TestCase):
             assert str(community.id) == response.data["updateSpace"]["id"]
             assert response.errors is None
 
-        mock_invalidate_discover_spaces_query_cache.assert_called()
+        assert mock_invalidate_discover_spaces_query_cache.call_count == len(valid_inputs)
+        assert mock_publish_task_updated_event.call_count == len(valid_inputs) * 2  # two tasks associated to space
+        for call_args in mock_publish_task_updated_event.call_args_list:
+            assert call_args.kwargs["task"] == task_1 or call_args.kwargs["task"] == task_2
         assert mock_publish_space_updated_event.call_count == len(valid_inputs)
         for call_args in mock_publish_space_updated_event.call_args_list:
             assert call_args.kwargs["community"] == community
