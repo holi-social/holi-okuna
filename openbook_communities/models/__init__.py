@@ -1275,10 +1275,7 @@ class Task(ModelWithUUID):
         LINK = ("LINK",)
         READY = ("READY",)
 
-    signup_link = models.URLField(
-        max_length=settings.TASK_SIGNUP_LINK_MAX_LENGTH,
-        blank=True,
-    )
+    signup_link = models.URLField(max_length=settings.TASK_SIGNUP_LINK_MAX_LENGTH, blank=True, null=True)
 
     name = models.CharField(
         max_length=settings.TASK_NAME_MAX_LENGTH,
