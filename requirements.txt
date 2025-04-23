@@ -47,7 +47,7 @@ djangorestframework-camel-case==1.4.2
 execnet==2.1.1
 Faker==12.0.1 # mixer 7.2.2 depends on Faker<12.1 and >=5.4.0
 filelock==3.18.0
-frozenlist==1.5.0
+frozenlist==1.6.0
 funcy==2.0
 google-api-core==2.24.2
 google-auth==2.39.0
@@ -115,7 +115,7 @@ rq==2.3.2
 rsa==4.9.1
 ruamel.yaml==0.18.10
 ruamel.yaml.clib==0.2.12
-ruff==0.11.5
+ruff==0.11.6
 sentry-sdk==2.26.1
 setuptools==78.1.0
 six==1.17.0
@@ -135,7 +135,7 @@ uritools==4.0.3
 url-normalize==2.2.0
 urlextract==1.9.0
 urllib3==2.4.0
-uvicorn==0.34.1
+uvicorn==0.34.2
 wrapt==1.17.2
-yarl==1.19.0
+yarl==1.20.0
 zipp==3.21.0

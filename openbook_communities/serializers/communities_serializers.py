@@ -457,7 +457,7 @@ class CreateTaskSerializer(serializers.Serializer):
         if "timeframe_start_date" in data and "timeframe_end_date" not in data:
             raise serializers.ValidationError("Timeframe incomplete end missing")
 
-        if data["timeframe_end_date"] > data["timeframe_start_date"]:
+        if data["timeframe_end_date"] < data["timeframe_start_date"]:
             raise serializers.ValidationError("Timeframe end must occur after start")
 
         return data

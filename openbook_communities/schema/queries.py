@@ -4,6 +4,7 @@ from typing import Annotated, List, Optional, Any, TypeAlias
 import strawberry
 import strawberry_django
 from asgiref.sync import async_to_sync
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Prefetch, Q, Case, When, Value, IntegerField
 from django.utils.translation import gettext_lazy as _
@@ -329,12 +330,19 @@ class Query:
 
     @strawberry_django.field()
     def tasks_by_space_id(self, info, space_id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Task]:
-        current_user = info.context.request.user
-        return Paged.of(
+        current_user: UserModel | AnonymousUser = info.context.request.user
+        filtered_tasks_query = (
             TaskModel.objects.filter(community__id=space_id)
             .filter(TaskModel.is_visible_query(current_user))
             .distinct()
-            .order_by("-created"),
+            .order_by("-created")
+        )
+
+        if current_user.is_anonymous or not current_user.is_member_of_community_with_id(space_id):
+            filtered_tasks_query = filtered_tasks_query.filter(TaskModel.is_not_expired_query())
+
+        return Paged.of(
+            filtered_tasks_query,
             offset,
             limit,
         )
@@ -357,7 +365,9 @@ class Query:
         current_user = info.context.request.user
         if not current_user or current_user.is_anonymous:
             return Paged.of(
-                TaskModel.objects.filter(TaskModel.is_visible_query(current_user)).distinct().order_by("-created"),
+                TaskModel.objects.filter(TaskModel.is_visible_query(current_user) & TaskModel.is_not_expired_query())
+                .distinct()
+                .order_by("-created"),
                 offset,
                 limit,
             )
@@ -384,7 +394,7 @@ class Query:
                     output_field=IntegerField(),
                 )
             )
-            .filter(TaskModel.is_visible_query(current_user))
+            .filter(TaskModel.is_visible_query(current_user) & TaskModel.is_not_expired_query())
             .distinct()
             .order_by("custom_order", "-created"),
             offset,

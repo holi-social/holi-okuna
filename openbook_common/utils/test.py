@@ -20,3 +20,13 @@ class MockResponse:
     def __init__(self, text, ok=True):
         self.text = text
         self.ok = ok
+
+
+class MockJsonResponse:
+    def __init__(self, json, ok=True, status_code=200):
+        self._json = json
+        self.ok = ok
+        self.status_code = status_code
+
+    def json(self):
+        return self._json
