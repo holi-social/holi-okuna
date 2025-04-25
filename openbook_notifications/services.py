@@ -50,6 +50,8 @@ from openbook_notifications.payloads import (
     WelcomeEmailSeriesPayload,
 )
 
+from openbook_notifications.wrappers import skip_e2e_notifications
+
 if TYPE_CHECKING:
     from openbook_auth.models import User
     from comments.models import Comment
@@ -362,6 +364,7 @@ class NotificationsService:
         notification.send()
 
     @staticmethod
+    @skip_e2e_notifications
     def send_welcome_email_series_notification(user: User, spaces, insights, token):
         notification = WelcomeEmailSeriesNotification(
             user=str(user.username),
