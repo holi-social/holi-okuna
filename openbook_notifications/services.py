@@ -381,5 +381,6 @@ class NotificationsService:
         notification = FeedbackInterviewNotification(
             user=str(user.username),
             payload=FeedbackInterviewPayload(user=user, token=token),
+            token=token,
         )
         notification.send()
