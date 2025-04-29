@@ -28,6 +28,7 @@ from openbook_notifications.notifications import (
     CommentReactionNotification,
     PostReactionNotification,
     WelcomeEmailSeriesNotification,
+    FeedbackInterviewNotification,
 )
 from openbook_notifications.payloads import (
     SpaceMembershipRequestPayload,
@@ -48,6 +49,7 @@ from openbook_notifications.payloads import (
     PostReactionPayload,
     CommentReactionPayload,
     WelcomeEmailSeriesPayload,
+    FeedbackInterviewPayload,
 )
 
 from openbook_notifications.wrappers import skip_e2e_notifications
@@ -370,5 +372,14 @@ class NotificationsService:
             user=str(user.username),
             payload=WelcomeEmailSeriesPayload(user=user, spaces=spaces, insights=insights, token=token),
             token=token,
+        )
+        notification.send()
+
+    @staticmethod
+    @skip_e2e_notifications
+    def send_feedback_interview_notification(user: User, token):
+        notification = FeedbackInterviewNotification(
+            user=str(user.username),
+            payload=FeedbackInterviewPayload(user=user, token=token),
         )
         notification.send()

@@ -31,6 +31,7 @@ from openbook_notifications.payloads import (
     PostReactionPayload,
     CommentReactionPayload,
     WelcomeEmailSeriesPayload,
+    FeedbackInterviewPayload,
 )
 
 environment_id = settings.ENVIRONMENT_ID
@@ -39,6 +40,8 @@ environment_id = settings.ENVIRONMENT_ID
 class EmailIdentifier(Enum):
     DEV_SUPPORT_EMAIL = "DEV_SUPPORT_EMAIL"
     PROD_SUPPORT_EMAIL = "PROD_SUPPORT_EMAIL"
+    DEV_FEEDBACK_EMAIL = "DEV_FEEDBACK_EMAIL"
+    PROD_FEEDBACK_EMAIL = "PROD_FEEDBACK_EMAIL"
 
 
 class Workflow(Enum):
@@ -62,6 +65,7 @@ class Workflow(Enum):
     POST_REACTIONS = "post-reactions"
     COMMENT_REACTIONS = "comment-reactions"
     WELCOME_EMAIL_SERIES = "welcome-email-series"
+    FEEDBACK_INTERVIEW = "feedback-interview"
 
 
 # INTERNAL USE ONLY, use NotificationsService  to trigger notifications
@@ -421,4 +425,20 @@ class WelcomeEmailSeriesNotification(Notification):
             email_identifier=EmailIdentifier.PROD_SUPPORT_EMAIL
             if environment_id == "production"
             else EmailIdentifier.DEV_SUPPORT_EMAIL,
+        )
+
+
+class FeedbackInterviewNotification(Notification):
+    def __init__(
+        self,
+        user: str,
+        payload: FeedbackInterviewPayload,
+    ):
+        super().__init__(
+            workflow=Workflow.FEEDBACK_INTERVIEW.value,
+            recipients=user,
+            payload=payload.to_dict(),
+            email_identifier=EmailIdentifier.PROD_FEEDBACK_EMAIL
+            if environment_id == "production"
+            else EmailIdentifier.DEV_FEEDBACK_EMAIL,
         )
