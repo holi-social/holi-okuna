@@ -169,10 +169,16 @@ class Mutation:
 
             insights = insight_model.objects.order_by("-date_published")[:3]
 
-            subscription_token = str(uuid.uuid4())
+            welcome_email_subscription_token = str(uuid.uuid4())
 
             NotificationsService.send_welcome_email_series_notification(
-                user=current_user, spaces=spaces, insights=insights, token=subscription_token
+                user=current_user, spaces=spaces, insights=insights, token=welcome_email_subscription_token
+            )
+
+            feedback_interview_token = str(uuid.uuid4())
+
+            NotificationsService.send_feedback_interview_notification(
+                user=current_user, token=feedback_interview_token
             )
 
         updated_fields = _get_updated_fields(current_user_fields_before, current_user_fields_after)
