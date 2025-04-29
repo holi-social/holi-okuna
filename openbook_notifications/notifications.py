@@ -433,11 +433,13 @@ class FeedbackInterviewNotification(Notification):
         self,
         user: str,
         payload: FeedbackInterviewPayload,
+        token: str,
     ):
         super().__init__(
             workflow=Workflow.FEEDBACK_INTERVIEW.value,
             recipients=user,
             payload=payload.to_dict(),
+            transaction_id=token,  # token is used as transaction_id to cancel the workflow and unsubscribe the user from newsletter
             email_identifier=EmailIdentifier.PROD_FEEDBACK_EMAIL
             if environment_id == "production"
             else EmailIdentifier.DEV_FEEDBACK_EMAIL,
