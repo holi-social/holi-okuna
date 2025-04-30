@@ -360,7 +360,7 @@ resource "google_cloud_run_service" "okuna" {
           value_from {
             secret_key_ref {
               key  = "latest"
-              name = "MAILBOX_USERNAME_DEVELOPMENT"
+              name = "EMAIL_HOST_USER"
             }
           }
         }
@@ -369,7 +369,7 @@ resource "google_cloud_run_service" "okuna" {
           value_from {
             secret_key_ref {
               key  = "latest"
-              name = "MAILBOX_PASSWORD_DEVELOPMENT"
+              name = "EMAIL_HOST_PASSWORD"
             }
           }
         }
