@@ -303,6 +303,7 @@ class Mutation:
 
         space_id = data.get("space_id")
         duration = data.get("duration", TaskModel.Duration.INDETERMINATE)
+        interaction_type = data.get("interaction_type", TaskModel.InteractionType.CHAT)
 
         with transaction.atomic():
             task = current_user.create_task(
@@ -316,6 +317,7 @@ class Mutation:
                 geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
                 regularity=data.get("regularity"),
                 duration=duration,
+                interaction_type=interaction_type,
                 timeframe_start_date=data.get("timeframe_start_date"),
                 timeframe_end_date=data.get("timeframe_end_date"),
                 contact_email=data.get("contact_email"),
@@ -323,6 +325,7 @@ class Mutation:
                 skills=data.get("skills"),
                 skills_v2=data.get("skills_v2"),
                 thumbnail=data.get("thumbnail"),
+                interaction_signup_link=data.get("interaction_signup_link"),
             )
 
         publish_task_created_event(current_user, task)
@@ -345,6 +348,7 @@ class Mutation:
         space_id = data.get("space_id")
         task_id = data.get("task_id")
         duration = data.get("duration", TaskModel.Duration.INDETERMINATE)
+        interaction_type = data.get("interaction_type", TaskModel.InteractionType.CHAT)
 
         with transaction.atomic():
             task = current_user.update_task(
@@ -359,6 +363,7 @@ class Mutation:
                 geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
                 regularity=data.get("regularity"),
                 duration=duration,
+                interaction_type=interaction_type,
                 timeframe_start_date=data.get("timeframe_start_date"),
                 timeframe_end_date=data.get("timeframe_end_date"),
                 contact_email=data.get("contact_email"),
@@ -367,6 +372,7 @@ class Mutation:
                 skills_v2=data.get("skills_v2"),
                 thumbnail=data.get("thumbnail"),
                 remove_thumbnail=is_parameter_null(data, "thumbnail"),
+                interaction_signup_link=data.get("interaction_signup_link"),
             )
 
         publish_task_updated_event(current_user, task)

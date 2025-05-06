@@ -1269,6 +1269,16 @@ class Task(ModelWithUUID):
         DAYS_3_OR_MORE = ("DAYS_3_OR_MORE",)
         INDETERMINATE = ("INDETERMINATE",)
 
+    @strawberry.enum
+    class InteractionType(models.TextChoices):
+        CHAT = ("CHAT",)
+        LINK = ("LINK",)
+        READY = ("READY",)
+
+    interaction_signup_link = models.URLField(
+        max_length=settings.TASK_INTERACTION_SIGNUP_LINK_MAX_LENGTH, blank=True, null=True
+    )
+
     name = models.CharField(
         max_length=settings.TASK_NAME_MAX_LENGTH,
         blank=False,
@@ -1296,6 +1306,7 @@ class Task(ModelWithUUID):
     timeframe_end_date = models.DateField(null=True, blank=True)
     regularity = models.CharField(max_length=20, choices=Regularity.choices)
     duration = models.CharField(max_length=20, choices=Duration.choices, default=Duration.INDETERMINATE)
+    interaction_type = models.CharField(max_length=20, choices=InteractionType.choices, default=InteractionType.CHAT)
     slots_available = models.PositiveIntegerField(blank=False)
     slots_taken = models.PositiveIntegerField(blank=False, default=0)
     visibility = models.CharField(max_length=12, choices=VisibilityType.choices, default=VisibilityType.PUBLIC)
@@ -1394,6 +1405,7 @@ class Task(ModelWithUUID):
         contact_email,
         slots_available,
         duration=None,
+        interaction_type=None,
         location=None,
         geolocation=None,
         regularity=None,
@@ -1403,6 +1415,7 @@ class Task(ModelWithUUID):
         skills=None,
         skills_v2=None,
         thumbnail=None,
+        interaction_signup_link=None,
     ):
         if skills_v2 is None:
             skills_v2 = []
@@ -1420,12 +1433,14 @@ class Task(ModelWithUUID):
             geolocation=geolocation,
             regularity=regularity,
             duration=duration,
+            interaction_type=interaction_type,
             timeframe_start_date=timeframe_start_date,
             timeframe_end_date=timeframe_end_date,
             contact_phone=contact_phone,
             thumbnail=thumbnail,
             thumbnail_blurhash=generate_blurhash(thumbnail),
             skills_v2=skills_v2,
+            interaction_signup_link=interaction_signup_link,
         )
 
         if skills:
@@ -1446,6 +1461,7 @@ class Task(ModelWithUUID):
         location=None,
         geolocation=None,
         regularity=None,
+        interaction_type=None,
         timeframe_start_date=None,
         timeframe_end_date=None,
         contact_phone=None,
@@ -1453,6 +1469,7 @@ class Task(ModelWithUUID):
         skills_v2=None,
         thumbnail=None,
         remove_thumbnail=False,
+        interaction_signup_link=None,
     ):
         self.name = name
         self.description = description
@@ -1462,8 +1479,10 @@ class Task(ModelWithUUID):
         self.regularity = regularity
         self.slots_available = slots_available
         self.duration = duration
+        self.interaction_type = interaction_type
         self.timeframe_start_date = timeframe_start_date
         self.timeframe_end_date = timeframe_end_date
+        self.interaction_signup_link = interaction_signup_link
 
         if location is not None:
             self.location = location

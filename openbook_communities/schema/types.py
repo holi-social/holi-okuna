@@ -82,6 +82,7 @@ class CreateTaskInput:
     visibility: VisibilityType
     location_type: TaskModel.LocationType
     regularity: TaskModel.Regularity
+    interaction_type: Optional[TaskModel.InteractionType] = strawberry.UNSET
     # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
     duration: Optional[TaskModel.Duration] = strawberry.UNSET
     timeframe_start_date: Optional[str] = strawberry.UNSET
@@ -97,6 +98,7 @@ class CreateTaskInput:
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     contact_phone: Optional[str] = strawberry.UNSET
+    interaction_signup_link: Optional[str] = strawberry.UNSET
 
 
 @strawberry.input
@@ -108,6 +110,7 @@ class UpdateTaskInput:
     visibility: VisibilityType
     location_type: TaskModel.LocationType
     regularity: TaskModel.Regularity
+    interaction_type: Optional[TaskModel.InteractionType] = strawberry.UNSET
     # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
     duration: Optional[TaskModel.Duration] = strawberry.UNSET
     timeframe_start_date: Optional[str] = strawberry.UNSET
@@ -123,6 +126,7 @@ class UpdateTaskInput:
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     contact_phone: Optional[str] = strawberry.UNSET
+    interaction_signup_link: Optional[str] = strawberry.UNSET
 
 
 @strawberry.input
@@ -222,6 +226,7 @@ class Task:
     slots_taken: strawberry.auto
     visibility: VisibilityType
     location_type: TaskModel.LocationType
+    interaction_type: Optional[TaskModel.InteractionType]
     location: strawberry.auto
     regularity: TaskModel.Regularity
     duration: Optional[TaskModel.Duration]
@@ -235,6 +240,7 @@ class Task:
     thumbnail_blurhash: Optional[str]
     contact_email: str
     contact_phone: Optional[str]
+    interaction_signup_link: strawberry.auto
 
     @strawberry_django.field()
     def geolocation(self) -> Optional[GeolocationPoint]:

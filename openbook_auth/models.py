@@ -4977,6 +4977,7 @@ class User(ModelWithUUID, AbstractUser):
         location_type,
         contact_email,
         duration,
+        interaction_type,
         slots_available=None,
         location=None,
         geolocation=None,
@@ -4987,6 +4988,7 @@ class User(ModelWithUUID, AbstractUser):
         skills=None,
         skills_v2=None,
         thumbnail=None,
+        interaction_signup_link=None,
     ):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
@@ -5008,12 +5010,14 @@ class User(ModelWithUUID, AbstractUser):
             geolocation=geolocation,
             regularity=regularity,
             duration=duration,
+            interaction_type=interaction_type,
             timeframe_start_date=timeframe_start_date,
             timeframe_end_date=timeframe_end_date,
             contact_phone=contact_phone,
             skills=skills,
             skills_v2=skills_v2,
             thumbnail=thumbnail,
+            interaction_signup_link=interaction_signup_link,
         )
 
     def update_task(
@@ -5026,6 +5030,7 @@ class User(ModelWithUUID, AbstractUser):
         location_type,
         contact_email,
         duration,
+        interaction_type,
         slots_available=None,
         location=None,
         geolocation=None,
@@ -5037,6 +5042,7 @@ class User(ModelWithUUID, AbstractUser):
         skills_v2=None,
         thumbnail=None,
         remove_thumbnail=False,
+        interaction_signup_link=None,
     ):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
@@ -5056,6 +5062,7 @@ class User(ModelWithUUID, AbstractUser):
             geolocation=geolocation,
             regularity=regularity,
             duration=duration,
+            interaction_type=interaction_type,
             timeframe_start_date=timeframe_start_date,
             timeframe_end_date=timeframe_end_date,
             contact_phone=contact_phone,
@@ -5063,6 +5070,7 @@ class User(ModelWithUUID, AbstractUser):
             skills_v2=skills_v2,
             thumbnail=thumbnail,
             remove_thumbnail=remove_thumbnail,
+            interaction_signup_link=interaction_signup_link,
         )
 
     def delete_task_with_id(self, task_id):

@@ -3297,9 +3297,11 @@ class TestCommunities(TestCase):
             visibility=VisibilityType.PUBLIC,
             regularity="ONE_TIME",
             duration="INDETERMINATE",
+            interaction_type="CHAT",
             location_type="REMOTE",
             contact_email="test@test.com",
             slots_available=1,
+            interaction_signup_link="https://test.com",
         )
 
         # create members-only task
@@ -3310,9 +3312,11 @@ class TestCommunities(TestCase):
             visibility=VisibilityType.MEMBERS,
             regularity="ONE_TIME",
             duration="INDETERMINATE",
+            interaction_type="CHAT",
             location_type="REMOTE",
             contact_email="test@test.com",
             slots_available=1,
+            interaction_signup_link="https://test.com",
         )
 
         space_by_id_query = f"""
