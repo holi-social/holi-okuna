@@ -449,8 +449,8 @@ class CreateTaskSerializer(serializers.Serializer):
         max_upload_size=settings.TASK_THUMBNAIL_MAX_SIZE,
     )
     remove_thumbnail = serializers.BooleanField(default=False)
-    signup_link = serializers.URLField(
-        max_length=settings.TASK_SIGNUP_LINK_MAX_LENGTH,
+    interaction_signup_link = serializers.URLField(
+        max_length=settings.TASK_INTERACTION_SIGNUP_LINK_MAX_LENGTH,
         required=False,
         validators=[url_safety_validator],
     )
@@ -532,8 +532,8 @@ class UpdateTaskSerializer(serializers.Serializer):
         required=False,
         max_upload_size=settings.TASK_THUMBNAIL_MAX_SIZE,
     )
-    signup_link = serializers.URLField(
-        max_length=settings.TASK_SIGNUP_LINK_MAX_LENGTH,
+    interaction_signup_link = serializers.URLField(
+        max_length=settings.TASK_INTERACTION_SIGNUP_LINK_MAX_LENGTH,
         required=False,
         validators=[url_safety_validator],
     )
