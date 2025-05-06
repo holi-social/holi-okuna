@@ -132,25 +132,25 @@ def generate_identity_when_needed(current_user):
             taken_identities = User.get_taken_identities(identity_wish)
             current_identity_trial, counter = User.next_unique_identity(identity_wish, taken_identities, counter)
 
-        # while True:
-        #     # find an available matrix identity
-        #     while not create_matrix_user_account(current_identity_trial):
-        #         current_identity_trial, counter = User.next_unique_identity(identity_wish, taken_identities, counter)
-        #     # store the created matrix identity
-        #     try:
-        #         current_user.identity = current_identity_trial
-        #         current_user.save()
-        #     except ValidationError as error:
-        #         # somehow we have a collision in Okuna, so we keep trying new identities
-        #         if "A user with that identity already exists." in error.message_dict["identity"]:
-        #             taken_identities = User.get_taken_identities(identity_wish)
-        #             current_identity_trial, counter = User.next_unique_identity(
-        #                 identity_wish, taken_identities, counter
-        #             )
-        #             continue
-        #         else:
-        #             raise error
-        #     break
+        while True:
+            # find an available matrix identity
+            while not create_matrix_user_account(current_identity_trial):
+                current_identity_trial, counter = User.next_unique_identity(identity_wish, taken_identities, counter)
+            # store the created matrix identity
+            try:
+                current_user.identity = current_identity_trial
+                current_user.save()
+            except ValidationError as error:
+                # somehow we have a collision in Okuna, so we keep trying new identities
+                if "A user with that identity already exists." in error.message_dict["identity"]:
+                    taken_identities = User.get_taken_identities(identity_wish)
+                    current_identity_trial, counter = User.next_unique_identity(
+                        identity_wish, taken_identities, counter
+                    )
+                    continue
+                else:
+                    raise error
+            break
 
         tries = 0
         while tries < 3:
