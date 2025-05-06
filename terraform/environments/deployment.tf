@@ -57,7 +57,6 @@ resource "google_cloud_run_v2_job" "okuna_migration" {
     task_count = 1
     template {
       max_retries     = 1
-      timeout         = "3600s" # 1 hour
       service_account = data.terraform_remote_state.holi_okuna_common_state.outputs.cloud_run_service_account_email
       containers {
         image   = "${data.terraform_remote_state.holi_infra_state.outputs.artifact_registry_location}/holi-okuna:${var.image_tag}"

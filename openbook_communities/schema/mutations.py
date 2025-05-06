@@ -8,6 +8,7 @@ from django.db import transaction
 from graphql import GraphQLError
 
 from openbook.graphql_errors import GraphQLErrorCodes
+from openbook_common.utils.model_loaders import get_community_model
 from openbook_communities.events import (
     publish_space_created_event,
     publish_space_updated_event,
@@ -216,8 +217,11 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        space = current_user.update_community_with_id(
-            community_id=data.get("id"),
+        Community = get_community_model()
+        space = Community.objects.get(id=data.get("id"))
+
+        space = current_user.update_community(
+            community=space,
             title=data.get("title"),
             description=data.get("description"),
             topic_ids=data.get("topics"),
@@ -234,6 +238,11 @@ class Mutation:
             contact_phone=data.get("contact_phone"),
             onboarding_steps=data.get("onboarding_steps"),
         )
+
+        # if space details are updated this can have consequences for its tasks (e.g. classifications & recommendations)
+        # publishing an update event for all tasks makes sure that downstream systems can update themselves accordingly
+        for task in space.tasks.all():
+            publish_task_updated_event(user=current_user, task=task)
 
         publish_space_updated_event(community=space)
         track(current_user, TrackingEvent("spaceUpdated", {"spaceId": str(space.id)}))
