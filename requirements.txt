@@ -119,7 +119,7 @@ ruff==0.11.8
 sentry-sdk==2.27.0
 setuptools==78.1.1
 six==1.17.0
-soupsieve==2.6
+soupsieve==2.7
 spinners==0.0.24
 sqlparse==0.5.3
 strawberry-graphql==0.248.1
