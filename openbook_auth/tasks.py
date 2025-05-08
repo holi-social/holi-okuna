@@ -14,7 +14,7 @@ from rest_framework.exceptions import ValidationError
 from openbook.settings import CHAT_SERVER_NAME, CHAT_SERVER_URL
 from openbook.settings import ORY_SESSION_EXPIRY_IN_H
 from openbook_auth.errors import OryRequestError, MatrixRequestError
-from openbook_auth.models import User
+from openbook_auth.models import User, AccountType
 from openbook_common.utils.synchronized_set import SynchronizedSet
 
 logger = structlog.get_logger(__name__)
@@ -100,7 +100,7 @@ def send_extend_ory_session(session_id: str):
         session_ids.remove(session_id)
 
 
-def get_oidc(user_id: str):
+def get_account_type(user_id: str):
     response = requests.get(f"{settings.ORY_BASE_URL}/admin/identities/{user_id}", headers=ORY_HEADERS, timeout=30)
     if response.status_code != http.HTTPStatus.OK:
         response_data = response.json()
@@ -109,7 +109,13 @@ def get_oidc(user_id: str):
         raise error
     else:
         json = response.json()
-        return "oidc" in json.get("credentials", {})
+        oidc = json.get("credentials", {}).get("oidc")
+        if oidc:
+            if any(v.startswith("google") for v in oidc.get("identifiers", [])):
+                return AccountType.GOOGLE
+            return AccountType.UNKNOWN
+
+        return AccountType.EMAIL
 
 
 def extend_ory_session(user_session: str, user_session_expiry: str):

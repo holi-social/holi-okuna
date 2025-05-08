@@ -8,7 +8,7 @@ from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from rest_framework import authentication, exceptions
 
-from openbook_auth.tasks import extend_ory_session, generate_identity_when_needed, get_oidc
+from openbook_auth.tasks import extend_ory_session, generate_identity_when_needed, get_account_type
 
 CACHE_TIMEOUT = 300
 
@@ -51,13 +51,13 @@ class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
                     if not user_email:
                         return None
                     try:
-                        is_oidc = get_oidc(user_id)
+                        account_type = get_account_type(user_id)
                         user = User.create_user(
                             username=user_id,
                             email=user_email,
                             is_of_legal_age=True,
                             are_guidelines_accepted=True,
-                            is_oidc=is_oidc,
+                            account_type=account_type,
                         )
                         generate_identity_when_needed(user)
                         cache.set(cache_key, user, timeout=CACHE_TIMEOUT)
