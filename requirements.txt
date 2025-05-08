@@ -124,7 +124,7 @@ spinners==0.0.24
 sqlparse==0.5.3
 strawberry-graphql==0.248.1
 strawberry-graphql-django==0.53.3
-structlog==25.2.0
+structlog==25.3.0
 termcolor==3.0.1
 text-unidecode==1.3
 tldextract==5.2.0
