@@ -1,6 +1,0 @@
-{
-  "bootstrapped": false,
-  "djangoSecretKey": "{{DJANGO_SECRET_KEY}}",
-  "postgresPassword": "{{POSTGRES_PASSWORD}}",
-  "redisPassword": "{{REDIS_PASSWORD}}"
-}

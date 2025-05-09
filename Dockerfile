@@ -1,4 +1,4 @@
-FROM europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/python:3.13-slim
+FROM europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/python:3.13.3-slim AS builder
 
 RUN apt-get -y update && \
     apt-get -y upgrade && \
@@ -6,9 +6,31 @@ RUN apt-get -y update && \
         binutils \
         libproj-dev \
         libgdal-dev \
-        libgeos-dev && \
+        libgeos-dev  \
+        curl \
+        ca-certificates && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get clean
+
+# TODO install uv using distroless image (see https://docs.astral.sh/uv/guides/integration/docker/#installing-uv)
+# TODO prerequisite: authentication against ghcr.io
+
+# ======= Installation of uv following https://docs.astral.sh/uv/guides/integration/docker/#installing-uv ==============
+ADD https://astral.sh/uv/0.7.2/install.sh /uv-installer.sh
+RUN sh /uv-installer.sh && rm /uv-installer.sh
+ENV PATH="/root/.local/bin/:$PATH"
+# ======================================================================================================================
+
+FROM builder AS app_base_with_dependencies
+
+COPY pyproject.toml /opt/okuna-api/pyproject.toml
+WORKDIR /opt/okuna-api
+RUN --mount=type=cache,target=.uv-cache \
+    export UV_LINK_MODE=copy && \
+    uv export > requirements.txt && \
+    uv pip install --system --compile-bytecode -r requirements.txt
+
+FROM app_base_with_dependencies AS app
 
 # Copy necessary scripts
 COPY .docker/api/wait-for-it.sh .docker/api/entrypoint.sh .docker/api/migration-entrypoint.sh /
@@ -18,8 +40,6 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 COPY . /opt/okuna-api
 WORKDIR /opt/okuna-api
-RUN pip install --upgrade pip setuptools wheel build && \
-    pip install --no-cache-dir -r requirements.txt
 RUN ENVIRONMENT=build SECRET_KEY=foo python manage.py collectstatic --no-input
 
 EXPOSE 80
