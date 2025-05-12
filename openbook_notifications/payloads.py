@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import TYPE_CHECKING, Optional
 
@@ -36,6 +36,11 @@ class NotificationType(Enum):
     POLL_UPDATES = "POLL_UPDATES"
     POST_REACTION = "POST_REACTION"
     COMMENT_REACTION = "COMMENT_REACTION"
+    WELCOME_EMAIL_SERIES = "WELCOME_EMAIL_SERIES"
+    FEEDBACK_INTERVIEW = "FEEDBACK_INTERVIEW"
+
+
+app_url = settings.APP_URL
 
 
 class UserData:
@@ -43,6 +48,7 @@ class UserData:
         self,
         id: str,
         full_name: str,
+        profile_link: str,
         avatar_blurhash: Optional[str] = "",
         avatar_default_color: Optional[str] = "",
         avatar: Optional[str] = "",
@@ -54,6 +60,7 @@ class UserData:
         self.avatar_blurhash = avatar_blurhash
         self.avatar_default_color = avatar_default_color
         self.avatar_label = avatar_label
+        self.profile_link = profile_link
 
     def to_dict(self):
         return {
@@ -63,6 +70,7 @@ class UserData:
             "avatarBlurhash": self.avatar_blurhash,
             "avatarDefaultColor": self.avatar_default_color,
             "avatarLabel": self.avatar_label,
+            "profileLink": self.profile_link,
         }
 
     @classmethod
@@ -74,6 +82,7 @@ class UserData:
             avatar_blurhash=user.profile.avatar_blurhash if user.profile.avatar_blurhash else "",
             avatar_default_color=str(user.avatar_default_color) if user.avatar_default_color else "",
             avatar_label=user.avatar_label,
+            profile_link=f"{app_url}/profile/{user.username}",
         )
 
 
@@ -83,6 +92,9 @@ class SpaceData:
         id: str,
         title: str,
         name: str,
+        goal: str,
+        link: str,
+        cover: str,
         avatar_blurhash: str = "",
         avatar_default_color: str = "",
         avatar: Optional[str] = "",
@@ -90,18 +102,24 @@ class SpaceData:
         self.id = id
         self.name = name
         self.title = title
+        self.goal = goal
         self.avatar = avatar
         self.avatar_blurhash = avatar_blurhash
         self.avatar_default_color = avatar_default_color
+        self.link = link
+        self.cover = cover
 
     def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,
             "title": self.title,
+            "goal": self.goal,
             "avatar": self.avatar,
             "avatarBlurhash": self.avatar_blurhash,
             "avatarDefaultColor": self.avatar_default_color,
+            "link": self.link,
+            "cover": self.cover,
         }
 
     @classmethod
@@ -110,9 +128,12 @@ class SpaceData:
             id=str(community.id),
             name=community.name,
             title=community.title,
+            goal=community.description,
             avatar=community.avatar.url if community.avatar else "",
             avatar_blurhash=community.avatar_blurhash if community.avatar_blurhash else "",
             avatar_default_color=str(community.avatar_default_color) if community.avatar_default_color else "",
+            link=f"{app_url}/spaces/{community.name}",
+            cover=community.cover.url if community.cover else "",
         )
 
 
@@ -224,6 +245,38 @@ class PostData:
             community=post.community if hasattr(post, "community") else None,
             is_public=post.is_public if hasattr(post, "is_public") else None,
             description=post.description if hasattr(post, "description") else None,
+        )
+
+
+class InsightData:
+    def __init__(
+        self,
+        id: str,
+        title: str,
+        cover: str,
+        link: str,
+    ):
+        self.id = id
+        self.title = title
+        self.cover = cover
+        self.link = link
+
+    def to_dict(self):
+        data = {
+            "id": self.id,
+            "title": self.title,
+            "cover": self.cover,
+            "link": self.link,
+        }
+        return data
+
+    @classmethod
+    def from_insight(cls, insight):
+        return cls(
+            id=str(insight.id),
+            title=insight.title,
+            cover=insight.header_image.url,
+            link=f"{app_url}/insights/{insight.id}",
         )
 
 
@@ -555,4 +608,35 @@ class CommentReactionPayload(Payload):
             },
             notification_type=NotificationType.COMMENT_REACTION.value,
             notification_version=CommentReactionPayload.NOTIFICATION_VERSION,
+        )
+
+
+class WelcomeEmailSeriesPayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, user: User, spaces, insights, token: str):
+        super().__init__(
+            data={
+                "user": UserData.from_user(user).to_dict(),
+                "recommendedSpaces": [SpaceData.from_community(space).to_dict() for space in spaces],
+                "recommendedInsights": [InsightData.from_insight(insight).to_dict() for insight in insights],
+                "unsubscribeUrl": f"{app_url}/unsubscribe?series=welcome&email={user.email}&token={token}",
+            },
+            notification_type=NotificationType.WELCOME_EMAIL_SERIES.value,
+            notification_version=WelcomeEmailSeriesPayload.NOTIFICATION_VERSION,
+        )
+
+
+class FeedbackInterviewPayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+    send_at = datetime.now().replace(hour=16, minute=0, second=0, microsecond=0) + timedelta(days=1)
+
+    def __init__(self, user: User, token: str):
+        super().__init__(
+            data={
+                "sendAt": FeedbackInterviewPayload.send_at.isoformat(),
+                "unsubscribeUrl": f"{app_url}/unsubscribe?series=feedback-interview&email={user.email}&token={token}",
+            },
+            notification_type=NotificationType.FEEDBACK_INTERVIEW.value,
+            notification_version=FeedbackInterviewPayload.NOTIFICATION_VERSION,
         )

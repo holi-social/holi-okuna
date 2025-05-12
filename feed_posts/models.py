@@ -3,6 +3,8 @@ from datetime import timedelta
 from typing import Optional
 
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.indexes import GinIndex
 from django.core.files.storage import default_storage
 from django.utils import timezone
 from django.utils.text import slugify
@@ -18,7 +20,7 @@ from feed_posts.helpers import upload_to_feed_post_images_directory, upload_to_n
 from openbook import settings
 from openbook_auth.models import User, UserRole
 from openbook_common.enums import ReactionType
-from openbook_common.helpers import ExifRotate, generate_blurhash
+from openbook_common.helpers import ExifRotate, generate_blurhash, geojson_from_geolocation
 from openbook_common.models import ModelWithUUID, LinkPreview
 from openbook_common.types import LanguageCode
 from openbook_common.utils.helpers import delete_file_field
@@ -35,6 +37,8 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
     visibility = models.CharField(max_length=21, choices=VisibilityLevel.choices, default=VisibilityLevel.PUBLIC)
 
     topics = models.ManyToManyField(Topic, related_name="feed_posts", blank=True, db_index=True)
+
+    topics_v2 = ArrayField(models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH), blank=True, default=list)
 
     category = models.ForeignKey(FeedPostCategory, on_delete=models.PROTECT, null=True)
 
@@ -80,15 +84,24 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
     )
 
     geolocation = models.PointField(blank=True, null=True, spatial_index=True)
+    # also store as GeoJSON as downstream processes (Google Datastream) can't understand Postgis binary format
+    geolocation_geojson = models.JSONField(blank=True, null=True)
 
     priority_duration = models.PositiveIntegerField(
         default=0,
         help_text="Specifies how many days the post will remain at the top of the feed.",
     )
 
+    class Meta:
+        indexes = [GinIndex(fields=["topics_v2"])]
+
     @property
     def has_priority(self):
-        if self.creator.role == UserRole.CO_FOUNDER and self.category.slug == "founder-update":
+        if (
+            self.creator.role == UserRole.CO_FOUNDER
+            and self.category is not None
+            and self.category.slug == "founder-update"
+        ):
             return self.created_at + timedelta(days=self.priority_duration) >= timezone.now()
         return False
 
@@ -99,6 +112,10 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
             base_slug = slugify(self.title)
             suffix = str(uuid.uuid4())[:8]
             self.slug = f"{base_slug}-{suffix}"
+        if self.geolocation:
+            self.geolocation_geojson = geojson_from_geolocation(self.geolocation)
+        else:
+            self.geolocation_geojson = None
 
         super().save(*args, **kwargs)
 
@@ -183,3 +200,18 @@ class FeedPostImage(ModelWithUUID):
 
     def delete(self, *args, **kwargs):
         delete_file_field(self.image)
+
+
+class FeedConfig(models.Model):
+    priority_duration = models.PositiveIntegerField(
+        default=7, help_text="Specifies how many days the posts will be prioritized."
+    )
+
+    class Meta:
+        verbose_name = "Feed Configuration"
+        verbose_name_plural = "Feed Configurations"
+
+    def save(self, *args, **kwargs):
+        if not self.pk and FeedConfig.objects.exists():
+            raise ValueError("Only one feed configuration allowed")
+        super().save(*args, **kwargs)

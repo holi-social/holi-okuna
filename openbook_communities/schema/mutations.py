@@ -8,13 +8,17 @@ from django.db import transaction
 from graphql import GraphQLError
 
 from openbook.graphql_errors import GraphQLErrorCodes
-from openbook.helpers import (
+from openbook_common.utils.model_loaders import get_community_model
+from openbook_communities.events import (
     publish_space_created_event,
     publish_space_updated_event,
-    publish_space_deleted_event,
     publish_space_user_added_event,
+    publish_space_deleted_event,
     publish_space_user_left_event,
     publish_space_user_removed_event,
+    publish_task_created_event,
+    publish_task_updated_event,
+    publish_task_deleted_event,
 )
 from openbook.utils import invalidate_discover_spaces_query_cache
 from openbook_auth.models import User as UserModel
@@ -23,6 +27,7 @@ from openbook_auth.utils import verify_authorized_user
 from openbook_common.helpers import is_parameter_null, to_input_dict
 from openbook_common.schema.types import GeolocationPointInput, Result
 from openbook_communities.models import Community as CommunityModel
+from openbook_communities.models import Task as TaskModel
 from openbook_communities.models import SpaceUserConnectionType
 from openbook_communities.schema.types import (
     AddCollaborationToolInput,
@@ -177,6 +182,15 @@ class Mutation:
         serializer = CreateCommunitySerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+        if not data.get("topics") and not data.get("topics_v2"):
+            raise GraphQLError(
+                "Either topics or topics_v2 must be specified",
+                extensions={
+                    "code": GraphQLErrorCodes.BAD_USER_INPUT,
+                    "errors": [],
+                },
+            ) from None
+
         with transaction.atomic():
             space = current_user.create_community(
                 title=data.get("title"),
@@ -185,6 +199,7 @@ class Mutation:
                 cover=data.get("cover"),
                 invites_enabled=True,
                 topic_ids=data.get("topics"),
+                topics_v2=data.get("topics_v2"),
             )
 
         publish_space_created_event(community=space)
@@ -202,11 +217,15 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        space = current_user.update_community_with_id(
-            community_id=data.get("id"),
+        Community = get_community_model()
+        space = Community.objects.get(id=data.get("id"))
+
+        space = current_user.update_community(
+            community=space,
             title=data.get("title"),
             description=data.get("description"),
             topic_ids=data.get("topics"),
+            topics_v2=data.get("topics_v2"),
             cover=data.get("cover"),
             remove_cover=is_parameter_null(data, "cover"),
             avatar=data.get("avatar"),
@@ -220,6 +239,11 @@ class Mutation:
             onboarding_steps=data.get("onboarding_steps"),
         )
 
+        # if space details are updated this can have consequences for its tasks (e.g. classifications & recommendations)
+        # publishing an update event for all tasks makes sure that downstream systems can update themselves accordingly
+        for task in space.tasks.all():
+            publish_task_updated_event(user=current_user, task=task)
+
         publish_space_updated_event(community=space)
         track(current_user, TrackingEvent("spaceUpdated", {"spaceId": str(space.id)}))
         invalidate_discover_spaces_query_cache()
@@ -232,6 +256,7 @@ class Mutation:
         current_user = verify_authorized_user(info)
         try:
             space = CommunityModel.objects.get(id=id)
+            tasks = list(TaskModel.objects.filter(deleted_at=None).all())
 
             with transaction.atomic():
                 space.delete_pending_notifications()
@@ -239,6 +264,8 @@ class Mutation:
                     community_id=id,
                 )
 
+            for task in tasks:
+                publish_task_deleted_event(current_user, task)
             publish_space_deleted_event(space)
             track(current_user, TrackingEvent("spaceDeleted", {"spaceId": str(space.id)}))
             invalidate_discover_spaces_query_cache()
@@ -273,7 +300,11 @@ class Mutation:
         serializer = CreateTaskSerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+
         space_id = data.get("space_id")
+        duration = data.get("duration", TaskModel.Duration.INDETERMINATE)
+        interaction_type = data.get("interaction_type", TaskModel.InteractionType.CHAT)
+
         with transaction.atomic():
             task = current_user.create_task(
                 space_id=space_id,
@@ -285,12 +316,19 @@ class Mutation:
                 location=data.get("location"),
                 geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
                 regularity=data.get("regularity"),
+                duration=duration,
+                interaction_type=interaction_type,
+                timeframe_start_date=data.get("timeframe_start_date"),
+                timeframe_end_date=data.get("timeframe_end_date"),
                 contact_email=data.get("contact_email"),
                 contact_phone=data.get("contact_phone"),
                 skills=data.get("skills"),
+                skills_v2=data.get("skills_v2"),
                 thumbnail=data.get("thumbnail"),
+                interaction_signup_link=data.get("interaction_signup_link"),
             )
 
+        publish_task_created_event(current_user, task)
         track(
             current_user,
             TrackingEvent("taskCreated", {"spaceId": str(space_id), "taskId": str(task.id)}),
@@ -309,6 +347,9 @@ class Mutation:
 
         space_id = data.get("space_id")
         task_id = data.get("task_id")
+        duration = data.get("duration", TaskModel.Duration.INDETERMINATE)
+        interaction_type = data.get("interaction_type", TaskModel.InteractionType.CHAT)
+
         with transaction.atomic():
             task = current_user.update_task(
                 task_id=task_id,
@@ -321,13 +362,20 @@ class Mutation:
                 location=data.get("location"),
                 geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
                 regularity=data.get("regularity"),
+                duration=duration,
+                interaction_type=interaction_type,
+                timeframe_start_date=data.get("timeframe_start_date"),
+                timeframe_end_date=data.get("timeframe_end_date"),
                 contact_email=data.get("contact_email"),
                 contact_phone=data.get("contact_phone"),
-                skills=data.get("skills"),
+                skill_ids=data.get("skills"),
+                skills_v2=data.get("skills_v2"),
                 thumbnail=data.get("thumbnail"),
                 remove_thumbnail=is_parameter_null(data, "thumbnail"),
+                interaction_signup_link=data.get("interaction_signup_link"),
             )
 
+        publish_task_updated_event(current_user, task)
         track(
             current_user,
             TrackingEvent("taskUpdated", {"spaceId": str(space_id), "taskId": str(task.id)}),
@@ -343,6 +391,7 @@ class Mutation:
         with transaction.atomic():
             task = current_user.delete_task_with_id(task_id=id)
 
+        publish_task_deleted_event(current_user, task)
         track(
             current_user,
             TrackingEvent("taskDeleted", {"spaceId": str(task.community_id), "taskId": str(task.id)}),

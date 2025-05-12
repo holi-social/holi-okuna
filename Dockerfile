@@ -1,4 +1,4 @@
-FROM europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/python:3.11-slim
+FROM europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/python:3.13-slim
 
 RUN apt-get -y update && \
     apt-get -y upgrade && \
@@ -18,8 +18,8 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 COPY . /opt/okuna-api
 WORKDIR /opt/okuna-api
-#RUN pip install --no-cache-dir --upgrade pip && \
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip setuptools wheel build && \
+    pip install --no-cache-dir -r requirements.txt
 RUN ENVIRONMENT=build SECRET_KEY=foo python manage.py collectstatic --no-input
 
 EXPOSE 80

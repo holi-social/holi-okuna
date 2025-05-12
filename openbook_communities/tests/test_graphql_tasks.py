@@ -1,7 +1,10 @@
 import copy
 import json
 import logging
+from datetime import timedelta
+from typing import Callable
 from uuid import uuid4
+from unittest import mock
 
 import pytest
 from asgiref.sync import async_to_sync
@@ -11,7 +14,9 @@ from django.contrib.gis import geos
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.test import AsyncClient
+from django.utils import timezone
 from faker import Faker
+from strawberry.types import ExecutionResult
 
 from openbook.graphql_schema import schema
 from openbook.tests.test_data import geolocation_geometry
@@ -21,6 +26,7 @@ from openbook_common.tests.helpers import (
     make_community,
     make_community_task,
     make_skill,
+    make_skills,
     make_user,
     simple_jpeg_bytes,
     assert_is_forbidden,
@@ -43,7 +49,8 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 @pytest.mark.django_db
 class TestTasks:
-    def test_can_not_create_task_if_not_admin_or_member(self):
+    @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
+    def test_can_not_create_task_if_not_admin_or_member(self, mock_publish_task_created_event):
         user = make_user()
         community = make_community()
 
@@ -65,6 +72,8 @@ class TestTasks:
             "visibility": "MEMBERS",
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
+            "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -81,8 +90,10 @@ class TestTasks:
         field_errors = json.loads(response.errors[0].extensions["errors"])
 
         assert field_errors[0]["message"] in "You cannot add a task to a community you are not a member of"
+        mock_publish_task_created_event.assert_not_called()
 
-    def test_can_not_create_public_task_if_not_admin(self):
+    @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
+    def test_can_not_create_public_task_if_not_admin(self, mock_publish_task_created_event):
         user = make_user()
         community = make_community()
         community.add_member(user)
@@ -105,6 +116,8 @@ class TestTasks:
             "visibility": "PUBLIC",
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
+            "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -121,8 +134,10 @@ class TestTasks:
         field_errors = json.loads(response.errors[0].extensions["errors"])
 
         assert field_errors[0]["message"] in "Only administrators can add public tasks"
+        mock_publish_task_created_event.assert_not_called()
 
-    def test_can_not_update_task_missing_required_fields(self):
+    @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
+    def test_can_not_update_task_missing_required_fields(self, mock_publish_task_created_event):
         user = make_user()
 
         community = make_community(creator=user)
@@ -144,6 +159,8 @@ class TestTasks:
             "visibility": "MEMBERS",
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
+            # make interaction_type required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+            # "interactionType": "CHAT",    # noqa: ERA001
             "contactEmail": "email@email.com",
         }
         expected_errors = {
@@ -154,6 +171,8 @@ class TestTasks:
             "visibility": "Field 'visibility' of required type 'VisibilityType!' was not provided.",
             "locationType": "Field 'locationType' of required type 'LocationType!' was not provided.",
             "regularity": "Field 'regularity' of required type 'Regularity!' was not provided.",
+            # make interaction_type required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+            # "interactionType": "Field 'interactionType' of required type 'InteractionType!' was not provided.",   # noqa: ERA001
             "contactEmail": "Field 'contactEmail' of required type 'String!' was not provided.",
         }
         valid_input_keys = valid_input.keys()
@@ -170,7 +189,10 @@ class TestTasks:
             assert expected_errors[input_key] in str(response.errors[0].message)
             assert (response.data["updateTask"] if response.data else response.data) is None
 
-    def test_validates_task_before_update(self):
+        mock_publish_task_created_event.assert_not_called()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
+    def test_validates_task_before_update(self, mock_publish_task_created_event):
         user = make_user()
 
         community = make_community(creator=user)
@@ -195,6 +217,8 @@ class TestTasks:
             "visibility": "MEMBERS",
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
+            "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -217,6 +241,11 @@ class TestTasks:
                 "value": [non_existent_skill_id],
                 "expected_error": f"No skill with the id '{non_existent_skill_id}' found.",
             },
+            {
+                "field": "skillsV2",
+                "value": ["unknown"],
+                "expected_error": "SkillV2 'unknown' does not exist.",
+            },
         ]
 
         for testCase in expectedErrors:
@@ -233,12 +262,16 @@ class TestTasks:
                 assert testCase["expected_error"] in str(response.errors[0].message)
             assert (response.data["createTask"] if response.data else response.data) is None
 
-    def test_can_update_task(self):
+        mock_publish_task_created_event.assert_not_called()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_updated_event")
+    def test_can_update_task(self, mock_publish_task_updated_event):
         user = make_user()
 
         community = make_community(creator=user)
         task = make_community_task(community)
-        skill = make_skill()
+        [skill, skill2] = make_skills(2)
+        expected_skills_v2 = [skill.slug]
 
         update_task_mutation = """
             mutation test($input: UpdateTaskInput!) {
@@ -249,6 +282,7 @@ class TestTasks:
                     visibility
                     thumbnail
                     thumbnailBlurhash
+                    skillsV2
                 }
             }
             """
@@ -266,6 +300,8 @@ class TestTasks:
             "visibility": valid_visibility,
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
+            "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -289,6 +325,7 @@ class TestTasks:
         assert valid_visibility == updateTask["visibility"]
         assert "thumbnail.jpg" in updateTask["thumbnail"]
         assert updateTask["thumbnailBlurhash"] is not None
+        assert expected_skills_v2 == updateTask["skillsV2"]
 
         valid_name = "New valid name"
         valid_description = "New valid description"
@@ -302,10 +339,16 @@ class TestTasks:
             "visibility": valid_visibility,
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
+            "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "thumbnail": None,
             "slotsAvailable": 1,
+            "skillsV2": [skill2.slug],
         }
+
+        mock_publish_task_updated_event.assert_called_once()
+        mock_publish_task_updated_event.reset_mock()
 
         response = async_to_sync(schema.execute)(
             update_task_mutation,
@@ -322,8 +365,12 @@ class TestTasks:
         assert valid_visibility == updateTask["visibility"]
         assert updateTask["thumbnail"] is None
         assert updateTask["thumbnailBlurhash"] is None
+        assert [skill2.slug] == updateTask["skillsV2"]
 
-    def test_can_update_members_only_task_if_collaborator(self):
+        mock_publish_task_updated_event.assert_called_once()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_updated_event")
+    def test_can_update_members_only_task_if_collaborator(self, mock_publish_task_updated_event):
         user = make_user()
 
         community = make_community()
@@ -357,6 +404,8 @@ class TestTasks:
             "visibility": valid_visibility,
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
+            "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -381,6 +430,9 @@ class TestTasks:
         assert "thumbnail.jpg" in updateTask["thumbnail"]
         assert updateTask["thumbnailBlurhash"] is not None
 
+        mock_publish_task_updated_event.assert_called_once()
+        mock_publish_task_updated_event.reset_mock()
+
         valid_name = "New valid name"
         valid_description = "New valid description"
         valid_visibility = "PUBLIC"
@@ -393,6 +445,8 @@ class TestTasks:
             "visibility": valid_visibility,
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
+            "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "thumbnail": None,
             "slotsAvailable": 1,
@@ -414,7 +468,10 @@ class TestTasks:
         assert updateTask["thumbnail"] is None
         assert updateTask["thumbnailBlurhash"] is None
 
-    def test_can_not_update_task_if_not_logged_in(self):
+        mock_publish_task_updated_event.assert_called_once()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_updated_event")
+    def test_can_not_update_task_if_not_logged_in(self, mock_publish_task_updated_event):
         community = make_community()
         task = make_community_task(community)
         skill = make_skill()
@@ -436,6 +493,8 @@ class TestTasks:
             "visibility": "MEMBERS",
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
+            "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -451,7 +510,10 @@ class TestTasks:
 
         assert_is_unauthorized(response)
 
-    def test_can_not_update_task_if_not_admin_or_member(self):
+        mock_publish_task_updated_event.assert_not_called()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_updated_event")
+    def test_can_not_update_task_if_not_admin_or_member(self, mock_publish_task_updated_event):
         user = make_user()
         community = make_community()
         skill = make_skill()
@@ -474,6 +536,8 @@ class TestTasks:
             "visibility": "MEMBERS",
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
+            "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -493,7 +557,10 @@ class TestTasks:
 
         assert field_errors[0]["message"] in "You cannot update a task of a community you are not a member of"
 
-    def test_can_not_update_public_task_if_not_admin(self):
+        mock_publish_task_updated_event.assert_not_called()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_updated_event")
+    def test_can_not_update_public_task_if_not_admin(self, mock_publish_task_updated_event):
         user = make_user()
         community = make_community()
         community.add_member(user=user)
@@ -517,6 +584,8 @@ class TestTasks:
             "visibility": "MEMBERS",
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
+            "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -536,7 +605,10 @@ class TestTasks:
 
         assert field_errors[0]["message"] in "Only administrators can update public tasks"
 
-    def test_can_not_delete_task_if_member(self):
+        mock_publish_task_updated_event.assert_not_called()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_deleted_event")
+    def test_can_not_delete_task_if_member(self, mock_publish_task_deleted_event):
         user = make_user()
         community = make_community()
         task = make_community_task(community)
@@ -560,7 +632,10 @@ class TestTasks:
             response.errors[0].extensions["errors"]
         )
 
-    def test_can_not_delete_public_task_if_not_admin(self):
+        mock_publish_task_deleted_event.assert_not_called()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_deleted_event")
+    def test_can_not_delete_public_task_if_not_admin(self, mock_publish_task_deleted_event):
         user = make_user()
         community = make_community()
         community.add_member(user=user)
@@ -583,7 +658,10 @@ class TestTasks:
         assert response.data is None
         assert "Only administrators can delete public tasks" in str(response.errors[0].extensions["errors"])
 
-    def test_can_not_delete_task_if_not_logged_in(self):
+        mock_publish_task_deleted_event.assert_not_called()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_deleted_event")
+    def test_can_not_delete_task_if_not_logged_in(self, mock_publish_task_deleted_event):
         community = make_community()
         task = make_community_task(community)
 
@@ -603,7 +681,10 @@ class TestTasks:
 
         assert_is_unauthorized(response)
 
-    def test_can_delete_task(self):
+        mock_publish_task_deleted_event.assert_not_called()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_deleted_event")
+    def test_can_delete_task(self, mock_publish_task_deleted_event):
         user = make_user()
         community = make_community(creator=user)
         task = make_community_task(community)
@@ -625,7 +706,10 @@ class TestTasks:
         assert response.data["deleteTask"]["success"] is True
         assert response.errors is None
 
-    def test_can_delete_members_only_task_if_collaborator(self):
+        mock_publish_task_deleted_event.assert_called_once()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_deleted_event")
+    def test_can_delete_members_only_task_if_collaborator(self, mock_publish_task_deleted_event):
         user = make_user()
         community = make_community()
         community.add_member(user=user)
@@ -648,7 +732,10 @@ class TestTasks:
         assert response.data["deleteTask"]["success"] is True
         assert response.errors is None
 
-    def test_validates_task_before_creation(self):
+        mock_publish_task_deleted_event.assert_called_once()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
+    def test_validates_task_before_creation(self, mock_publish_task_created_event):
         user = make_user()
 
         community = make_community(creator=user)
@@ -671,6 +758,8 @@ class TestTasks:
             "visibility": "MEMBERS",
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
+            "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -692,6 +781,11 @@ class TestTasks:
                 "value": [non_existent_skill_id],
                 "expected_error": f"No skill with the id '{non_existent_skill_id}' found.",
             },
+            {
+                "field": "skillsV2",
+                "value": ["unknown"],
+                "expected_error": "SkillV2 'unknown' does not exist.",
+            },
         ]
 
         for testCase in expectedErrors:
@@ -708,7 +802,68 @@ class TestTasks:
                 assert testCase["expected_error"] in str(response.errors[0].message)
             assert (response.data["createTask"] if response.data else response.data) is None
 
-    def test_can_create_task(self):
+        mock_publish_task_created_event.assert_not_called()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
+    def test_can_create_task(self, mock_publish_task_created_event):
+        user = make_user()
+
+        community = make_community(creator=user)
+        skill = make_skill()
+        expected_skills_v2 = [skill.slug]
+
+        create_task_mutation = """
+            mutation test($input: CreateTaskInput!) {
+                createTask(input: $input) {
+                    id
+                    name
+                    description
+                    visibility
+                    skillsV2
+                }
+            }
+            """
+
+        valid_name = "Valid name"
+        valid_description = "Valid description"
+        valid_visibility = "MEMBERS"
+
+        valid_input = {
+            "spaceId": str(community.id),
+            "name": valid_name,
+            "description": valid_description,
+            "visibility": valid_visibility,
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
+        }
+
+        response = async_to_sync(schema.execute)(
+            create_task_mutation,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"input": valid_input},
+        )
+
+        assert response.errors is None
+
+        created_task = response.data["createTask"]
+        assert "id" in created_task
+        assert valid_name == created_task["name"]
+        assert valid_description == created_task["description"]
+        assert valid_visibility == created_task["visibility"]
+        assert expected_skills_v2 == created_task["skillsV2"]
+
+        mock_publish_task_created_event.assert_called_once()
+
+    # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+    # remove this then
+    def test_can_create_task_without_timing_metadata_as_older__client(self):
         user = make_user()
 
         community = make_community(creator=user)
@@ -721,6 +876,7 @@ class TestTasks:
                     name
                     description
                     visibility
+                    skillsV2
                 }
             }
             """
@@ -728,7 +884,6 @@ class TestTasks:
         valid_name = "Valid name"
         valid_description = "Valid description"
         valid_visibility = "MEMBERS"
-
         valid_input = {
             "spaceId": str(community.id),
             "name": valid_name,
@@ -750,14 +905,60 @@ class TestTasks:
         )
 
         assert response.errors is None
+        created_task = response.data["createTask"]
+        assert "id" in created_task
 
-        added_collaboration_tool = response.data["createTask"]
-        assert "id" in added_collaboration_tool
-        assert valid_name == added_collaboration_tool["name"]
-        assert valid_description == added_collaboration_tool["description"]
-        assert valid_visibility == added_collaboration_tool["visibility"]
+    @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
+    def test_can_create_task_with_skills_v2(self, mock_publish_task_created_event):
+        user = make_user()
 
-    def test_can_create_members_only_task_if_collaborator(self):
+        community = make_community(creator=user)
+        skills_v2 = [skill.slug for skill in make_skills(2)]
+
+        create_task_mutation = """
+            mutation test($input: CreateTaskInput!) {
+                createTask(input: $input) {
+                    id
+                    skillsV2
+                }
+            }
+            """
+
+        valid_name = "Valid name"
+        valid_description = "Valid description"
+        valid_visibility = "MEMBERS"
+
+        valid_input = {
+            "spaceId": str(community.id),
+            "name": valid_name,
+            "description": valid_description,
+            "visibility": valid_visibility,
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
+            "contactEmail": "email@email.com",
+            "skillsV2": skills_v2,
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
+        }
+
+        response = async_to_sync(schema.execute)(
+            create_task_mutation,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"input": valid_input},
+        )
+
+        assert response.errors is None
+
+        created_task = response.data["createTask"]
+        assert skills_v2 == created_task["skillsV2"]
+
+        mock_publish_task_created_event.assert_called_once()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
+    def test_can_create_members_only_task_if_collaborator(self, mock_publish_task_created_event):
         user = make_user()
 
         community = make_community()
@@ -787,6 +988,8 @@ class TestTasks:
             "visibility": valid_visibility,
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
+            "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -808,7 +1011,10 @@ class TestTasks:
         assert valid_description == added_collaboration_tool["description"]
         assert valid_visibility == added_collaboration_tool["visibility"]
 
-    def test_can_not_create_task_if_not_logged_in(self):
+        mock_publish_task_created_event.assert_called_once()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
+    def test_can_not_create_task_if_not_logged_in(self, mock_publish_task_created_event):
         community = make_community()
         skill = make_skill()
 
@@ -828,6 +1034,8 @@ class TestTasks:
             "visibility": "MEMBERS",
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
+            "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -843,7 +1051,10 @@ class TestTasks:
 
         assert_is_unauthorized(response)
 
-    def test_can_not_create_task_missing_required_fields(self):
+        mock_publish_task_created_event.assert_not_called()
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
+    def test_can_not_create_task_missing_required_fields(self, mock_publish_task_created_event):
         user = make_user()
 
         community = make_community(creator=user)
@@ -863,6 +1074,7 @@ class TestTasks:
             "visibility": "MEMBERS",
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
+            # "interactionType": "CHAT",    # noqa: ERA001
             "contactEmail": "email@email.com",
         }
         expected_errors = {
@@ -872,6 +1084,8 @@ class TestTasks:
             "visibility": "Field 'visibility' of required type 'VisibilityType!' was not provided.",
             "locationType": "Field 'locationType' of required type 'LocationType!' was not provided.",
             "regularity": "Field 'regularity' of required type 'Regularity!' was not provided.",
+            # make interaction_type required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+            # "interactionType": "Field 'interactionType' of required type 'InteractionType!' was not provided.",   # noqa: ERA001
             "contactEmail": "Field 'contactEmail' of required type 'String!' was not provided.",
         }
         valid_input_keys = valid_input.keys()
@@ -887,6 +1101,8 @@ class TestTasks:
 
             assert expected_errors[input_key] in str(response.errors[0].message)
             assert (response.data["createTask"] if response.data else response.data) is None
+
+        mock_publish_task_created_event.assert_not_called()
 
     def test_anonymous_and_non_members_only_sees_public_tasks_by_space(self):
         user = make_user()
@@ -1116,6 +1332,143 @@ class TestTasks:
         assert str(deleted_task.id) not in [task["id"] for task in response.data["spaceById"]["tasks"]]
         assert len(response.data["spaceById"]["tasks"]) == 1
 
+    class FilterExpiredTasksTestData:
+        via_space_id = (
+            """ 
+                query Space($spaceId: String!) {
+                    spaceById(idOrName: $spaceId) {
+                        id
+                        tasks {
+                            id
+                        }
+                    }
+                }
+            """,
+            lambda resp: [task["id"] for task in resp.data["spaceById"]["tasks"]],
+        )
+
+        tasks_by_space_id = (
+            """
+                query Space($spaceId: UUID!) {
+                    tasksBySpaceId(spaceId: $spaceId) {
+                        data {
+                            id
+                        }
+                    }
+                }
+            """,
+            lambda resp: [task["id"] for task in resp.data["tasksBySpaceId"]["data"]],
+        )
+
+        recommended_tasks = (
+            """
+                query RecommendedTasks {
+                    recommendedTasks {
+                        data {
+                            id
+                        }
+                    }
+                }
+            """,
+            lambda resp: [task["id"] for task in resp.data["recommendedTasks"]["data"]],
+        )
+
+    @pytest.mark.parametrize(
+        "query,task_ids_from_response,request_with,should_contain_expired",
+        [
+            pytest.param(*FilterExpiredTasksTestData.via_space_id, "ANON", False, id="via_space_id_anon_no_expired"),
+            pytest.param(*FilterExpiredTasksTestData.via_space_id, "USER", False, id="via_space_id_user_no_expired"),
+            pytest.param(
+                *FilterExpiredTasksTestData.via_space_id, "ADMIN", True, id="via_space_id_admin_include_expired"
+            ),
+            pytest.param(
+                *FilterExpiredTasksTestData.tasks_by_space_id, "ANON", False, id="tasks_by_space_id_anon_no_expired"
+            ),
+            pytest.param(
+                *FilterExpiredTasksTestData.tasks_by_space_id, "USER", False, id="tasks_by_space_id_user_no_expired"
+            ),
+            pytest.param(
+                *FilterExpiredTasksTestData.tasks_by_space_id,
+                "ADMIN",
+                True,
+                id="tasks_by_space_id_admin_include_expired",
+            ),
+            pytest.param(
+                *FilterExpiredTasksTestData.recommended_tasks,
+                "ANON",
+                False,
+                id="recommended_tasks_anon_no_expired",
+            ),
+            pytest.param(
+                *FilterExpiredTasksTestData.recommended_tasks,
+                "USER",
+                False,
+                id="recommended_tasks_user_no_expired",
+            ),
+            pytest.param(
+                *FilterExpiredTasksTestData.recommended_tasks,
+                "ADMIN",
+                False,
+                id="recommended_tasks_admin_no_expired",
+            ),
+        ],
+    )
+    def test_expired_tasks_are_filtered_correctly_on_lists(
+        self,
+        query: str,
+        request_with: str,
+        task_ids_from_response: Callable[[ExecutionResult], list[str]],
+        should_contain_expired: bool,
+    ):
+        """
+        Given: we have a space with an expired task and a current task
+        When: we run a query fetching tasks
+        Then: we verify that the business rules regarding filtering out expired tasks are kept
+        """
+        user = make_user()
+        space = make_community(creator=user)
+
+        timeframe_start_date = timezone.now() - timedelta(days=7)
+        timeframe_end_date_future = timezone.now() + timedelta(days=3)
+        timeframe_end_date_past = timezone.now() - timedelta(days=1)
+
+        current_task = make_community_task(
+            space,
+            visibility=VisibilityType.PUBLIC,
+            timeframe_start_date=timeframe_start_date,
+            timeframe_end_date=timeframe_end_date_future,
+        )
+
+        expired_task = make_community_task(
+            space,
+            visibility=VisibilityType.PUBLIC,
+            timeframe_start_date=timeframe_start_date,
+            timeframe_end_date=timeframe_end_date_past,
+        )
+
+        match request_with:
+            case "ANON":
+                request_user = AnonymousUser
+            case "ADMIN":
+                request_user = user
+            case _:
+                request_user = make_user()
+
+        response = async_to_sync(schema.execute)(
+            query,
+            variable_values={"spaceId": str(space.id)},
+            context_value=benedict({"request": {"user": request_user}}),
+        )
+        response_task_ids = task_ids_from_response(response)
+
+        assert response.errors is None
+        assert str(current_task.id) in response_task_ids
+
+        if should_contain_expired:
+            assert str(expired_task.id) in response_task_ids
+        else:
+            assert str(expired_task.id) not in response_task_ids
+
 
 @pytest.mark.django_db
 class TestTaskRecommendations:
@@ -1142,6 +1495,8 @@ class TestTaskRecommendations:
             slots_available=3,
             contact_email="some@email.de",
             regularity="ONE_TIME",
+            duration="INDETERMINATE",
+            interaction_type="CHAT",
         )
 
     def assert_filtered_tasks(self, filter_options, expected_spaces, total_results=None):
@@ -1171,9 +1526,7 @@ class TestTaskRecommendations:
             assert filter_response.data["recommendedTasks"]["totalResults"] == total_results
 
     def test_filters_for_recommended_tasks(self):
-        skill1 = make_skill()
-        skill2 = make_skill()
-        other_skill = make_skill()
+        [skill1, skill2, other_skill] = make_skills(3)
 
         # locations inside geolocation filter
         geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
@@ -1192,6 +1545,9 @@ class TestTaskRecommendations:
         task_onsite_other_skill = self.create_task(
             skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation1
         )
+        task_onsite_skill_1_and_other_skill = self.create_task(
+            skills=[skill1.id, other_skill.id], location_type="ONSITE", geolocation=geolocation1
+        )
         task_outside_onsite_other_skill = self.create_task(
             skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation3
         )
@@ -1207,25 +1563,28 @@ class TestTaskRecommendations:
         # member only tasks are not visible to non-members
         self.create_task(skills=[skill1.id], location_type="REMOTE", visibility=VisibilityType.MEMBERS)
 
+        # when the user has no profile information, the last five tasks are returned
         self.assert_filtered_tasks(
             {},
             [
                 task_remote_other_skill,
                 task_outside_onsite_other_skill,
+                task_onsite_skill_1_and_other_skill,
                 task_onsite_other_skill,
                 task_outside_onsite_skill_2,
-                task_remote_skill_2,
             ],
         )
 
         self.user.profile.skills.add(skill1)
         self.user.profile.skills.add(skill2)
+        self.user.profile.skills_v2 = [skill1.slug, skill2.slug]
         self.user.profile.geolocation = geos.GEOSGeometry(json.dumps(geolocation_geometry))
 
         self.assert_filtered_tasks(
             {"limit": 10},
             [
                 # skill matches and geo matches or remote
+                task_onsite_skill_1_and_other_skill,
                 task_remote_skill_2,
                 task_onsite_skill_1,
                 task_onsite_2_skills,
@@ -1233,6 +1592,7 @@ class TestTaskRecommendations:
                 # only skill matches
                 task_outside_onsite_skill_2,
                 # only geo matches
+                # NOT task_onsite_skill_1_and_other_skill, since it's already found in skill matches and geo matches and there should be no duplicates
                 task_onsite_other_skill,
                 # everything else
                 task_remote_other_skill,
@@ -1241,9 +1601,9 @@ class TestTaskRecommendations:
         )
 
     def test_filters_for_recommended_tasks_paging(self):
-        skill1 = make_skill()
-        other_skill = make_skill()
+        [skill1, other_skill] = make_skills(2)
         self.user.profile.skills.add(skill1)
+        self.user.profile.skills_v2 = [skill1.slug]
         self.user.profile.geolocation = geos.GEOSGeometry(json.dumps(geolocation_geometry))
 
         # locations inside geolocation filter

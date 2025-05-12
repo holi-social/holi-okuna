@@ -1,6 +1,8 @@
 # ruff: noqa
 import uuid
 from copy import deepcopy
+from datetime import datetime, timedelta
+from typing import Dict, List
 
 import requests
 import strawberry
@@ -8,15 +10,17 @@ import structlog
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.core.cache import cache
+from django.db.models import When, Value, Count, Case, IntegerField
 from django.utils.translation import get_language_from_request
 from graphql import GraphQLError
 from rest_framework.exceptions import ValidationError
 
 from openbook_common.tracking import track, TrackingEvent
-from openbook.helpers import (
-    publish_space_deleted_event,
+from openbook_communities.events import publish_space_deleted_event
+from openbook_auth.events import (
     publish_user_deleted_event,
     publish_user_name_updated_event,
+    publish_user_updated_event,
 )
 from openbook.utils import invalidate_discover_spaces_query_cache
 from openbook_auth.models import User as UserModel
@@ -30,11 +34,36 @@ from openbook_auth.utils import verify_authorized_user
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.helpers import is_parameter_null, to_input_dict
 from openbook_common.schema.types import Result
+from openbook_common.utils.model_loaders import get_insight_model, get_community_model, get_topic_model
+from openbook_communities.schema.helpers import create_filtered_spaces_query, DISCOVER_DEFAULT_SPACES_V2
 from openbook_notifications.api import NotificationApi
 from openbook_notifications.enums import NotificationProvider
 from openbook_devices.serializers import RegisterDeviceSerializer
+from openbook_notifications.services import NotificationsService
 
 logger = structlog.get_logger(__name__)
+
+
+def _capture_user_fields(user: UserModel) -> Dict[str, str]:
+    # for many-to-many relations (interests, sdgs, skills), only capture ids to avoid db round-trips
+    return {
+        "email": user.email,
+        "firstName": user.profile.name,
+        "lastName": user.profile.last_name,
+        "location": user.profile.location,
+        "geolocation": user.profile.geolocation,
+        "aboutMe": user.profile.about_me,
+        "pronouns": user.profile.pronouns,
+        "engagementLevel": user.profile.engagement_level,
+        "interests": set(user.profile.interests.values_list("id", flat=True)) | set(user.profile.interests_v2),
+        "sdgs": set(user.profile.sdgs.values_list("id", flat=True)),
+        "skills": set(user.profile.skills.values_list("id", flat=True)) | set(user.profile.skills_v2),
+        "avatar": user.profile.avatar.url if user.profile.avatar else None,
+    }
+
+
+def _get_updated_fields(o1: Dict[str, any], o2: Dict[str, any]) -> List[str]:
+    return [key for key in set(o1.keys()).union(o2.keys()) if o1.get(key) != o2.get(key)]
 
 
 @strawberry.type
@@ -49,6 +78,9 @@ class Mutation:
     def update_authenticated_user_v2(self, info, input: UpdateAuthenticatedUserInput) -> AuthenticatedUser:
         current_user = verify_authorized_user(info)
 
+        user_entity = UserModel.objects.get(username=current_user.username)
+        user_current_name = user_entity.profile.name
+
         input_dict = to_input_dict(input)
         if input.first_name:
             input_dict["name"] = input.first_name
@@ -62,6 +94,7 @@ class Mutation:
         data = serializer.validated_data
 
         remove_avatar = is_parameter_null(data, "avatar")
+        current_user_fields_before = _capture_user_fields(current_user)
 
         current_user.update(
             name=data.get("name"),
@@ -73,14 +106,18 @@ class Mutation:
             update_location=input.location is not strawberry.UNSET or input.geolocation is not strawberry.UNSET,
             engagement_level=data.get("engagement_level"),
             interests=data.get("interests"),
+            interests_v2=data.get("interests_v2"),
             sdgs=data.get("sdgs"),
             skills=data.get("skills"),
+            skills_v2=data.get("skills_v2"),
             avatar=data.get("avatar"),
             remove_avatar=remove_avatar,
             tracking_consent_analytics=data.get("tracking_consent_analytics"),
             tracking_consent_personalization=data.get("tracking_consent_personalization"),
+            tracking_consent_ad_partners=data.get("tracking_consent_ad_partners"),
             save=True,
         )
+        current_user_fields_after = _capture_user_fields(current_user)
 
         generate_identity_when_needed(current_user)
 
@@ -88,10 +125,70 @@ class Mutation:
             update_ory_user_names(current_user.id)
             publish_user_name_updated_event(user=current_user)
 
+        publish_user_updated_event(user=current_user)
+
         locale = get_language_from_request(info.context.request)
         NotificationApi.create_or_update_subscriber(user=current_user, locale=locale)
 
-        track(current_user, TrackingEvent("userUpdated"))
+        user_updated_name = current_user.profile.name
+
+        # send welcome email only for newly created users
+        # include recommended spaces and latest insights in the welcome email
+        if user_current_name is None and user_updated_name is not None:
+            community_model = get_community_model()
+            insight_model = get_insight_model()
+            topic_model = get_topic_model()
+
+            whens = []
+            topics_v2 = list(current_user.profile.interests_v2)
+            geolocation = current_user.geolocation
+
+            if topics_v2:
+                whens.append(
+                    When(create_filtered_spaces_query(topics_v2=topics_v2, geolocation=geolocation), then=Value(10))
+                )
+
+            if geolocation:
+                whens.append(When(create_filtered_spaces_query(geolocation=geolocation), then=Value(20)))
+
+            whens.append(When(create_filtered_spaces_query(topics_v2=DISCOVER_DEFAULT_SPACES_V2), then=Value(30)))
+
+            spaces = (
+                community_model.objects.prefetch_related("links", "memberships__user__profile")
+                .annotate(member_count=Count("memberships"))
+                .annotate(
+                    custom_order=Case(
+                        *whens,
+                        output_field=IntegerField(),
+                    )
+                )
+                .filter(custom_order__isnull=False, is_deleted=False)
+                .distinct()
+                .order_by("custom_order", "-created")[:4]
+            )
+
+            insights = insight_model.objects.order_by("-date_published")[:3]
+
+            welcome_email_subscription_token = str(uuid.uuid4())
+
+            NotificationsService.send_welcome_email_series_notification(
+                user=current_user, spaces=spaces, insights=insights, token=welcome_email_subscription_token
+            )
+
+            feedback_interview_token = str(uuid.uuid4())
+
+            NotificationsService.send_feedback_interview_notification(
+                user=current_user, token=feedback_interview_token
+            )
+
+        updated_fields = _get_updated_fields(current_user_fields_before, current_user_fields_after)
+        if updated_fields:
+            track(
+                current_user,
+                TrackingEvent(
+                    "userUpdated", {"updatedFields": updated_fields, "accountType": current_user.account_type}
+                ),
+            )
 
         cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
 
@@ -211,4 +308,10 @@ class Mutation:
         current_user = verify_authorized_user(info)
         current_user.remove_insight_bookmark(insight_id)  # To maintain compatibility with older versions
         UserFavorite.unfavorite(user=current_user, favoritable_id=insight_id, favoritable_type="insight")
+        return Result(success=True)
+
+    @strawberry.mutation()
+    @sync_to_async
+    def unsubscribe_from_newsletter(self, info, token: str) -> Result:
+        NotificationApi.cancel_workflow(transaction_id=token)
         return Result(success=True)

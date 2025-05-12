@@ -57,7 +57,7 @@ def _remove_file_silently(filename):
 
 def _generate_random_string(
     length=12,
-    allowed_chars="abcdefghijklmnopqrstuvwxyz" "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+    allowed_chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
 ):
     """
     Return a securely generated random string.

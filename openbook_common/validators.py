@@ -1,8 +1,8 @@
-# ruff: noqa
 import re
+from typing import get_args
 
 from graphql import GraphQLError
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, NotFound
 from django.utils.translation import gettext_lazy as _
 
 from openbook.graphql_errors import GraphQLErrorCodes
@@ -13,6 +13,8 @@ from openbook_common.utils.model_loaders import (
     get_emoji_group_model,
     get_language_model,
 )
+from openbook_common.topics import TopicV2
+from openbook_common.skills import SkillV2
 
 from openbook import settings
 
@@ -50,7 +52,7 @@ def reaction_type_exists(reaction_type):
     except KeyError:
         raise ValidationError(
             _("No reaction_type with the provided name exists."),
-        )
+        ) from None
 
 
 def emoji_group_id_exists(emoji_group_id):
@@ -118,3 +120,13 @@ def sanitize_text(text: str):
     urls = extract_urls_from_string(text)
     for url in urls:
         url_safety_validator(url)
+
+
+def topic_v2_exists(topic_v2_slug):
+    if topic_v2_slug not in get_args(TopicV2):
+        raise NotFound(_(f"TopicV2 '{topic_v2_slug}' does not exist."))
+
+
+def skill_v2_exists(skill_v2_slug):
+    if skill_v2_slug not in get_args(SkillV2):
+        raise NotFound(_(f"SkillV2 '{skill_v2_slug}' does not exist."))

@@ -9,6 +9,17 @@ from openbook_common.types import GeolocationFeature
 from openbook_communities.models import Community as CommunityModel
 
 
+DISCOVER_DEFAULT_SPACES_V2 = [
+    "human-rights",
+    "animal-welfare",
+    "climate-environment",
+    "arts-culture",
+    "literacy-education",
+    "mental-physical-health",
+    "democracy-politics",
+]
+
+
 @sync_to_async
 def filtered_spaces(
     topic_id: Optional[uuid.UUID] = None,
@@ -18,10 +29,21 @@ def filtered_spaces(
     topic_slug: Optional[str] = None,
     topic_slugs: Optional[List[Optional[str]]] = None,
     skill_slugs: Optional[List[Optional[str]]] = None,
+    topics_v2: Optional[List[str]] = None,
+    skills_v2: Optional[List[str]] = None,
     member_id: Optional[uuid.UUID] = None,
 ):
     query = create_filtered_spaces_query(
-        topic_id, topic_ids, geolocation, skill_ids, topic_slug, topic_slugs, skill_slugs, member_id
+        topic_id,
+        topic_ids,
+        geolocation,
+        skill_ids,
+        topic_slug,
+        topic_slugs,
+        skill_slugs,
+        topics_v2,
+        skills_v2,
+        member_id,
     )
     return create_spaces_queryset(query)
 
@@ -34,6 +56,8 @@ def create_filtered_spaces_query(
     topic_slug: Optional[str] = None,
     topic_slugs: Optional[List[Optional[str]]] = None,
     skill_slugs: Optional[List[Optional[str]]] = None,
+    topics_v2: Optional[List[str]] = None,
+    skills_v2: Optional[List[str]] = None,
     member_id: Optional[uuid.UUID] = None,
 ):
     query = Q()
@@ -55,6 +79,10 @@ def create_filtered_spaces_query(
         query.add(Q(topics__slug__contains=topic_slug), Q.AND)
     if skill_slugs:
         query.add(Q(tasks__skills__slug__in=skill_slugs), Q.AND)
+    if topics_v2:
+        query.add(Q(topics_v2__overlap=topics_v2), Q.AND)
+    if skills_v2:
+        query.add(Q(tasks__skills_v2__overlap=skills_v2), Q.AND)
     if member_id:
         user = UserModel.objects.get(username=member_id)
         query.add(Q(memberships__user=user), Q.AND)

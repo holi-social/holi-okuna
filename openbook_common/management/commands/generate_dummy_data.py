@@ -15,7 +15,7 @@ from faker import Faker
 from feed_posts.enums import VisibilityLevel
 from feed_posts.models import FeedPost
 from openbook import settings
-from openbook.helpers import publish_user_name_updated_event
+from openbook_auth.events import publish_user_name_updated_event
 from openbook_auth.models import User
 from openbook_auth.tasks import generate_identity_when_needed
 from openbook_common.tests.helpers import (
@@ -24,7 +24,7 @@ from openbook_common.tests.helpers import (
     make_users,
 )
 from openbook_common.enums import ReactionType, VisibilityType
-from openbook_communities.models import Community
+from openbook_communities.models import Community, Task
 from openbook_insights.models import Insight, Discussion
 from openbook_polls.models import Poll, Choice
 from openbook_posts.models import Post
@@ -190,6 +190,7 @@ class Command(BaseCommand):
                     name=fake.text(max_nb_chars=20),
                     description=fake.catch_phrase(),
                     visibility=VisibilityType.PUBLIC,
+                    duration=Task.Duration.HOURS_2to4,
                     location_type="REMOTE",
                     contact_email=fake.email(),
                     slots_available=10,

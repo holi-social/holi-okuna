@@ -1,6 +1,6 @@
 import logging
 import uuid
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING, Annotated
 
 import strawberry
 import strawberry_django
@@ -33,11 +33,23 @@ class UpdateAuthenticatedUserInput:
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeoJSONInput] = strawberry.UNSET
     engagement_level: Optional[str] = strawberry.UNSET
-    interests: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
-    sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
-    skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    interests: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.52. Use interests_v2 instead."),
+    ] = strawberry.UNSET
+    interests_v2: Optional[List[str]] = strawberry.UNSET
+    sdgs: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.53."),
+    ] = strawberry.UNSET
+    skills: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.52. Use skills_v2 instead."),
+    ] = strawberry.UNSET
+    skills_v2: Optional[List[str]] = strawberry.UNSET
     tracking_consent_analytics: Optional[bool] = strawberry.UNSET
     tracking_consent_personalization: Optional[bool] = strawberry.UNSET
+    tracking_consent_ad_partners: Optional[bool] = strawberry.UNSET
 
 
 @strawberry.input
@@ -53,6 +65,7 @@ class User:
     avatar_default_color: str
     avatar_label: str
     role: Optional[UserRole]
+    is_oidc: bool
 
     @strawberry_django.field(description="Can be an empty string", select_related=["profile"])
     def full_name(self) -> str:
@@ -94,17 +107,29 @@ class User:
     def engagement_level(self) -> Optional[str]:
         return self.profile.engagement_level
 
-    @strawberry_django.field(select_related=["profile__interests"])
+    @strawberry_django.field(
+        select_related=["profile__interests"], deprecation_reason="Deprecated since 1.52. Use interests_v2 instead."
+    )
     def interests(self) -> List[Optional[Topic]]:
         return self.profile.interests.all()
 
-    @strawberry_django.field(select_related=["profile__sdgs"])
+    @strawberry_django.field(select_related=["profile"])
+    def interests_v2(self) -> List[Optional[str]]:
+        return self.profile.interests_v2
+
+    @strawberry_django.field(select_related=["profile__sdgs"], deprecation_reason="Deprecated since 1.53.")
     def sdgs(self) -> List[Optional[SDG]]:
         return self.profile.sdgs.all().order_by("number")
 
-    @strawberry_django.field(select_related=["profile__skills"])
+    @strawberry_django.field(
+        select_related=["profile__skills"], deprecation_reason="Deprecated since 1.52. Use skills_v2 instead."
+    )
     def skills(self) -> List[Optional[Skill]]:
         return self.profile.skills.all()
+
+    @strawberry_django.field(select_related=["profile"])
+    def skills_v2(self) -> List[Optional[str]]:
+        return self.profile.skills_v2
 
     @strawberry_django.field()
     def connection_status_to_myself(self, info) -> Optional[UserConnectionStatus]:
@@ -121,8 +146,10 @@ class User:
 
 @strawberry_django.type(UserModel)
 class AuthenticatedUser(User):
+    email: str
     tracking_consent_analytics: Optional[bool]
     tracking_consent_personalization: Optional[bool]
+    tracking_consent_ad_partners: Optional[bool]
     is_employee: bool
     is_verified: bool
     role: Optional[UserRole]

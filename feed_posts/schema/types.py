@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional, List
+from typing import Optional, List, Annotated
 
 import strawberry
 import strawberry_django
@@ -15,6 +15,7 @@ from feed_posts.models import (
 from feed_posts.services import FeedPostReactionService, FeedPostMentionService
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import ReactionCounts, Paged, GeolocationPointInput, GeolocationPoint
+from openbook_insights.schema.types import Insight
 from openbook_posts.schema.types import LinkPreview, Post
 from openbook_terms.schema.types import Topic, FeedPostCategory
 from comments.models import Comment as CommentModel
@@ -39,15 +40,21 @@ class FeedPost:
     description: strawberry.auto
     location: Optional[str]
     link_preview: Optional[LinkPreview]
-    image: Optional[
-        str
-    ]  # This field is deprecated. Please use the new images field instead. Remove it after version 1.30.x
-    image_blurhash: Optional[
-        str
-    ]  # This field is deprecated. Please use the new images field instead. Remove it after version 1.30.x
+    image: Annotated[
+        Optional[str],
+        strawberry.argument(description="This field is deprecated. Please use the new images field instead."),
+    ]  # Can be removed after version 1.30.x
+    image_blurhash: Annotated[
+        Optional[str],
+        strawberry.argument(description="This field is deprecated. Please use the new images field instead."),
+    ]  # Can be removed after version 1.30.x
     visibility: VisibilityLevel
-    topics: Optional[List[Topic]]
-    category: FeedPostCategory
+    topics: Annotated[
+        Optional[List[Topic]],
+        strawberry.argument(description="Deprecated since 1.52. Use topics_v2 instead."),
+    ]
+    topics_v2: Optional[List[str]]
+    category: Optional[FeedPostCategory]
     creator: Optional[User]
 
     @strawberry_django.field()
@@ -118,8 +125,12 @@ class CreateFeedPostInput:
         strawberry.UNSET
     )  # This field is deprecated. Please use the new images field instead. Remove it after version 1.30.x
     visibility: VisibilityLevel
-    topic_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
-    category_id: uuid.UUID
+    topic_ids: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.52. Use topics_v2 instead."),
+    ] = strawberry.UNSET
+    topics_v2: Optional[List[str]] = strawberry.UNSET
+    category_id: Optional[uuid.UUID] = strawberry.UNSET
     language: Optional[str] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
@@ -143,7 +154,11 @@ class UpdateFeedPostInput:
         strawberry.UNSET
     )  # This field is deprecated. Please use the new images field instead. Remove it after version 1.30.x
     visibility: Optional[VisibilityLevel] = strawberry.UNSET
-    topic_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    topic_ids: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.52. Use topics_v2 instead."),
+    ] = strawberry.UNSET
+    topics_v2: Optional[List[str]] = strawberry.UNSET
     category_id: Optional[uuid.UUID] = strawberry.UNSET
     language: Optional[str] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
@@ -153,3 +168,10 @@ class UpdateFeedPostInput:
 
 
 GenericPost = strawberry.union("GenericPost", (FeedPost, Post))
+
+
+@strawberry.type
+class FeedItem:
+    feed_post: Optional[FeedPost]
+    insight: Optional[Insight]
+    space_post: Optional[Post]

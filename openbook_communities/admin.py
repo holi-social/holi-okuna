@@ -1,6 +1,11 @@
 from django.contrib import admin
+from rangefilter.filters import DateRangeQuickSelectListFilterBuilder
 
-from openbook.helpers import publish_space_created_event, publish_space_user_added_event, publish_space_updated_event
+from openbook_communities.events import (
+    publish_space_created_event,
+    publish_space_updated_event,
+    publish_space_user_added_event,
+)
 from openbook_communities.models import (
     CollaborationTool,
     Community,
@@ -37,7 +42,7 @@ class CommunityAdmin(admin.ModelAdmin):
     readonly_fields = ["name"]
     list_display = ("name", "title", "creator", "created", "get_num_posts", "get_num_members", "is_deleted")
     search_fields = ("title", "creator__email", "creator__profile__name", "creator__profile__last_name")
-    exclude = ["banned_users", "starrers"]
+    exclude = ["banned_users", "starrers", "geolocation_geojson"]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -89,7 +94,7 @@ class CommunityAdmin(admin.ModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         def nice_name(obj):
-            return f'{obj.profile.name if hasattr(obj, "profile") else ""} {obj.profile.last_name if hasattr(obj, "profile") else ""} ({obj.email}), {obj.username}'
+            return f"{obj.profile.name if hasattr(obj, 'profile') else ''} {obj.profile.last_name if hasattr(obj, 'profile') else ''} ({obj.email}), {obj.username}"
 
         formfield = super().formfield_for_foreignkey(db_field, request, **kwargs)
         if db_field.name == "creator":
@@ -99,8 +104,8 @@ class CommunityAdmin(admin.ModelAdmin):
 
 @admin.register(CommunityMembership)
 class CommunityMembershipAdmin(admin.ModelAdmin):
-    list_display = ("id", "community", "user", "is_administrator")
-    list_filter = ("is_administrator",)
+    list_display = ("id", "community", "user", "is_administrator", "created")
+    list_filter = ("is_administrator", ("created", DateRangeQuickSelectListFilterBuilder(title="Created")))
     search_fields = ("community__title", "community__creator__email", "user__email")
 
 
@@ -124,6 +129,7 @@ class CommunityTaskAdmin(admin.ModelAdmin):
         "slots_taken",
         "slots_available",
     )
+    exclude = ["geolocation_geojson"]
 
 
 @admin.register(OnboardingStep)

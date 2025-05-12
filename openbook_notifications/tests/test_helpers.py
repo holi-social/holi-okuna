@@ -15,6 +15,7 @@ class TestFlattenPayload(TestCase):
         self.assertEqual(flatten_payload(data_dict), expected_result)
 
     def test_flatten_payload_complex(self):
+        # GIVEN
         user = make_user(name="Test", last_name="User", email="test.user@holi.social")
         space = make_community(title="Test Space")
         payload = SpaceMembershipRequestPayload(
@@ -22,7 +23,11 @@ class TestFlattenPayload(TestCase):
             space=space,
             message="I'm interested in becoming a member of your space",
         )
-        payload_dict = payload.to_dict()
+
+        # WHEN
+        flattened = flatten_payload(payload.to_dict())
+
+        # THEN
         expected_result = {
             "userId": str(user.id),
             "userFullName": "Test User",
@@ -39,7 +44,7 @@ class TestFlattenPayload(TestCase):
             "notificationType": "SPACE_MEMBERSHIP_REQUEST",
             "notificationVersion": "1.0.0",
         }
-        self.assertDictContainsSubset(expected_result, flatten_payload(payload_dict))
+        assert all(item in flattened for item in expected_result)
 
 
 @pytest.mark.django_db

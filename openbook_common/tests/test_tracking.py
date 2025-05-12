@@ -14,6 +14,7 @@ class UserForTest(TrackingUser):
     username: str
     tracking_consent_analytics: bool
     tracking_consent_personalization: bool
+    tracking_consent_ad_partners: bool
 
 
 class TestTracking(unittest.TestCase):
@@ -22,7 +23,7 @@ class TestTracking(unittest.TestCase):
 
     @mock.patch("posthog.Posthog.capture")
     def test_no_tracking_without_analytics_consent(self, mock_posthog_capture):
-        user = UserForTest("donald_trump", False, faker.boolean())
+        user = UserForTest("donald_trump", False, faker.boolean(), faker.boolean())
         track(user, TrackingEvent("testEvent"))
         mock_posthog_capture.assert_not_called()
 
@@ -31,7 +32,8 @@ class TestTracking(unittest.TestCase):
         username = "donald_trump"
         consent_analytics = True
         consent_personalization = faker.boolean()
-        user = UserForTest(username, consent_analytics, consent_personalization)
+        consent_ad_partners = faker.boolean()
+        user = UserForTest(username, consent_analytics, consent_personalization, consent_ad_partners)
         track(user, TrackingEvent("testEvent", {}, 1, 2, 3))
         mock_posthog_capture.assert_called_once_with(
             distinct_id=username,
@@ -42,6 +44,7 @@ class TestTracking(unittest.TestCase):
                 "event_version__patch": 3,
                 "trackingConsentAnalytics": consent_analytics,
                 "trackingConsentPersonalization": consent_personalization,
+                "trackingConsentAdPartners": consent_ad_partners,
             },
         )
 
@@ -50,7 +53,8 @@ class TestTracking(unittest.TestCase):
         username = "donald_trump"
         consent_analytics = True
         consent_personalization = faker.boolean()
-        user = UserForTest(username, consent_analytics, consent_personalization)
+        consent_ad_partners = faker.boolean()
+        user = UserForTest(username, consent_analytics, consent_personalization, consent_ad_partners)
         track(user, TrackingEvent("testEvent", {"random_name": "random_value"}, 1, 2, 3))
         mock_posthog_capture.assert_called_once_with(
             distinct_id=username,
@@ -61,13 +65,14 @@ class TestTracking(unittest.TestCase):
                 "event_version__patch": 3,
                 "trackingConsentAnalytics": consent_analytics,
                 "trackingConsentPersonalization": consent_personalization,
+                "trackingConsentAdPartners": consent_ad_partners,
                 "random_name": "random_value",
             },
         )
 
     @mock.patch("posthog.Posthog.capture")
     def test_adds_default_properties_and_version(self, mock_posthog_capture):
-        user = UserForTest("donald_trump", True, True)
+        user = UserForTest("donald_trump", True, True, True)
         track(user, TrackingEvent("testEvent"))
         mock_posthog_capture.assert_called_once_with(
             distinct_id=user.username,
@@ -78,13 +83,14 @@ class TestTracking(unittest.TestCase):
                 "event_version__patch": 0,
                 "trackingConsentAnalytics": True,
                 "trackingConsentPersonalization": True,
+                "trackingConsentAdPartners": True,
             },
         )
 
     @mock.patch("posthog.Posthog.capture")
     def test_does_not_raise(self, mock_posthog_capture):
         mock_posthog_capture.side_effect = Exception("Boom!")
-        user = UserForTest("donald_trump", True, True)
+        user = UserForTest("donald_trump", True, True, True)
         # noinspection PyBroadException
         try:
             track(user, TrackingEvent("testEvent"))

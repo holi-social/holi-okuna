@@ -339,7 +339,7 @@ class GeoFeatureModelSerializer(serializers.ModelSerializer):
         meta.auto_bbox = getattr(meta, "auto_bbox", False)
         if meta.bbox_geo_field and meta.auto_bbox:
             raise ImproperlyConfigured(
-                "You must eiher define a 'bbox_geo_field' or " "'auto_bbox', but you can not set both"
+                "You must either define a 'bbox_geo_field' or 'auto_bbox', but you can not set both"
             )
 
     def to_representation(self, instance):

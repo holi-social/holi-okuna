@@ -2,14 +2,14 @@ import uuid
 
 from feed_posts.checkers import FeedPostChecker
 from feed_posts.models import FeedPostMention
-from feed_posts.repositories import FeedPostRepository, FeedPostReactionRepository
+from feed_posts.repositories import FeedPostReactionRepository, FeedPostRepository
 from openbook_auth.models import User
 from openbook_common.helpers import extract_urls_from_string
 from openbook_common.models import LinkPreview
-from openbook_common.tracking import track, TrackingEvent
+from openbook_common.tracking import TrackingEvent, track
 from openbook_common.utils.helpers import extract_usernames_from_string
 from openbook_notifications.services import NotificationsService
-from openbook_terms.models import FeedPostCategory, Topic
+from openbook_terms.models import FeedPostCategory
 
 
 class FeedPostService:
@@ -23,16 +23,17 @@ class FeedPostService:
         title,
         visibility,
         description,
-        category_id,
         creator,
         image,
+        category_id=None,
         topic_ids=None,
+        topics_v2=None,
         language=None,
         location=None,
         geolocation=None,
         images=None,
     ):
-        category = FeedPostCategory.objects.get(id=category_id)
+        category = FeedPostCategory.objects.get(id=category_id) if category_id else None
 
         urls = extract_urls_from_string(description)
 
@@ -45,7 +46,8 @@ class FeedPostService:
             category=category,
             creator=creator,
             image=image,
-            topics=topic_ids,
+            topic_ids=topic_ids,
+            topics_v2=topics_v2,
             link_preview=link_preview,
             language=language,
             location=location,
@@ -55,7 +57,19 @@ class FeedPostService:
 
         self.mention_service.add_mentions(post_id=post.id, description=description, creator=creator)
 
-        track(creator, TrackingEvent("feedPostCreated", {"postId": str(post.id)}))
+        track(
+            creator,
+            TrackingEvent(
+                "feedPostCreated",
+                {
+                    "postId": str(post.id),
+                    "locations": 0 if geolocation is None else 1,
+                    "categories": 0 if category is None else 1,
+                    "images": 0 if images is None else len(images),
+                    "topics": len(topic_ids or topics_v2 or []),
+                },
+            ),
+        )
 
         return post
 
@@ -79,6 +93,7 @@ class FeedPostService:
         visibility=None,
         category_id=None,
         topic_ids=None,
+        topics_v2=None,
         image=None,
         remove_image=False,
         language=None,
@@ -91,9 +106,7 @@ class FeedPostService:
 
         self.checker.check_can_update_feed_post(user=user, post=post)
 
-        category = FeedPostCategory.objects.get(id=category_id)
-
-        topics = Topic.objects.filter(id__in=topic_ids) if topic_ids else None
+        category = FeedPostCategory.objects.get(id=category_id) if category_id else None
 
         urls = extract_urls_from_string(description)
 
@@ -107,7 +120,8 @@ class FeedPostService:
             description=description,
             visibility=visibility,
             category=category,
-            topics=topics,
+            topic_ids=topic_ids,
+            topics_v2=topics_v2,
             image=image,
             remove_image=remove_image,
             link_preview=link_preview,

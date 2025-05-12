@@ -19,10 +19,8 @@ stages:
 
 default:
   before_script:
-    - set -eux
-    # env -0 | sort -z | tr '\0' '\n': Sort env output alphabetically, keeping multiline variables intact
-    # egrep: Remove sensitive information from the output of env
-    - env -0 | sort -z | tr '\0' '\n' | egrep -ve '^(DOCKER_AUTH_CONFIG|GOOGLE_APPLICATION_CREDENTIALS)=.*'
+    - set -eu
+    # DANGER don't use `set -x` or print the environment via e.g. `env` in pipeline runs, this might leak credentials (has leaked them)
   interruptible: true
   tags:
     - 1cpu-4gb # build on smaller machine
@@ -79,10 +77,10 @@ lint:
     - release/*
 
 build_docker:
-  image: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:27'
+  image: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:28'
   stage: 'build'
   services:
-    - name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:27-dind'
+    - name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:28-dind'
       alias: 'docker'
   variables:
     # this could be fetched via terraform output ("gcr_location" in infra project), but then we would need an extra job for terraform
@@ -153,7 +151,7 @@ review_smoketest:
 review_destroy:
   stage: destroy
   image:
-    name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/hashicorp/terraform:1.9.8'
+    name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/hashicorp/terraform:1.11.4'
     # default entrypoint is terraform command, but we want to run shell scripts
     entrypoint: ['/bin/sh', '-c']
   variables:
@@ -194,21 +192,27 @@ staging_deploy:
     url: https://staging.social.apis.holi.social
   variables:
     ENVIRONMENT_ID: staging
-  only:
-    - main
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
 
 staging_smoketest:
   extends: .smoketest
-  only:
-    - main
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
 
 staging_trigger_unified-api_redeployment:
   stage: downstream
   trigger:
     project: 'app/holi-unified-api'
     branch: 'main'
-  only:
-    - main
+    forward:
+      yaml_variables: false
+      pipeline_variables: false
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
   resource_group: unified-api-staging
 
 production_deploy:
@@ -220,19 +224,25 @@ production_deploy:
     url: https://production.social.apis.holi.social
   variables:
     ENVIRONMENT_ID: production
-  only:
-    - production
+  rules:
+    - if: $CI_COMMIT_BRANCH == "production"
+      when: on_success
 
 production_smoketest:
   extends: .smoketest
-  only:
-    - production
+  rules:
+    - if: $CI_COMMIT_BRANCH == "production"
+      when: on_success
 
 production_trigger_unified-api_redeployment:
   stage: downstream
   trigger:
     project: 'app/holi-unified-api'
     branch: 'production'
-  only:
-    - production
+    forward:
+      yaml_variables: false
+      pipeline_variables: false
+  rules:
+    - if: $CI_COMMIT_BRANCH == "production"
+      when: on_success
   resource_group: unified-api-production

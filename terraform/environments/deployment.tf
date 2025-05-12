@@ -83,9 +83,8 @@ resource "google_cloud_run_v2_job" "okuna_migration" {
           }
         }
         env {
-          name = "ALLOWED_HOSTS"
-          # TODO This could break the admin interface, we need to check it after deployment
-          value = local.dns_name
+          name  = "ALLOWED_HOSTS"
+          value = "${local.dns_name},127.0.0.1,localhost" # localhost for healthcheck (startup and liveness probes)
         }
         env {
           name  = "RDS_DB_NAME"
@@ -246,9 +245,8 @@ resource "google_cloud_run_service" "okuna" {
           }
         }
         env {
-          name = "ALLOWED_HOSTS"
-          # TODO This could break the admin interface, we need to check it after deployment
-          value = local.dns_name
+          name  = "ALLOWED_HOSTS"
+          value = "${local.dns_name},127.0.0.1,localhost" # localhost for healthcheck (startup and liveness probes)
         }
         env {
           name  = "RDS_DB_NAME"
@@ -342,26 +340,26 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "EMAIL_HOST"
-          value = "smtp.mailbox.org"
+          value = "smtp.gmail.com"
         }
         env {
           name  = "DEFAULT_FROM_EMAIL"
-          value = "noreply@holi.social"
+          value = "no-reply@holi.social"
         }
         env {
           name  = "SERVICE_EMAIL_ADDRESS"
-          value = "development@holi.team"
+          value = "no-reply@holi.social"
         }
         env {
           name  = "SERVER_EMAIL"
-          value = "development@holi.team"
+          value = "no-reply@holi.social"
         }
         env {
           name = "EMAIL_HOST_USER"
           value_from {
             secret_key_ref {
               key  = "latest"
-              name = "MAILBOX_USERNAME_DEVELOPMENT"
+              name = "EMAIL_HOST_USER"
             }
           }
         }
@@ -370,7 +368,7 @@ resource "google_cloud_run_service" "okuna" {
           value_from {
             secret_key_ref {
               key  = "latest"
-              name = "MAILBOX_PASSWORD_DEVELOPMENT"
+              name = "EMAIL_HOST_PASSWORD"
             }
           }
         }
@@ -421,6 +419,26 @@ resource "google_cloud_run_service" "okuna" {
             }
           }
         }
+
+        startup_probe {
+          initial_delay_seconds = 10
+          period_seconds        = 5
+          timeout_seconds       = 5
+          failure_threshold     = 10
+          http_get {
+            path = "/graphql?query=%7B__typename%7D"
+          }
+        }
+
+        liveness_probe {
+          period_seconds    = 15
+          timeout_seconds   = 10
+          failure_threshold = 3
+          http_get {
+            path = "/graphql?query=%7B__typename%7D"
+          }
+        }
+
         resources {
           limits = {
             # cpu can only be scaled down to 1000m as long as container_concurrency is set to != 1
