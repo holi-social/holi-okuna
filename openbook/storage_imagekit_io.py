@@ -3,8 +3,8 @@ import os
 import urllib3
 import hmac
 import hashlib
-import secrets
 import time
+import secrets
 
 from django.core.files.base import ContentFile
 from django.core.files.storage import Storage
@@ -117,17 +117,17 @@ class ImagekitIoStorage(Storage):
         The parameters are generated server-side and returned to the client.
         """
         # Generate a random 32-character hex token
-        token = "".join(secrets.token_hex(1) for _ in range(32))
+        token = secrets.token_hex(16)
 
         # Calculate expire time (current time + 2400 seconds)
-        expire = int(time.time()) + 2400
+        expire = time.time() + 2400
 
         # Use the private key from settings
         private_api_key = settings.IMAGEKIT_PRIVATE_KEY
 
-        # Generate signature using HMAC-SHA1
-        message = f"{token}{expire}"
-        signature = hmac.new(private_api_key, message.encode(), hashlib.sha1).hexdigest()
+        # Generate HMAC-SHA1 signature (hex digest)
+        message = (token + str(expire)).encode("utf-8")
+        signature = hmac.new(private_api_key, message, hashlib.sha1).hexdigest()
 
         # Return only the parameters that match the GraphQL mutation response
         return {"token": token, "signature": signature, "expire": expire, "publicKey": settings.IMAGEKIT_PUBLIC_KEY}
