@@ -24,6 +24,7 @@ from openbook_common.helpers import ExifRotate, generate_blurhash, geojson_from_
 from openbook_common.models import ModelWithUUID, LinkPreview
 from openbook_common.types import LanguageCode
 from openbook_common.utils.helpers import delete_file_field
+from openbook_polls.models import Poll
 from openbook_terms.models import Topic, FeedPostCategory
 
 
@@ -41,6 +42,8 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
     topics_v2 = ArrayField(models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH), blank=True, default=list)
 
     category = models.ForeignKey(FeedPostCategory, on_delete=models.PROTECT, null=True)
+
+    poll = models.ForeignKey(Poll, on_delete=models.PROTECT, null=True)
 
     creator = models.ForeignKey(
         User,

@@ -16,6 +16,7 @@ from feed_posts.services import FeedPostReactionService, FeedPostMentionService
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import ReactionCounts, Paged, GeolocationPointInput, GeolocationPoint
 from openbook_insights.schema.types import Insight
+from openbook_polls.schema.types import Poll
 from openbook_posts.schema.types import LinkPreview, Post
 from openbook_terms.schema.types import Topic, FeedPostCategory
 from comments.models import Comment as CommentModel
@@ -56,6 +57,7 @@ class FeedPost:
     topics_v2: Optional[List[str]]
     category: Optional[FeedPostCategory]
     creator: Optional[User]
+    poll: Optional[Poll]
 
     @strawberry_django.field()
     def created_at(self) -> str:
