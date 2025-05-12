@@ -26,7 +26,7 @@ dependencies = [
     "Django==5.2.1",
     "django-admin-rangefilter==0.13.2",
     "django-appconf==1.1.0",
-    "django-cacheops==7.1",
+    "django-cacheops==7.2",
     "django-cors-headers==4.7.0",
     "django-cursor-pagination==0.3.0",
     "django-debug-toolbar==5.0.1",
