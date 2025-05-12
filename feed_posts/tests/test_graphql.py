@@ -851,6 +851,8 @@ class TestFeedPosts(TestCase):
             location=input_data["location"],
             geolocation=input_data["geolocation"],
             images=None,
+            image_urls=None,
+            aspect_ratio=None,
         )
 
         regular_post = FeedPostRepository().create_feed_post(
@@ -867,6 +869,8 @@ class TestFeedPosts(TestCase):
             location=input_data["location"],
             geolocation=input_data["geolocation"],
             images=None,
+            image_urls=None,
+            aspect_ratio=None,
         )
 
         public_space_post = self.user.create_community_post(
