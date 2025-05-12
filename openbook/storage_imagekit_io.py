@@ -111,6 +111,11 @@ class ImagekitIoStorage(Storage):
             return None
 
     def get_imagekit_auth_params(self):
+        """
+        Returns ImageKit authentication parameters.
+        This method is meant to be called by a GraphQL resolver.
+        The parameters are generated server-side and returned to the client.
+        """
         # Generate a random 32-character hex token
         token = "".join(secrets.token_hex(1) for _ in range(32))
 
@@ -122,8 +127,9 @@ class ImagekitIoStorage(Storage):
 
         # Generate signature using HMAC-SHA1
         message = f"{token}{expire}"
-        signature = hmac.new(private_api_key.encode(), message.encode(), hashlib.sha1).hexdigest()
+        signature = hmac.new(private_api_key, message.encode(), hashlib.sha1).hexdigest()
 
+        # Return only the parameters that match the GraphQL mutation response
         return {"token": token, "signature": signature, "expire": expire, "publicKey": settings.IMAGEKIT_PUBLIC_KEY}
 
 
