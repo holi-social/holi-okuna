@@ -1,6 +1,10 @@
 import logging
 import os
 import urllib3
+import hmac
+import hashlib
+import secrets
+import time
 
 from django.core.files.base import ContentFile
 from django.core.files.storage import Storage
@@ -107,7 +111,20 @@ class ImagekitIoStorage(Storage):
             return None
 
     def get_imagekit_auth_params(self):
-        return self.imagekit.get_authentication_parameters()
+        # Generate a random 32-character hex token
+        token = "".join(secrets.token_hex(1) for _ in range(32))
+
+        # Calculate expire time (current time + 2400 seconds)
+        expire = int(time.time()) + 2400
+
+        # Use the private key from settings
+        private_api_key = settings.IMAGEKIT_PRIVATE_KEY
+
+        # Generate signature using HMAC-SHA1
+        message = f"{token}{expire}"
+        signature = hmac.new(private_api_key.encode(), message.encode(), hashlib.sha1).hexdigest()
+
+        return {"token": token, "signature": signature, "expire": expire, "publicKey": settings.IMAGEKIT_PUBLIC_KEY}
 
 
 def _get_file_extension(filename):
