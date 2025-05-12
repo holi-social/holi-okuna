@@ -92,6 +92,12 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
         help_text="Specifies how many days the post will remain at the top of the feed.",
     )
 
+    image_urls = ArrayField(
+        models.URLField(max_length=settings.IMAGE_URL_MAX_LENGTH), blank=True, null=True, default=list
+    )
+
+    aspect_ratio = models.CharField(max_length=20, choices=AspectRatio.choices, blank=True, null=True)
+
     class Meta:
         indexes = [GinIndex(fields=["topics_v2"])]
 
