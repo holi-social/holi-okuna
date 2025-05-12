@@ -36,8 +36,7 @@ from openbook_polls.schema import queries as polls_queries
 from openbook_terms.schema import queries as terms_queries
 from feed_posts.schema import mutations as feed_posts_mutations
 from feed_posts.schema import queries as feed_posts_queries
-from imagekitio import ImageKit
-import time
+from openbook.storage_imagekit_io import ImagekitIoStorage
 from feed_posts.schema import feed_queries
 
 logger = structlog.get_logger(__name__)
@@ -103,15 +102,8 @@ class ImageKitAuthParams:
 class ImageKitMutations:
     @strawberry.mutation
     def get_imagekit_auth_params(self) -> ImageKitAuthParams:
-        private_key = settings.IMAGEKIT_PRIVATE_KEY
-        current_time = int(time.time())
-        token = str(current_time)
-
-        imagekit = ImageKit(
-            private_key=private_key, public_key=settings.IMAGEKIT_PUBLIC_KEY, url_endpoint=settings.IMAGEKIT_URL
-        )
-
-        auth_params = imagekit.get_authentication_parameters(token, current_time + 3540)
+        storage = ImagekitIoStorage()
+        auth_params = storage.get_imagekit_auth_params()
 
         return ImageKitAuthParams(
             token=auth_params["token"],

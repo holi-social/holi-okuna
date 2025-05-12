@@ -6,7 +6,7 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import Storage
 from imagekitio import ImageKit
 from requests import RequestException
-
+import time
 from openbook import settings
 
 logger = logging.getLogger(__name__)
@@ -106,6 +106,12 @@ class ImagekitIoStorage(Storage):
         except IndexError:
             logger.warning("ImagekitIoStorage.list_files did not find any files with filename: %s", filename)
             return None
+
+    def get_imagekit_auth_params(self):
+        current_time = int(time.time())
+        token = str(current_time)
+        expire = current_time + 3540  # 59 minutes
+        return self.imagekit.get_authentication_parameters(token=token, expire=expire)
 
 
 def _get_file_extension(filename):
