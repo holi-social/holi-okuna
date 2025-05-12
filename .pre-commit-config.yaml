@@ -15,25 +15,8 @@ repos:
         pass_filenames: false
         always_run: true
   - repo: git@gitlab-holi:app/holi-meta.git
-    rev: 6f2fe467b05362ba73936969f325eb87e291d85b
+    rev: 71898ea41a32935663e4f9041ccde6189b7edcaa
     hooks:
-      - id: gitleaks
-        name: gitleaks
-        language: system
-        entry: gitleaks protect --staged -v -c ../.gitleaks.toml
-        pass_filenames: false
-        always_run: true
       - id: scan-comments
-        name: scan-comments
-        entry: ../scripts/scan-comments.sh .
-        language: system
-        pass_filenames: true
-        always_run: true
-        verbose: true
       - id: security-checks
-        name: security-checks
-        entry: ../scripts/security-checks.sh .
-        language: system
-        pass_filenames: true
-        always_run: true
-        verbose: true
+      - id: gitleaks
