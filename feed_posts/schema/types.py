@@ -137,6 +137,8 @@ class CreateFeedPostInput:
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     images: Optional[List[Optional[FeedPostImageInput]]] = strawberry.UNSET
+    image_urls: Optional[List[Optional[str]]] = strawberry.UNSET
+    aspect_ratio: Optional[AspectRatio] = strawberry.UNSET
 
 
 @strawberry.input
@@ -167,6 +169,8 @@ class UpdateFeedPostInput:
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     existing_images: Optional[List[Optional[FeedPostImageMetadata]]] = strawberry.UNSET
     new_images: Optional[List[Optional[FeedPostImageInput]]] = strawberry.UNSET
+    image_urls: Optional[List[Optional[str]]] = strawberry.UNSET
+    aspect_ratio: Optional[AspectRatio] = strawberry.UNSET
 
 
 GenericPost = strawberry.union("GenericPost", (FeedPost, Post))

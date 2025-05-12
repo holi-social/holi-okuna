@@ -32,6 +32,8 @@ class FeedPostService:
         location=None,
         geolocation=None,
         images=None,
+        image_urls=None,
+        aspect_ratio=None,
     ):
         category = FeedPostCategory.objects.get(id=category_id) if category_id else None
 
@@ -53,6 +55,8 @@ class FeedPostService:
             location=location,
             geolocation=geolocation,
             images=images,
+            image_urls=image_urls,
+            aspect_ratio=aspect_ratio,
         )
 
         self.mention_service.add_mentions(post_id=post.id, description=description, creator=creator)
@@ -101,6 +105,8 @@ class FeedPostService:
         geolocation=None,
         new_images=None,
         existing_images=None,
+        image_urls=None,
+        aspect_ratio=None,
     ):
         post = self.repository.get_feed_post(id_or_slug=str(post_id))
 
@@ -130,6 +136,8 @@ class FeedPostService:
             geolocation=geolocation,
             new_images=new_images,
             existing_images=existing_images,
+            image_urls=image_urls,
+            aspect_ratio=aspect_ratio,
         )
 
     def get_feed_posts(self):

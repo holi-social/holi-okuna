@@ -39,6 +39,8 @@ class Mutation:
             location=data.get("location"),
             geolocation=data.get("geolocation"),
             images=data.get("images"),
+            image_urls=data.get("image_urls"),
+            aspect_ratio=data.get("aspect_ratio"),
         )
 
     @strawberry.mutation
@@ -67,6 +69,8 @@ class Mutation:
             geolocation=data.get("geolocation"),
             new_images=data.get("new_images"),
             existing_images=data.get("existing_images"),
+            image_urls=data.get("image_urls"),
+            aspect_ratio=data.get("aspect_ratio"),
         )
 
     @strawberry.mutation
