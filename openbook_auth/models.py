@@ -148,6 +148,13 @@ class UserRole(models.TextChoices):
     COMMUNITY_MANAGER = ("COMMUNITY_MANAGER",)
 
 
+@strawberry.enum
+class AccountType(models.TextChoices):
+    EMAIL = ("EMAIL",)
+    GOOGLE = ("GOOGLE",)
+    UNKNOWN = ("UNKNOWN",)
+
+
 class UserWithProfileManager(UserManager):
     def get_queryset(self):
         return super().get_queryset().select_related("profile")
@@ -280,6 +287,9 @@ class User(ModelWithUUID, AbstractUser):
 
     is_moderator = models.BooleanField(default=False)
     is_oidc = models.BooleanField(null=False, blank=False, default=False)
+    account_type = models.CharField(
+        max_length=16, choices=AccountType.choices, blank=False, null=False, default=AccountType.EMAIL
+    )
 
     # introduced in HOLI-8545 as a means to be able to filter out employees within PostHog analytics
     is_employee = models.BooleanField(
@@ -345,7 +355,7 @@ class User(ModelWithUUID, AbstractUser):
         is_of_legal_age=None,
         are_guidelines_accepted=None,
         badge=None,
-        is_oidc=False,
+        account_type=AccountType.EMAIL,
     ):
         if not is_of_legal_age:
             raise ValidationError(
@@ -362,7 +372,8 @@ class User(ModelWithUUID, AbstractUser):
             email=email,
             password=password,
             are_guidelines_accepted=are_guidelines_accepted,
-            is_oidc=is_oidc,
+            is_oidc=account_type != AccountType.EMAIL,
+            account_type=account_type,
         )
 
         user_profile = bootstrap_user_profile(
