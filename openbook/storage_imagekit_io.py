@@ -109,7 +109,7 @@ class ImagekitIoStorage(Storage):
 
     def get_imagekit_auth_params(self):
         current_time = int(time.time())
-        token = str(current_time)
+        token = os.urandom(16).hex()
         expire = current_time + 3540  # 59 minutes
         return self.imagekit.get_authentication_parameters(token=token, expire=expire)
 
