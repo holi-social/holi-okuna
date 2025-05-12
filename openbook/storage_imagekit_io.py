@@ -127,7 +127,7 @@ class ImagekitIoStorage(Storage):
 
         # Generate HMAC-SHA1 signature (hex digest)
         message = (token + str(expire)).encode("utf-8")
-        signature = hmac.new(private_api_key, message, hashlib.sha1).hexdigest()
+        signature = hmac.new(private_api_key.encode("utf-8"), message, hashlib.sha1).hexdigest()
 
         # Return only the parameters that match the GraphQL mutation response
         return {"token": token, "signature": signature, "expire": expire, "publicKey": settings.IMAGEKIT_PUBLIC_KEY}
