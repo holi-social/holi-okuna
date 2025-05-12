@@ -96,6 +96,7 @@ class ImageKitAuthParams:
     token: str
     signature: str
     expire: str
+    public_key: str
 
 
 @strawberry.type
@@ -110,10 +111,13 @@ class ImageKitMutations:
             private_key=private_key, public_key=settings.IMAGEKIT_PUBLIC_KEY, url_endpoint=settings.IMAGEKIT_URL
         )
 
-        auth_params = imagekit.get_authentication_parameters(token)
+        auth_params = imagekit.get_authentication_parameters(token, current_time + 3540)
 
         return ImageKitAuthParams(
-            token=auth_params["token"], signature=auth_params["signature"], expire=auth_params["expire"]
+            token=auth_params["token"],
+            signature=auth_params["signature"],
+            expire=auth_params["expire"],
+            public_key=settings.IMAGEKIT_PUBLIC_KEY,
         )
 
 
