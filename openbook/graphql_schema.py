@@ -103,7 +103,8 @@ class ImageKitMutations:
     @strawberry.mutation
     def get_imagekit_auth_params(self) -> ImageKitAuthParams:
         private_key = settings.IMAGEKIT_PRIVATE_KEY
-        token = str(int(time.time() + 3600))
+        current_time = int(time.time())
+        token = str(current_time)
 
         imagekit = ImageKit(
             private_key=private_key, public_key=settings.IMAGEKIT_PUBLIC_KEY, url_endpoint=settings.IMAGEKIT_URL
