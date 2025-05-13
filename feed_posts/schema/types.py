@@ -58,6 +58,8 @@ class FeedPost:
     category: Optional[FeedPostCategory]
     creator: Optional[User]
     poll: Optional[Poll]
+    image_urls: Optional[List[Optional[str]]]
+    aspect_ratio: Optional[AspectRatio]
 
     @strawberry_django.field()
     def created_at(self) -> str:
