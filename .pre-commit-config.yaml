@@ -14,8 +14,8 @@ repos:
         entry: utils/scripts/ruff.sh
         pass_filenames: false
         always_run: true
-  - repo: git@gitlab-holi:app/holi-meta.git
-    rev: 71898ea41a32935663e4f9041ccde6189b7edcaa
+  - repo: git@gitlab.holi.team:app/holi-meta.git
+    rev: current-hooks
     hooks:
       - id: scan-comments
       - id: security-checks
