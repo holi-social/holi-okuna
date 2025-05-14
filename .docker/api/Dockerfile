@@ -1,4 +1,5 @@
 FROM europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/python:3.13-slim
+COPY --from=europe-north1-docker.pkg.dev/holi-shared/ghcr-io-remote/astral-sh/uv:latest /uv /uvx /bin/
 
 RUN apt-get -y update && \
     apt-get -y upgrade && \
@@ -7,12 +8,9 @@ RUN apt-get -y update && \
         binutils \
         libproj-dev \
         libgdal-dev \
-        libgeos-dev \
-        curl && \
+        libgeos-dev && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get clean
-
-RUN curl -LsSf https://astral.sh/uv/0.7.3/install.sh | sh
 
 # Copy necessary scripts
 COPY wait-for-it.sh entrypoint.sh bootstrap_development_data.sh /
