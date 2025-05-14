@@ -761,3 +761,7 @@ def make_feed_post_category():
 
 def make_feed_post_founder_update_category():
     return mixer.blend(FeedPostCategory, slug="founder-update")
+
+
+def make_feed_post_good_deed_category():
+    return mixer.blend(FeedPostCategory, slug="good-deed")
