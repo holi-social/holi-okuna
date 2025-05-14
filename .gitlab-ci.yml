@@ -34,7 +34,6 @@ default:
   tags:
     - 1cpu-4gb # build on smaller machine
 
-# TODO pre-install uv in holi-okuna-builder
 validate:
   image: 'europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/holi-okuna-builder'
   cache: !reference [ .uv_cache_rw ]
@@ -50,7 +49,6 @@ validate:
     POSTGRES_HOST_AUTH_METHOD: trust
     UV_CACHE_DIR: .uv-cache
   before_script:
-    - pip install --root-user-action ignore --disable-pip-version-check uv
     - uv sync --locked --link-mode=copy
   script: |
     /etc/init.d/redis-server start
