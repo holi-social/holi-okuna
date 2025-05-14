@@ -15,7 +15,7 @@ repos:
         pass_filenames: false
         always_run: true
   - repo: git@gitlab.holi.team:app/holi-meta.git
-    rev: 490c0695ab992fb9a2e2ca62dd1bd10690376a1f
+    rev: 345e2cab6704f708a946c08a9eaa1ba769c455fb
     hooks:
       - id: scan-comments
       - id: security-checks
