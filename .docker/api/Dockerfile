@@ -1,4 +1,5 @@
 FROM europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/python:3.13-slim
+COPY --from=europe-north1-docker.pkg.dev/holi-shared/ghcr-io-remote/astral-sh/uv:latest /uv /uvx /bin/
 
 RUN apt-get -y update && \
     apt-get -y upgrade && \
@@ -17,10 +18,9 @@ COPY wait-for-it.sh entrypoint.sh bootstrap_development_data.sh /
 RUN chmod +x /entrypoint.sh /bootstrap_development_data.sh /wait-for-it.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
-COPY requirements.txt /requirements.txt
+COPY uv.lock pyproject.toml /
 
-#RUN pip install --upgrade pip
-RUN pip install -r /requirements.txt
+RUN . $HOME/.local/bin/env && uv sync --locked --link-mode=copy
 
 VOLUME ["/opt/okuna-api"]
 

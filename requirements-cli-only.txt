@@ -1,4 +1,0 @@
--i https://pypi.python.org/simple
-click>=8.1.8
-halo>=0.0.31
-colorlog>=6.9.0
