@@ -45,6 +45,8 @@ class Poll(ModelWithUUID):
     status = models.CharField(blank=False, null=False, choices=STATUSES, default=STATUS_DRAFT, max_length=2)
 
     is_public = models.BooleanField(default=False, db_index=True)
+    is_multi_select = models.BooleanField(default=False)
+    max_choices = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f'"{self.question_text}" ({self.id})'
@@ -144,17 +146,19 @@ class Choice(ModelWithUUID):
 class Vote(ModelWithUUID):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
-    poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
     voting_time = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("user", "poll")
+        unique_together = ("user", "choice")
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        voters = User.objects.filter(vote__poll=self.poll).distinct()
+
+        # Notify if needed
+        voters = User.objects.filter(vote__choice__poll=self.choice.poll).distinct()
         total_votes = voters.count()
 
         if total_votes == MIN_VOTES_RESULTS_REVEAL or total_votes == RESULTS_REMINDER:
-            NotificationsService.send_poll_updates_notification(poll=self.poll, recipients=voters)
+            NotificationsService.send_poll_updates_notification(poll=self.choice.poll, recipients=voters)
+
         return self
