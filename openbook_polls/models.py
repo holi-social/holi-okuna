@@ -97,7 +97,9 @@ class Poll(ModelWithUUID):
         return not self.question_text
 
     def save(self, *args, **kwargs):
-        """On create, update timestamps"""
+        if self.max_choices > len(self.choices.all()):
+            raise ValidationError("The maximum number of choices must be less than or equal to the number of choices.")
+
         if not self.created:
             self.created = timezone.now()
 
