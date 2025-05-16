@@ -61,11 +61,11 @@ class Mutation:
         with transaction.atomic():
             try:
                 poll = PollModel.objects.get(id=poll_id)
-            except PollModel.DoesNotExist:
+            except PollModel.DoesNotExist as err:
                 raise GraphQLError(
                     f"Poll {poll_id} not found.",
                     extensions={"code": GraphQLErrorCodes.NOT_FOUND},
-                )
+                ) from err
 
             if not poll.is_multi_select and len(choice_ids) > 1:
                 raise GraphQLError(
