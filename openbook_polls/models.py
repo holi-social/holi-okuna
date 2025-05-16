@@ -97,8 +97,11 @@ class Poll(ModelWithUUID):
         return not self.question_text
 
     def save(self, *args, **kwargs):
-        if self.max_choices > len(self.choices.all()):
-            raise ValidationError("The maximum number of choices must be less than or equal to the number of choices.")
+        if self.max_choices and self.choices.exists():
+            if self.max_choices > self.choices.count():
+                raise ValidationError(
+                    "The maximum number of choices must be less than or equal to the number of choices."
+                )
 
         if not self.created:
             self.created = timezone.now()
