@@ -46,7 +46,7 @@ class Poll(ModelWithUUID):
 
     is_public = models.BooleanField(default=False, db_index=True)
     is_multi_select = models.BooleanField(default=False)
-    max_choices = models.PositiveIntegerField(null=True, blank=True)
+    max_choices = models.PositiveIntegerField(null=False, blank=False, default=1)
 
     def __str__(self) -> str:
         return f'"{self.question_text}" ({self.id})'
