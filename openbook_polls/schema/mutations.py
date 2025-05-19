@@ -40,7 +40,7 @@ class Mutation:
 
             poll = choice.poll
 
-            if VoteModel.objects.filter(user=current_user, poll=poll).exists():
+            if VoteModel.objects.filter(user=current_user, choice__poll=poll).exists():
                 raise GraphQLError(
                     f"User {current_user.username} has already voted for poll {poll.id}",
                     extensions={"code": GraphQLErrorCodes.BAD_USER_INPUT},
