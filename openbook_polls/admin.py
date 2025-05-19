@@ -18,6 +18,8 @@ class PollAdmin(admin.ModelAdmin):
     list_display = [
         "id",
         "question_text",
+        "is_multi_select",
+        "max_choices",
         "created",
         "creator",
     ]
