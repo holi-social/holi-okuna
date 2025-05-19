@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/sh
 
 CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r $CI_COMMIT_SHA)
 MIGRATION_CHANGED=false
@@ -6,6 +6,7 @@ MIGRATION_CHANGED=false
 for file in $CHANGED_FILES; do
   case "$file" in
     */migrations/*.py)
+      echo "Migration detected in $file"
       MIGRATION_CHANGED=true
       break
       ;;
@@ -13,6 +14,7 @@ for file in $CHANGED_FILES; do
 done
 
 if [ "$MIGRATION_CHANGED" = "true" ]; then
+  echo "Notifying Matching team via Slack monitoring channel"
   scripts/notify-slack.sh \
     --webhook "$SLACK_MATCHING_MON_DATA_PROD_WEBHOOK_URL" \
     --message "⚠️A migration was detected in holi-okuna! This is the commit containing the migration:
