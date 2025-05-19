@@ -4,6 +4,7 @@ import strawberry
 from asgiref.sync import sync_to_async
 from strawberry.types import Info
 from openbook.graphql_errors import GraphQLErrorCodes
+from openbook_common.schema.types import Result
 from openbook_polls.schema.types import CreatePollInput, Poll, Choice
 from openbook_polls.models import Choice as ChoiceModel, Vote as VoteModel, Poll as PollModel
 from openbook_auth.utils import verify_authorized_user
@@ -55,7 +56,7 @@ class Mutation:
 
     @strawberry.mutation
     @sync_to_async
-    def vote_on_poll(self, info: Info, poll_id: uuid.UUID, choice_ids: List[uuid.UUID]) -> List[Choice]:
+    def vote_on_poll(self, info: Info, poll_id: uuid.UUID, choice_ids: List[uuid.UUID]) -> Result:
         current_user = verify_authorized_user(info)
 
         with transaction.atomic():
@@ -105,6 +106,4 @@ class Mutation:
                 choice.increment_votes()
                 VoteModel.objects.create(user=current_user, choice=choice)
 
-            updated_choices = list(ChoiceModel.objects.filter(id__in=choice_ids))
-
-        return updated_choices
+        return Result(success=True)
