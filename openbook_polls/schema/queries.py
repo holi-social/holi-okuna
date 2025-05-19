@@ -22,4 +22,4 @@ class Query:
         current_user = verify_authorized_user(info)
         poll = PollModel.objects.get(id=id)
 
-        return VoteModel.objects.filter(user=current_user, poll=poll).exists()
+        return VoteModel.objects.filter(user=current_user, choice__poll=poll).exists()
