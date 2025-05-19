@@ -1,6 +1,10 @@
 #!/bin/sh
+# Script to detect migrations in a build job execution in order to notify the Matching Team of changes to Okunas
+# database schema.
 
-CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r $CI_COMMIT_SHA)
+# in case of a push of multiple commits, each commit might contain a migration
+# therefore, comparison is between $CI_COMMIT_BEFORE_SHA (commit before push) and $CI_COMMIT_SHA (newest commit)
+CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA)
 MIGRATION_CHANGED=false
 
 for file in $CHANGED_FILES; do
