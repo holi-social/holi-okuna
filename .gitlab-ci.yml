@@ -73,7 +73,6 @@ alert_matching_on_migrations:
     - apk add --no-cache curl
   only:
     - main
-    - HOLI-10813_alert-matching-on-schema-changes
   script:
     - scripts/notify-matching-on-migrations.sh
 
