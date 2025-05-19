@@ -282,7 +282,6 @@ class AppVersion(ModelWithUUID):
     created = models.DateTimeField(default=timezone.now, editable=False)
     app_store_url = models.CharField(max_length=100, default=settings.APPLE_APP_STORE_DEFAULT_URL)
     play_store_url = models.CharField(max_length=100, default=settings.GOOGLE_PLAY_STORE_DEFAULT_URL)
-    alert_me = models.CharField(max_length=100, default="")
 
     class Meta:
         unique_together = (
