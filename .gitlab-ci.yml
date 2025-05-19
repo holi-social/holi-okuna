@@ -66,6 +66,9 @@ validate:
 
 alert_matching_on_migrations:
   stage: validate
+  image: alpine/git:latest
+  before_script:
+    - apk add --no-cache curl
   only:
     - main
     - HOLI-10813_alert-matching-on-schema-changes
