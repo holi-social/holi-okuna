@@ -197,7 +197,7 @@
       "label_pt_br": null
     }
   },
-    {
+  {
     "model": "openbook_terms.feedpostcategory",
     "pk": "78a0ef29-17a3-4910-92b3-94c91a05b4a0",
     "fields": {
@@ -220,6 +220,39 @@
       "label_es": null,
       "label_en": "Founder's update",
       "label_de": "Gründer Update",
+      "label_nl": null,
+      "label_da": null,
+      "label_hu": null,
+      "label_sv": null,
+      "label_fr": null,
+      "label_it": null,
+      "label_tr": null,
+      "label_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.feedpostcategory",
+    "pk": "b5c8d9e0-f1a2-3b4c-5d6e-7f8a9b0c1d2e",
+    "fields": {
+      "idx": 8,
+      "slug": "good-deed",
+      "title": "Good Deed",
+      "title_es": null,
+      "title_en": "Good Deed",
+      "title_de": "Gute Tat",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null,
+      "is_enabled": true,
+      "label": "Good Deed",
+      "label_es": null,
+      "label_en": "Good Deed",
+      "label_de": "Gute Tat",
       "label_nl": null,
       "label_da": null,
       "label_hu": null,

@@ -5,26 +5,29 @@ The Okuna-based backend for HOLI.
 ## Table of contents
 
 <!-- TOC -->
-- [Table of contents](#table-of-contents)
-- [Introduction](#introduction)
-- [Prerequisites](#prerequisites)
-  - [Geospatial libraries](#geospatial-libraries)
-- [Quickstart](#quickstart)
-  - [Reset](#reset)
-  - [Step by step](#step-by-step)
-- [Changes to reduce dependencies](#changes-to-reduce-dependencies)
-  - [spectra==0.0.11](#spectra0011)
-  - [colormath==3.0.0](#colormath300)
-- [Known installation issues](#known-installation-issues)
-  - [MacOs](#macos)
-- [CI/CD](#cicd)
-- [Access local db](#access-local-db)
-- [Admin Dashboard](#admin-dashboard)
-- [Pycharm](#pycharm)
-- [Services using email](#email-and-smtp-configuration)
-- [Translations](#translations)
-- [Tests](#tests)
-<!-- /TOC -->
+* [holi-okuna](#holi-okuna)
+  * [Table of contents](#table-of-contents)
+  * [Introduction](#introduction)
+  * [Prerequisites](#prerequisites)
+    * [Geospatial libraries](#geospatial-libraries)
+  * [Quickstart](#quickstart)
+    * [Reset](#reset)
+    * [Step by step](#step-by-step)
+      * [1. Install `direnv` for Automated Setup](#1-install-direnv-for-automated-setup)
+      * [(2. If Automated Setup with `direnv` Fails)](#2-if-automated-setup-with-direnv-fails)
+      * [3. Running Okuna](#3-running-okuna)
+  * [Known installation issues](#known-installation-issues)
+    * [MacOs](#macos)
+      * [Libmagic is not found on your Mac](#libmagic-is-not-found-on-your-mac)
+      * [Xcode Issues](#xcode-issues)
+  * [CI/CD](#cicd)
+  * [Access local db](#access-local-db)
+  * [Admin Dashboard](#admin-dashboard)
+  * [Pycharm](#pycharm)
+  * [Email and SMTP configuration](#email-and-smtp-configuration)
+  * [Translations](#translations)
+  * [Tests](#tests)
+<!-- TOC -->
 
 ## Introduction
 
@@ -79,110 +82,102 @@ PROJ_LIBRARY_PATH = "/opt/homebrew/lib/libproj.dylib"
 If you have installed pyenv, you can execute `./reset_environment.sh` to install the required python interpreter,
 set up the virtual environment and install the required dependencies.
 
-Start the required services using `python3 okuna-cli.py up-services-only`
+Start the required services using `./okuna-cli.py up-services-only`
 
-Start the dev server using `python3 start_server.py --reload`
+Start the dev server using `./start_server.py --reload`
 
 ### Reset
 
-Use `python3 okuna-cli.py clean` to reset all local state, including database and config files.
+Use `./okuna-cli.py clean` to reset local state, including database and config files.
 
 ### Step by step
 
-1. Make sure you're actually running the correct Python version (see .python-version file) by running `python3 --version`, if you
-   are using pyenv, the version check will be executed implicitly for you.
+#### 1. Install `direnv` for Automated Setup
 
-   Use `pyenv install $PYENV_VERSION` to install the currently used interpreter and delete your `.venv` folder to remove
-   the deprecated environment. `reset_environment.sh` does what you need.
+Install AND **set up** [`direnv`](http://direnv.net) and run `direnv allow` in the project directory in order to initialize the
+development environment (variables). This should automatically create a Python venv, install all required dependencies
+and set some environment variables (see `.envrc` for details).
 
-2. Install AND **set up** [`direnv`](http://direnv.net) and run `direnv allow .` in the current directory in order for
-   `direnv` to initialise the development environment (variables). This should automatically create a Python 3 venv,
-   load the environment and set some environment variables (see `.envrc` for details).
+#### (2. If Automated Setup with `direnv` Fails)
 
-3. Run
+If you have `direnv` installed and have executed `direnv allow` within the repo, everything else should be automated. If
+that does not work for some reason, the following steps describe what to do manually instead: 
 
-   ```sh
-   pip install -r requirements.txt
-   pip install -r requirements-cli-only.txt
-   python3 okuna-cli.py up-services-only
-   ```
+* Make sure you're running the correct Python version (see `.python-version` file) by running `python --version`. Using uv
+  as the package manager, this version check will be executed implicitly for you. 
+* Use `uv install $(cat .python-version)` to install the currently used interpreter version and delete your `.venv` folder
+  to remove the deprecated environment. `reset_environment.sh` does what you need.
+* Run `uv sync` to create a virtual environment and install all dependencies
+* Run `cp .envrc.local.template .envrc.local` and edit `.envrc.local` (contains secrets that should not be checked into 
+  version control but are required for local execution)
 
-   This starts up docker-compose with the following processes:
+#### 3. Running Okuna
 
-   - scheduler
-   - worker
-   - db
-   - redis
+```sh
+./okuna-cli.py up-services-only
+```
 
-   \
-   You now need to fill some values in the created `.env` file.
-   In particular, you need to fill all values that are left empty.\
-   If you are on an ARM Mac, you should also uncomment the POSTGRES_IMAGE entry.\
-   \
-   Then, run all the database migrations
+This starts up docker-compose with the following processes:
 
-   ```sh
-   python3 manage.py migrate
-   ```
+- db
+- redis
 
-   And fill the DB with some fixture data:
+\
+You now need to fill some values in the created `.env` file.
+In particular, you need to fill all values that are left empty.\
+If you are on an ARM Mac, you should also uncomment the POSTGRES_IMAGE entry.\
+\
+Then, run all the database migrations
 
-   ```bash
-   python3 manage.py loaddata emoji-groups.json emojis.json badges.json categories.json languages.json topics.json skills.json sdgs.json moderation_categories.json feed_post_categories.json
-   ```
+```sh
+./manage.py migrate
+```
 
-   In addition, there is also a users.json you can load, if you want.
+And fill the DB with some fixture data:
 
-   You can generate more test data with a custom command:
+```bash
+./manage.py loaddata emoji-groups.json emojis.json badges.json categories.json languages.json topics.json skills.json sdgs.json moderation_categories.json feed_post_categories.json
+```
 
-   ```bash
-   python3 manage.py generate_dummy_data --users 10 --spaces 5 --space_updates 3 --feed_posts 2 --insights 5
-   ```
-   Be aware, you need users to create the other entities with. The script uses them randomly.
+In addition, there is also a users.json you can load if you want.
 
-   Afterwards, you're ready to start the backend API service:
+You can generate more test data with a custom command:
 
-   ```sh
-   python3 start_server.py # this binds to http://127.0.0.1:8000
+```bash
+./manage.py generate_dummy_data --users 10 --spaces 5 --space_updates 3 --feed_posts 2 --insights 5
+```
+Be aware, you need users to create the other entities with. The script uses them randomly.
 
-   #should you need more control you can also use:
-   uvicorn openbook.asgi:application --reload [...more uvicorn options, like --host or --port...]
-   ```
+Afterwards, you're ready to start the backend API service:
 
-   Alternatively you can also start the Django development server, but this is discouraged and then file uploads don't work:
+```sh
+./start_server.py # this binds to http://127.0.0.1:8000
 
-   ```sh
-   python3 manage.py runserver localhost:8000
-   ```
+#should you need more control you can also use:
+uvicorn openbook.asgi:application --reload [...more uvicorn options, like --host or --port...]
+```
 
-   (or use `python3 manage.py runserver 0.0.0.0:8000` to bind to all interfaces)
+Alternatively, you can also start the Django development server, but this is discouraged and then file uploads don't work:
+
+```sh
+./manage.py runserver localhost:8000
+```
+
+(or use `./manage.py runserver 0.0.0.0:8000` to bind to all interfaces)
 
 **Please always use python3 okuna-cli.py instead of docker-compose directly!**
 
 **Why?** okuna-cli.py creates a set of environment files (`.okuna-cli.json`, `.docker-compose.env` and `.env`). Those
 files contain randomly generated passwords for db and redis and the like to be used by the started processes. Also, it
 cleans up stuff on shutdown (docker networks & volumes, etc.), runs migrations and populates the db. **If you use
-docker-compose directly you can easily get into inconsistent states and processes can’t talk to each other due to wrong
-passwords and database contents etc!**
-
-## Changes to reduce dependencies
-
-### spectra==0.0.11
-
-spectra has a dependency on numpy which takes very to load and compile. It is used in
-`openbook_hashtags/management/commands/update_hashtags/luminance.py` to change the color of a hashtag.
-It is also used in `openbook_common/utils/helpers.py` to darken a color.
-Since we may not use these features, the spectra import and dependency was removed.
-
-### colormath==3.0.0
-
-colormath has a dependency on numpy and cannot be found via search in the source code.
+docker-compose, you can easily get into inconsistent states and processes can’t talk to each other due to wrong
+passwords and database contents etc.!**
 
 ## Known installation issues
 
 ### MacOs
 
-Libmagic is not found on your mac? Try this command.
+#### Libmagic is not found on your Mac
 
 ```sh
 brew install libmagic
@@ -197,10 +192,12 @@ cd /usr/local/lib/
 ln -s <correct path>/lib/libmagic.dylib libmagic.dylib
 ```
 
-Xcode issues - Error: python@3.9: the bottle needs the Apple Command Line Tools to be installed.
+#### Xcode Issues
+
+> Error: python@3.9: the bottle needs the Apple Command Line Tools to be installed.
 
 ```sh
- xcode-select --install
+xcode-select --install
 ```
 
 ## CI/CD
@@ -219,7 +216,7 @@ psql -h localhost okuna -U <RDS_USERNAME>
 
 ## Admin Dashboard
 
-When using a local database, first execute `python3 manage.py createsuperuser` to create an admin account with your
+When using a local database, first execute `./manage.py createsuperuser` to create an admin account with your
 desired credentials.
 If you are connected to the staging database, use the credentials found
 in [Passbolt](https://cloud.passbolt.com/holi/app/passwords)
@@ -233,7 +230,7 @@ You can use these to start your dev server or run tests.
 
 ## Email and SMTP configuration
 
-For emails we use Django's django.core.mail.backends.smtp.EmailBackend library and in order to have it work you need to set the following env variables:
+For emails, we use Django's django.core.mail.backends.smtp.EmailBackend library. For it to work, you need to set the following env variables:
 
 ```
 EMAIL_HOST
@@ -259,8 +256,8 @@ You must generate new translations whenever you update or include a new response
 including `raise` messages. This can be done in your terminal
 
 ```sh
-   ./manage.py makemessages --all --no-wrap
-   ./manage.py compilemessages
+./manage.py makemessages --all --no-wrap
+./manage.py compilemessages
 ```
 
 ## Tests

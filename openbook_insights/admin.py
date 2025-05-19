@@ -47,7 +47,9 @@ class InsightAdmin(admin.ModelAdmin):
     # Override the formfield_for_dbfield to customize the topic_v2 field widget
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         if db_field.name == "topic_v2":
-            kwargs["widget"] = Select(choices=[("", "---------")] + list(zip(get_args(TopicV2), get_args(TopicV2))))
+            kwargs["widget"] = Select(
+                choices=[("", "---------")] + list(zip(get_args(TopicV2), get_args(TopicV2), strict=True))
+            )
             kwargs["required"] = False
         return super().formfield_for_dbfield(db_field, request, **kwargs)
 

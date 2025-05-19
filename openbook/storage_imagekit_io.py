@@ -1,12 +1,15 @@
 import logging
 import os
 import urllib3
+import hmac
+import hashlib
+import time
+import secrets
 
 from django.core.files.base import ContentFile
 from django.core.files.storage import Storage
 from imagekitio import ImageKit
 from requests import RequestException
-
 from openbook import settings
 
 logger = logging.getLogger(__name__)
@@ -106,6 +109,28 @@ class ImagekitIoStorage(Storage):
         except IndexError:
             logger.warning("ImagekitIoStorage.list_files did not find any files with filename: %s", filename)
             return None
+
+    def get_imagekit_auth_params(self):
+        """
+        Returns ImageKit authentication parameters.
+        This method is meant to be called by a GraphQL resolver.
+        The parameters are generated server-side and returned to the client.
+        """
+        # Generate a random 32-character hex token
+        token = secrets.token_hex(16)
+
+        # Calculate expire time (current time + 2400 seconds)
+        expire = time.time() + 2400
+
+        # Use the private key from settings
+        private_api_key = settings.IMAGEKIT_PRIVATE_KEY
+
+        # Generate HMAC-SHA1 signature (hex digest)
+        message = (token + str(expire)).encode("utf-8")
+        signature = hmac.new(private_api_key.encode("utf-8"), message, hashlib.sha1).hexdigest()
+
+        # Return only the parameters that match the GraphQL mutation response
+        return {"token": token, "signature": signature, "expire": expire, "publicKey": settings.IMAGEKIT_PUBLIC_KEY}
 
 
 def _get_file_extension(filename):

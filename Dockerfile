@@ -1,4 +1,5 @@
-FROM europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/python:3.13-slim
+FROM europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/python:3.13.3-slim AS builder
+COPY --from=europe-north1-docker.pkg.dev/holi-shared/ghcr-io-remote/astral-sh/uv:latest /uv /uvx /bin/
 
 RUN apt-get -y update && \
     apt-get -y upgrade && \
@@ -10,6 +11,17 @@ RUN apt-get -y update && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get clean
 
+FROM builder AS app_base_with_dependencies
+
+COPY pyproject.toml /opt/okuna-api/pyproject.toml
+WORKDIR /opt/okuna-api
+RUN --mount=type=cache,target=.uv-cache \
+    export UV_LINK_MODE=copy && \
+    uv export > requirements.txt && \
+    uv pip install --system --compile-bytecode -r requirements.txt
+
+FROM app_base_with_dependencies AS app
+
 # Copy necessary scripts
 COPY .docker/api/wait-for-it.sh .docker/api/entrypoint.sh .docker/api/migration-entrypoint.sh /
 # Change permissions for scripts
@@ -18,8 +30,6 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 COPY . /opt/okuna-api
 WORKDIR /opt/okuna-api
-RUN pip install --upgrade pip setuptools wheel build && \
-    pip install --no-cache-dir -r requirements.txt
 RUN ENVIRONMENT=build SECRET_KEY=foo python manage.py collectstatic --no-input
 
 EXPOSE 80

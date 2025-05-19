@@ -16,6 +16,7 @@ from feed_posts.services import FeedPostReactionService, FeedPostMentionService
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import ReactionCounts, Paged, GeolocationPointInput, GeolocationPoint
 from openbook_insights.schema.types import Insight
+from openbook_polls.schema.types import Poll
 from openbook_posts.schema.types import LinkPreview, Post
 from openbook_terms.schema.types import Topic, FeedPostCategory
 from comments.models import Comment as CommentModel
@@ -56,6 +57,9 @@ class FeedPost:
     topics_v2: Optional[List[str]]
     category: Optional[FeedPostCategory]
     creator: Optional[User]
+    poll: Optional[Poll]
+    image_urls: Optional[List[Optional[str]]]
+    aspect_ratio: Optional[AspectRatio]
 
     @strawberry_django.field()
     def created_at(self) -> str:
@@ -135,6 +139,8 @@ class CreateFeedPostInput:
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     images: Optional[List[Optional[FeedPostImageInput]]] = strawberry.UNSET
+    image_urls: Optional[List[Optional[str]]] = strawberry.UNSET
+    aspect_ratio: Optional[AspectRatio] = strawberry.UNSET
 
 
 @strawberry.input
@@ -165,6 +171,8 @@ class UpdateFeedPostInput:
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     existing_images: Optional[List[Optional[FeedPostImageMetadata]]] = strawberry.UNSET
     new_images: Optional[List[Optional[FeedPostImageInput]]] = strawberry.UNSET
+    image_urls: Optional[List[Optional[str]]] = strawberry.UNSET
+    aspect_ratio: Optional[AspectRatio] = strawberry.UNSET
 
 
 GenericPost = strawberry.union("GenericPost", (FeedPost, Post))
