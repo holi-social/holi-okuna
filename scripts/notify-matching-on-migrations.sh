@@ -5,19 +5,19 @@
 # in case of a push of multiple commits, each commit might contain a migration
 # therefore, comparison is between $CI_COMMIT_BEFORE_SHA (commit before push) and $CI_COMMIT_SHA (newest commit)
 CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA)
-MIGRATION_CHANGED=false
+MIGRATION_DETECTED=false
 
 for file in $CHANGED_FILES; do
   case "$file" in
     */migrations/*.py)
       echo "Migration detected in $file"
-      MIGRATION_CHANGED=true
+      MIGRATION_DETECTED=true
       break
       ;;
   esac
 done
 
-if [ "$MIGRATION_CHANGED" = "true" ]; then
+if [ "$MIGRATION_DETECTED" = "true" ]; then
   echo "Notifying Matching team via Slack monitoring channel"
   scripts/notify-slack.sh \
     --webhook "$SLACK_MATCHING_MON_DATA_PROD_WEBHOOK_URL" \
