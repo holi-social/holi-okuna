@@ -1,22 +1,22 @@
 
 repos:
 # see https://github.com/dorschw/riff/issues/106
-#-   repo: https://github.com/dorschw/riff
+#  - repo: https://github.com/dorschw/riff
 #    rev: main
 #    hooks:
-#    -   id: riff
+#      - id: riff
 #        additional_dependencies: ["ruff>=0.0.291"] # minimal is 0.0.291
--   repo: local
+  - repo: local
     hooks:
-    -   id: gitleaks
-        name: gitleaks
-        language: system
-        entry: gitleaks protect --staged -v -c ../.gitleaks.toml
-        pass_filenames: false
-        always_run: true
-    -   id: ruff
+      - id: ruff
         name: ruff
         language: system
         entry: utils/scripts/ruff.sh
         pass_filenames: false
         always_run: true
+  - repo: git@gitlab.holi.team:app/holi-meta.git
+    rev: 345e2cab6704f708a946c08a9eaa1ba769c455fb
+    hooks:
+      - id: scan-comments
+      - id: security-checks
+      - id: gitleaks

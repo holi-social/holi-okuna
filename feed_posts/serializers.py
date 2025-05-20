@@ -76,6 +76,11 @@ class CreateFeedPostSerializer(serializers.Serializer):
         allow_blank=True,
     )
     geolocation = GeolocationPointSerializer(required=False)
+    image_urls = serializers.ListField(
+        required=False,
+        allow_null=True,
+    )
+    aspect_ratio = serializers.ChoiceField(required=False, choices=AspectRatio.choices)
 
 
 class UpdateFeedPostSerializer(serializers.Serializer):
@@ -124,3 +129,8 @@ class UpdateFeedPostSerializer(serializers.Serializer):
     geolocation = GeolocationPointSerializer(required=False)
     existing_images = FeedPostImageMetadataSerializer(many=True, required=False, allow_null=True)
     new_images = FeedPostImageSerializer(many=True, required=False, allow_null=True)
+    image_urls = serializers.ListField(
+        required=False,
+        allow_null=True,
+    )
+    aspect_ratio = serializers.ChoiceField(required=False, choices=AspectRatio.choices)

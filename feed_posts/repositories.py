@@ -28,6 +28,8 @@ class FeedPostRepository:
         location,
         geolocation,
         images,
+        image_urls,
+        aspect_ratio,
     ):
         if creator.role == UserRole.CO_FOUNDER and category is not None and category.slug == "founder-update":
             priority_duration = 2
@@ -44,6 +46,12 @@ class FeedPostRepository:
         if topics_v2 is None:
             topics_v2 = []
 
+        if image_urls is not None:
+            image_urls = [url for url in image_urls if url is not None]
+
+        if aspect_ratio is not None:
+            aspect_ratio = aspect_ratio
+
         feed_post = FeedPost.objects.create(
             title=title,
             visibility=visibility,
@@ -57,6 +65,8 @@ class FeedPostRepository:
             priority_duration=priority_duration,
             image=post_image,
             topics_v2=topics_v2,
+            image_urls=image_urls,
+            aspect_ratio=aspect_ratio,
         )
 
         if topic_ids is not None:
@@ -100,6 +110,8 @@ class FeedPostRepository:
         geolocation=None,
         new_images=None,
         existing_images=None,
+        image_urls=None,
+        aspect_ratio=None,
     ):
         post = FeedPost.objects.get(id=post_id)
 
@@ -123,6 +135,12 @@ class FeedPostRepository:
             post.topics.set(topics)
             post.topics_v2 = topics_to_topic_v2_slugs(topics)
             post.save()
+
+        if image_urls is not None:
+            post.image_urls = image_urls
+
+        if aspect_ratio is not None:
+            post.aspect_ratio = aspect_ratio
 
         # This code is required for backward compatibility. Remove it after version 1.30.x
         if remove_image:

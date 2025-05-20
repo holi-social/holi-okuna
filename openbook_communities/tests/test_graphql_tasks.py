@@ -73,6 +73,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -116,6 +117,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -157,6 +159,8 @@ class TestTasks:
             "visibility": "MEMBERS",
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
+            # make interaction_type required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+            # "interactionType": "CHAT",    # noqa: ERA001
             "contactEmail": "email@email.com",
         }
         expected_errors = {
@@ -167,6 +171,8 @@ class TestTasks:
             "visibility": "Field 'visibility' of required type 'VisibilityType!' was not provided.",
             "locationType": "Field 'locationType' of required type 'LocationType!' was not provided.",
             "regularity": "Field 'regularity' of required type 'Regularity!' was not provided.",
+            # make interaction_type required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+            # "interactionType": "Field 'interactionType' of required type 'InteractionType!' was not provided.",   # noqa: ERA001
             "contactEmail": "Field 'contactEmail' of required type 'String!' was not provided.",
         }
         valid_input_keys = valid_input.keys()
@@ -212,6 +218,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -294,6 +301,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -332,6 +340,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "thumbnail": None,
             "slotsAvailable": 1,
@@ -396,6 +405,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -436,6 +446,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "thumbnail": None,
             "slotsAvailable": 1,
@@ -483,6 +494,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -525,6 +537,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -572,6 +585,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -745,6 +759,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -821,6 +836,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -920,6 +936,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skillsV2": skills_v2,
             "slotsAvailable": 1,
@@ -972,6 +989,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -1017,6 +1035,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
             "contactEmail": "email@email.com",
             "skills": [str(skill.id)],
             "slotsAvailable": 1,
@@ -1055,6 +1074,7 @@ class TestTasks:
             "visibility": "MEMBERS",
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
+            # "interactionType": "CHAT",    # noqa: ERA001
             "contactEmail": "email@email.com",
         }
         expected_errors = {
@@ -1064,6 +1084,8 @@ class TestTasks:
             "visibility": "Field 'visibility' of required type 'VisibilityType!' was not provided.",
             "locationType": "Field 'locationType' of required type 'LocationType!' was not provided.",
             "regularity": "Field 'regularity' of required type 'Regularity!' was not provided.",
+            # make interaction_type required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+            # "interactionType": "Field 'interactionType' of required type 'InteractionType!' was not provided.",   # noqa: ERA001
             "contactEmail": "Field 'contactEmail' of required type 'String!' was not provided.",
         }
         valid_input_keys = valid_input.keys()
@@ -1474,6 +1496,7 @@ class TestTaskRecommendations:
             contact_email="some@email.de",
             regularity="ONE_TIME",
             duration="INDETERMINATE",
+            interaction_type="CHAT",
         )
 
     def assert_filtered_tasks(self, filter_options, expected_spaces, total_results=None):

@@ -11,8 +11,8 @@ from rq.job import Job
 
 from openbook import settings
 from openbook.settings import ORY_SESSION_EXPIRY_IN_H
-from openbook_auth.models import User
-from openbook_auth.tasks import update_ory_user_names, extend_ory_session, get_oidc
+from openbook_auth.models import User, AccountType
+from openbook_auth.tasks import update_ory_user_names, extend_ory_session, get_account_type
 from openbook_common.tests.helpers import make_user
 from openbook_common.utils.count_down_latch import CountDownLatch
 from openbook_common.utils.test import MockJsonResponse
@@ -211,11 +211,11 @@ class TestUpdateOryUser(TestCase):
         mock_patch.assert_not_called()
 
     @mock.patch("requests.get")
-    def test_get_oidc_fetches_ory_identity(self, mock_get):
+    def test_get_account_type_fetches_ory_identity(self, mock_get):
         mock_get.return_value = MockJsonResponse({})
         user_id = "some_id"
 
-        get_oidc("some_id")
+        get_account_type("some_id")
 
         mock_get.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{user_id}",
@@ -224,24 +224,32 @@ class TestUpdateOryUser(TestCase):
         )
 
     @mock.patch("requests.get")
-    def test_get_oidc_should_return_true_for_oidc_account(self, mock_get):
-        mock_get.return_value = MockJsonResponse({"credentials": {"oidc": "foobar"}})
+    def test_get_account_type_should_return_provider_for_google_account(self, mock_get):
+        mock_get.return_value = MockJsonResponse({"credentials": {"oidc": {"identifiers": ["google-123"]}}})
 
-        result = get_oidc("some_id")
+        result = get_account_type("some_id")
 
-        self.assertTrue(result)
+        self.assertEqual(result, AccountType.GOOGLE)
 
     @mock.patch("requests.get")
-    def test_get_oidc_should_return_false_for_non_oidc_account(self, mock_get):
+    def test_get_account_type_should_return_unknown_for_unknown_provider(self, mock_get):
+        mock_get.return_value = MockJsonResponse({"credentials": {"oidc": {"identifiers": ["123"]}}})
+
+        result = get_account_type("some_id")
+
+        self.assertEqual(result, AccountType.UNKNOWN)
+
+    @mock.patch("requests.get")
+    def test_get_account_type_should_return_email_for_non_oidc_account(self, mock_get):
         mock_get.return_value = MockJsonResponse({})
 
-        result = get_oidc("some_id")
+        result = get_account_type("some_id")
 
-        self.assertFalse(result)
+        self.assertEqual(result, AccountType.EMAIL)
 
     @mock.patch("requests.get")
-    def test_get_oidc_should_raise_request_error(self, mock_get):
+    def test_get_account_type_should_raise_request_error(self, mock_get):
         mock_get.side_effect = HTTPError(response=type("Response", (object,), {"status_code": 500}))
 
         with self.assertRaises(HTTPError):
-            get_oidc("some_id")
+            get_account_type("some_id")

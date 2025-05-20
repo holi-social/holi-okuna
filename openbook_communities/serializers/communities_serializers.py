@@ -415,9 +415,12 @@ class CreateTaskSerializer(serializers.Serializer):
     geolocation = GeolocationPointSerializer(required=False)
     visibility = serializers.ChoiceField(required=True, choices=VisibilityType.choices)
     location_type = serializers.ChoiceField(required=True, choices=Task.LocationType.choices)
+    # TODO: make regularity required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
     regularity = serializers.ChoiceField(required=False, choices=Task.Regularity.choices)
-    # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+    # TODO: make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
     duration = serializers.ChoiceField(required=False, choices=Task.Duration.choices)
+    # TODO: make interaction_type required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+    interaction_type = serializers.ChoiceField(required=False, choices=Task.InteractionType.choices)
     timeframe_start_date = serializers.DateField(required=False)
     timeframe_end_date = serializers.DateField(required=False)
     contact_email = serializers.EmailField(
@@ -446,6 +449,11 @@ class CreateTaskSerializer(serializers.Serializer):
         max_upload_size=settings.TASK_THUMBNAIL_MAX_SIZE,
     )
     remove_thumbnail = serializers.BooleanField(default=False)
+    interaction_signup_link = serializers.URLField(
+        max_length=settings.TASK_INTERACTION_SIGNUP_LINK_MAX_LENGTH,
+        required=False,
+        validators=[url_safety_validator],
+    )
 
     def validate(self, data):
         if "timeframe_start_date" not in data and "timeframe_end_date" not in data:
@@ -489,9 +497,12 @@ class UpdateTaskSerializer(serializers.Serializer):
     geolocation = GeolocationPointSerializer(required=False)
     visibility = serializers.ChoiceField(required=True, choices=VisibilityType.choices)
     location_type = serializers.ChoiceField(required=True, choices=Task.LocationType.choices)
+    # TODO: make regularity required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
     regularity = serializers.ChoiceField(required=False, choices=Task.Regularity.choices)
-    # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+    # TODO: make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
     duration = serializers.ChoiceField(required=False, choices=Task.Duration.choices)
+    # TODO: make interaction_type required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+    interaction_type = serializers.ChoiceField(required=False, choices=Task.InteractionType.choices)
     timeframe_start_date = serializers.DateField(required=False)
     timeframe_end_date = serializers.DateField(required=False)
     contact_email = serializers.EmailField(
@@ -520,6 +531,11 @@ class UpdateTaskSerializer(serializers.Serializer):
         allow_null=True,
         required=False,
         max_upload_size=settings.TASK_THUMBNAIL_MAX_SIZE,
+    )
+    interaction_signup_link = serializers.URLField(
+        max_length=settings.TASK_INTERACTION_SIGNUP_LINK_MAX_LENGTH,
+        required=False,
+        validators=[url_safety_validator],
     )
 
 

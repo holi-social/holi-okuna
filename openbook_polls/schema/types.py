@@ -42,3 +42,5 @@ class Poll:
     creator: strawberry.auto
     creator: User = strawberry_django.field(select_related="creator__profile")
     is_public: strawberry.auto
+    is_multi_select: strawberry.auto
+    max_choices: strawberry.auto

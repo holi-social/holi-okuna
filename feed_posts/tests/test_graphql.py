@@ -32,6 +32,7 @@ from openbook_common.tests.helpers import (
     make_community,
     make_feed_post_founder_update_category,
     make_topics,
+    make_feed_post_good_deed_category,
 )
 from openbook_notifications.notifications import PostReactionNotification
 
@@ -851,6 +852,8 @@ class TestFeedPosts(TestCase):
             location=input_data["location"],
             geolocation=input_data["geolocation"],
             images=None,
+            image_urls=None,
+            aspect_ratio=None,
         )
 
         regular_post = FeedPostRepository().create_feed_post(
@@ -867,6 +870,8 @@ class TestFeedPosts(TestCase):
             location=input_data["location"],
             geolocation=input_data["geolocation"],
             images=None,
+            image_urls=None,
+            aspect_ratio=None,
         )
 
         public_space_post = self.user.create_community_post(
@@ -895,3 +900,30 @@ class TestFeedPosts(TestCase):
         assert data["data"][0]["id"] == str(founder_post.id)
         assert data["data"][1]["id"] == str(public_space_post.id)
         assert data["data"][2]["id"] == str(regular_post.id)
+
+    def test_can_create_feed_post_with_good_deed_category(self):
+        good_deed_category = make_feed_post_good_deed_category()
+        input_data = self.public_feed_post_input_data.copy()
+        input_data["categoryId"] = str(good_deed_category.id)
+
+        response = create_feed_post(user=self.user, input=input_data)
+        data = response.data["createFeedPost"]
+
+        assert data["title"] == input_data["title"]
+        assert data["description"] == input_data["description"]
+        assert data["visibility"] == input_data["visibility"]
+        assert data["category"]["id"] == input_data["categoryId"]
+        assert len(data["topics"]) == len(input_data["topicIds"])
+        assert data["creator"]["id"] == str(self.user.pk)
+        assert data["image"]
+        assert data["location"] == input_data["location"]
+        assert data["geolocation"]["latitude"] == input_data["geolocation"]["latitude"]
+        assert data["geolocation"]["longitude"] == input_data["geolocation"]["longitude"]
+        assert sorted(data["topicsV2"]) == sorted(self.topics_v2)
+
+        # Verify the post can be queried
+        post_slug = data["slug"]
+        query_response = post(user=self.another_user, id_or_slug=post_slug)
+        query_data = query_response.data["post"]
+
+        assert query_data["category"]["id"] == input_data["categoryId"]

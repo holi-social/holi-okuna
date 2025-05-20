@@ -19,6 +19,7 @@ class FeedPostAdminModel(admin.ModelAdmin):
         "display_topics_v2",
         "language_code",
         "creator",
+        "display_poll",
         "display_category",
         "display_is_co_founder",
         "priority_duration",
@@ -42,6 +43,9 @@ class FeedPostAdminModel(admin.ModelAdmin):
 
     def display_is_co_founder(self, obj):
         return obj.creator.role == UserRole.CO_FOUNDER
+
+    def display_poll(self, obj):
+        return obj.poll.question_text if obj.poll else ""
 
     display_topics.short_description = "Topics"
     display_topics_v2.short_description = "Topics V2"

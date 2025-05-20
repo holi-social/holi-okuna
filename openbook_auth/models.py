@@ -148,6 +148,13 @@ class UserRole(models.TextChoices):
     COMMUNITY_MANAGER = ("COMMUNITY_MANAGER",)
 
 
+@strawberry.enum
+class AccountType(models.TextChoices):
+    EMAIL = ("EMAIL",)
+    GOOGLE = ("GOOGLE",)
+    UNKNOWN = ("UNKNOWN",)
+
+
 class UserWithProfileManager(UserManager):
     def get_queryset(self):
         return super().get_queryset().select_related("profile")
@@ -280,6 +287,9 @@ class User(ModelWithUUID, AbstractUser):
 
     is_moderator = models.BooleanField(default=False)
     is_oidc = models.BooleanField(null=False, blank=False, default=False)
+    account_type = models.CharField(
+        max_length=16, choices=AccountType.choices, blank=False, null=False, default=AccountType.EMAIL
+    )
 
     # introduced in HOLI-8545 as a means to be able to filter out employees within PostHog analytics
     is_employee = models.BooleanField(
@@ -345,7 +355,7 @@ class User(ModelWithUUID, AbstractUser):
         is_of_legal_age=None,
         are_guidelines_accepted=None,
         badge=None,
-        is_oidc=False,
+        account_type=AccountType.EMAIL,
     ):
         if not is_of_legal_age:
             raise ValidationError(
@@ -362,7 +372,8 @@ class User(ModelWithUUID, AbstractUser):
             email=email,
             password=password,
             are_guidelines_accepted=are_guidelines_accepted,
-            is_oidc=is_oidc,
+            is_oidc=account_type != AccountType.EMAIL,
+            account_type=account_type,
         )
 
         user_profile = bootstrap_user_profile(
@@ -4977,6 +4988,7 @@ class User(ModelWithUUID, AbstractUser):
         location_type,
         contact_email,
         duration,
+        interaction_type,
         slots_available=None,
         location=None,
         geolocation=None,
@@ -4987,6 +4999,7 @@ class User(ModelWithUUID, AbstractUser):
         skills=None,
         skills_v2=None,
         thumbnail=None,
+        interaction_signup_link=None,
     ):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
@@ -5008,12 +5021,14 @@ class User(ModelWithUUID, AbstractUser):
             geolocation=geolocation,
             regularity=regularity,
             duration=duration,
+            interaction_type=interaction_type,
             timeframe_start_date=timeframe_start_date,
             timeframe_end_date=timeframe_end_date,
             contact_phone=contact_phone,
             skills=skills,
             skills_v2=skills_v2,
             thumbnail=thumbnail,
+            interaction_signup_link=interaction_signup_link,
         )
 
     def update_task(
@@ -5026,6 +5041,7 @@ class User(ModelWithUUID, AbstractUser):
         location_type,
         contact_email,
         duration,
+        interaction_type,
         slots_available=None,
         location=None,
         geolocation=None,
@@ -5037,6 +5053,7 @@ class User(ModelWithUUID, AbstractUser):
         skills_v2=None,
         thumbnail=None,
         remove_thumbnail=False,
+        interaction_signup_link=None,
     ):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
@@ -5056,6 +5073,7 @@ class User(ModelWithUUID, AbstractUser):
             geolocation=geolocation,
             regularity=regularity,
             duration=duration,
+            interaction_type=interaction_type,
             timeframe_start_date=timeframe_start_date,
             timeframe_end_date=timeframe_end_date,
             contact_phone=contact_phone,
@@ -5063,6 +5081,7 @@ class User(ModelWithUUID, AbstractUser):
             skills_v2=skills_v2,
             thumbnail=thumbnail,
             remove_thumbnail=remove_thumbnail,
+            interaction_signup_link=interaction_signup_link,
         )
 
     def delete_task_with_id(self, task_id):

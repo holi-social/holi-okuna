@@ -25,7 +25,7 @@ from structlog.testing import capture_logs
 
 from openbook.graphql_schema import schema
 from openbook.tests.test_data import geolocation, geolocation_geometry, geolocation_id
-from openbook_auth.models import EngagementLevelChoice, User
+from openbook_auth.models import EngagementLevelChoice, User, AccountType
 from openbook_auth.tests.helpers import (
     api_update_authenticated_user_names_data,
     get_user_connection_status_to_space_data,
@@ -760,6 +760,7 @@ class TestUsers:
         assert isinstance(event_arg.properties["updatedFields"], list)
         if expected_updated_fields:
             assert set(event_arg.properties["updatedFields"]) == expected_updated_fields
+            assert event_arg.properties["accountType"] == AccountType.EMAIL
 
     @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")
