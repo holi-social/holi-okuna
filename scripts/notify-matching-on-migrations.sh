@@ -21,10 +21,11 @@ if [ "$MIGRATION_CHANGED" = "true" ]; then
   echo "Notifying Matching team via Slack monitoring channel"
   scripts/notify-slack.sh \
     --webhook "$SLACK_MATCHING_MON_DATA_PROD_WEBHOOK_URL" \
-    --message "⚠️A migration was detected in holi-okuna! This is the commit containing the migration:
-Author:  $CI_COMMIT_AUTHOR
-Commit:  $CI_COMMIT_SHA
-$CI_COMMIT_MESSAGE
+    --message "⚠️ A migration was detected in holi-okuna! This is the push containing the commit(s) with migration(s):
+
+git log --oneline $CI_COMMIT_BEFORE_SHA^..$CI_COMMIT_SHA
+
 ---
+
 See $CI_PIPELINE_URL for details"
 fi
