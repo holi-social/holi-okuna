@@ -64,6 +64,18 @@ validate:
   tags:
     - 4cpu-4gb # more cpu, quicker testing
 
+alert_matching_on_migrations:
+  stage: validate
+  image:
+    name: alpine/git:latest
+    entrypoint: [ "" ]
+  before_script:
+    - apk add --no-cache curl
+  only:
+    - main
+  script:
+    - scripts/notify-matching-on-migrations.sh
+
 build_docker:
   image: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:28'
   cache: !reference [ .uv_cache_ro ]
