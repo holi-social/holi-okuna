@@ -145,7 +145,7 @@ class UserRole(models.TextChoices):
     EDITOR = ("EDITOR",)
     JOURNALIST = ("JOURNALIST",)
     CO_FOUNDER = ("CO_FOUNDER", "Co-founder")
-    COMMUNITY_MANAGER = ("COMMUNITY_MANAGER",)
+    COMMUNITY_TEAM = ("COMMUNITY_TEAM",)
 
 
 @strawberry.enum
