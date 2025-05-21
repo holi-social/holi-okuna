@@ -8,6 +8,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.management import call_command
 from django.test import AsyncClient
 
+import favorites.models
 from openbook_common.tests.helpers import (
     assert_is_unauthorized,
     make_user,
@@ -33,15 +34,14 @@ def django_db_setup(django_db_setup, django_db_blocker):
         call_command("loaddata", "openbook_moderation/fixtures/moderation_categories.json")
 
 
-# This tests a deprecated way of bookmarking insights, that uses the openbook_auth package bookmark endpoints
-# keep for versions <= 1.14.5,
-
-
-def bookmark_insight(user, insight_id):
+def favorite_insight(user, insight_id):
     return async_to_sync(schema.execute)(
         f"""
         mutation {{
-            bookmarkInsight(insightId: "{insight_id}") {{
+            favorite(
+                favoritableId: "{insight_id}",
+                favoritableType: INSIGHT
+            ) {{
                 success
             }}
         }}
@@ -50,11 +50,14 @@ def bookmark_insight(user, insight_id):
     )
 
 
-def remove_insight_bookmark(user, insight_id):
+def unfavorite_insight(user, insight_id):
     return async_to_sync(schema.execute)(
         f"""
         mutation {{
-            removeInsightBookmark(insightId: "{insight_id}") {{
+            unfavorite(
+                favoritableId: "{insight_id}",
+                favoritableType: INSIGHT
+            ) {{
                 success
             }}
         }}
@@ -65,7 +68,7 @@ def remove_insight_bookmark(user, insight_id):
 
 @pytest.mark.django_db
 class TestUsers:
-    def test_cannot_bookmark_insight_if_anonymous(self):
+    def test_cannot_favorite_insight_if_anonymous(self):
         insight_author = make_user()
         insight_model = get_insight_model()
         insight = insight_model.objects.create(
@@ -75,11 +78,11 @@ class TestUsers:
             date_published=timezone.now(),
         )
 
-        response = bookmark_insight(AnonymousUser, insight_id=insight.id)
+        response = favorite_insight(AnonymousUser, insight_id=insight.id)
 
         assert_is_unauthorized(response)
 
-    def test_cannot_remove_insight_bookmark_if_anonymous(self):
+    def test_cannot_unfavorite_insight_if_anonymous(self):
         insight_author = make_user()
         insight_model = get_insight_model()
         insight = insight_model.objects.create(
@@ -89,11 +92,11 @@ class TestUsers:
             date_published=timezone.now(),
         )
 
-        response = remove_insight_bookmark(AnonymousUser, insight_id=insight.id)
+        response = unfavorite_insight(AnonymousUser, insight_id=insight.id)
 
         assert_is_unauthorized(response)
 
-    def test_can_bookmark_insight_if_authenticated(self):
+    def test_can_favorite_insight_if_authenticated(self):
         user = make_user()
         insight_author = make_user()
         insight_model = get_insight_model()
@@ -104,12 +107,12 @@ class TestUsers:
             date_published=timezone.now(),
         )
 
-        response = bookmark_insight(user, insight_id=insight.id)
+        response = favorite_insight(user, insight_id=insight.id)
 
-        assert response.data["bookmarkInsight"]["success"]
-        assert user.profile.favorite_insights.count() == 1
+        assert response.data["favorite"]["success"]
+        assert favorites.models.UserFavorite.objects.filter(user=user, favoritable_id=insight.id).exists()
 
-    def test_can_remove_insight_bookmark_if_authenticated(self):
+    def test_can_unfavorite_insight_if_authenticated(self):
         user = make_user()
         insight_author = make_user()
         insight_model = get_insight_model()
@@ -120,10 +123,10 @@ class TestUsers:
             date_published=timezone.now(),
         )
 
-        bookmark_insight(user, insight_id=insight.id)
-        assert user.profile.favorite_insights.count() == 1
+        favorite_insight(user, insight_id=insight.id)
+        assert favorites.models.UserFavorite.objects.filter(user=user, favoritable_id=insight.id).exists()
 
-        response = remove_insight_bookmark(user, insight_id=insight.id)
+        response = unfavorite_insight(user, insight_id=insight.id)
 
-        assert response.data["removeInsightBookmark"]["success"]
-        assert user.profile.favorite_insights.count() == 0
+        assert response.data["unfavorite"]["success"]
+        assert not favorites.models.UserFavorite.objects.filter(user=user, favoritable_id=insight.id).exists()

@@ -91,16 +91,6 @@ class Insight:
     def quotes(self) -> list[Quote]:
         return self.quotes.all()
 
-    @strawberry_django.field(
-        deprecation_reason="This type has been renamed. Keep for backwards compatibility. Versions 1.14.XX"
-    )
-    def is_bookmarked(self, info) -> bool:
-        current_user = info.context.request.user
-        if current_user.is_anonymous:
-            return False
-
-        return UserFavorite.objects.filter(user=current_user, favoritable_id=self.id).exists()
-
     @strawberry_django.field()
     def is_favorite(self, info) -> bool:
         current_user = info.context.request.user
