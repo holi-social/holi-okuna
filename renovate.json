@@ -10,6 +10,9 @@
     ":automergeTesters",
     ":automergeLinters"
   ],
+  "lockFileMaintenance": {
+    "enabled": true
+  },
   "packageRules": [
     {
       "matchSourceUrls": [
