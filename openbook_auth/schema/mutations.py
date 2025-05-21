@@ -294,22 +294,6 @@ class Mutation:
 
         return Result(success=True)
 
-    @strawberry.mutation(deprecation_reason="Use 'favorite' mutation instead. Keep for version <=1.14.5")
-    @sync_to_async
-    def bookmark_insight(self, info, insight_id: uuid.UUID) -> Result:
-        current_user = verify_authorized_user(info)
-        current_user.bookmark_insight(insight_id)  # To maintain compatibility with older versions
-        UserFavorite.favorite(user=current_user, favoritable_id=insight_id, favoritable_type="insight")
-        return Result(success=True)
-
-    @strawberry.mutation(deprecation_reason="Use 'unfavorite' mutation instead. Keep for version <=1.14.5")
-    @sync_to_async
-    def remove_insight_bookmark(self, info, insight_id: uuid.UUID) -> Result:
-        current_user = verify_authorized_user(info)
-        current_user.remove_insight_bookmark(insight_id)  # To maintain compatibility with older versions
-        UserFavorite.unfavorite(user=current_user, favoritable_id=insight_id, favoritable_type="insight")
-        return Result(success=True)
-
     @strawberry.mutation()
     @sync_to_async
     def unsubscribe_from_newsletter(self, info, token: str) -> Result:
