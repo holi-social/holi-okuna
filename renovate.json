@@ -28,7 +28,7 @@
     },
     {
       "matchJsonata": [
-        "$match(depName,/opentelemetry$/)"
+        "$match(depName,/^opentelemetry/)"
       ],
       "groupName": "opentelemetry"
     },
