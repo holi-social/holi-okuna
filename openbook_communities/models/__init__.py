@@ -1287,6 +1287,16 @@ class Task(ModelWithUUID):
         blank=False,
         max_length=settings.TASK_DESCRIPTION_MAX_LENGTH,
     )
+    impact = models.TextField(
+        blank=True,
+        null=True,
+        max_length=settings.TASK_IMPACT_MAX_LENGTH,
+    )
+    additional_context = models.TextField(
+        blank=True,
+        null=True,
+        max_length=settings.TASK_ADDITIONAL_CONTEXT_MAX_LENGTH,
+    )
     community = models.ForeignKey(
         Community,
         on_delete=models.CASCADE,
@@ -1404,6 +1414,8 @@ class Task(ModelWithUUID):
         location_type,
         contact_email,
         slots_available,
+        impact=None,
+        additional_context=None,
         duration=None,
         interaction_type=None,
         location=None,
@@ -1434,6 +1446,8 @@ class Task(ModelWithUUID):
             regularity=regularity,
             duration=duration,
             interaction_type=interaction_type,
+            impact=impact,
+            additional_context=additional_context,
             timeframe_start_date=timeframe_start_date,
             timeframe_end_date=timeframe_end_date,
             contact_phone=contact_phone,
@@ -1457,6 +1471,8 @@ class Task(ModelWithUUID):
         location_type,
         contact_email,
         slots_available,
+        impact=None,
+        additional_context=None,
         duration=None,
         location=None,
         geolocation=None,
@@ -1477,6 +1493,8 @@ class Task(ModelWithUUID):
         self.location_type = location_type
         self.contact_email = contact_email
         self.regularity = regularity
+        self.impact = impact
+        self.additional_context = additional_context
         self.slots_available = slots_available
         self.duration = duration
         self.interaction_type = interaction_type
