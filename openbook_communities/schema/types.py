@@ -79,6 +79,8 @@ class CreateTaskInput:
     space_id: uuid.UUID
     name: str
     description: str
+    impact: Optional[str] = strawberry.UNSET
+    additional_context: Optional[str] = strawberry.UNSET
     visibility: VisibilityType
     location_type: TaskModel.LocationType
     regularity: TaskModel.Regularity
@@ -107,6 +109,8 @@ class UpdateTaskInput:
     space_id: uuid.UUID
     name: str
     description: str
+    impact: Optional[str] = strawberry.UNSET
+    additional_context: Optional[str] = strawberry.UNSET
     visibility: VisibilityType
     location_type: TaskModel.LocationType
     regularity: TaskModel.Regularity
@@ -219,6 +223,8 @@ class Task:
     id: strawberry.auto
     name: strawberry.auto
     description: strawberry.auto
+    impact: strawberry.auto
+    additional_context: strawberry.auto
     space: "Space" = strawberry_django.field(field_name="community")
     creator: User
     created: strawberry.auto
