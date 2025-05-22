@@ -9,7 +9,7 @@ from openbook_common.models import LinkPreview
 from openbook_common.tracking import TrackingEvent, track
 from openbook_common.utils.helpers import extract_usernames_from_string
 from openbook_notifications.services import NotificationsService
-from openbook_terms.models import FeedPostCategory, Topic
+from openbook_terms.models import FeedPostCategory
 
 
 class FeedPostService:
@@ -27,10 +27,13 @@ class FeedPostService:
         image,
         category_id=None,
         topic_ids=None,
+        topics_v2=None,
         language=None,
         location=None,
         geolocation=None,
         images=None,
+        image_urls=None,
+        aspect_ratio=None,
     ):
         category = FeedPostCategory.objects.get(id=category_id) if category_id else None
 
@@ -45,12 +48,15 @@ class FeedPostService:
             category=category,
             creator=creator,
             image=image,
-            topics=topic_ids,
+            topic_ids=topic_ids,
+            topics_v2=topics_v2,
             link_preview=link_preview,
             language=language,
             location=location,
             geolocation=geolocation,
             images=images,
+            image_urls=image_urls,
+            aspect_ratio=aspect_ratio,
         )
 
         self.mention_service.add_mentions(post_id=post.id, description=description, creator=creator)
@@ -64,7 +70,7 @@ class FeedPostService:
                     "locations": 0 if geolocation is None else 1,
                     "categories": 0 if category is None else 1,
                     "images": 0 if images is None else len(images),
-                    "topics": 0 if topic_ids is None else len(topic_ids),
+                    "topics": len(topic_ids or topics_v2 or []),
                 },
             ),
         )
@@ -91,6 +97,7 @@ class FeedPostService:
         visibility=None,
         category_id=None,
         topic_ids=None,
+        topics_v2=None,
         image=None,
         remove_image=False,
         language=None,
@@ -98,14 +105,14 @@ class FeedPostService:
         geolocation=None,
         new_images=None,
         existing_images=None,
+        image_urls=None,
+        aspect_ratio=None,
     ):
         post = self.repository.get_feed_post(id_or_slug=str(post_id))
 
         self.checker.check_can_update_feed_post(user=user, post=post)
 
         category = FeedPostCategory.objects.get(id=category_id) if category_id else None
-
-        topics = Topic.objects.filter(id__in=topic_ids) if topic_ids else None
 
         urls = extract_urls_from_string(description)
 
@@ -119,7 +126,8 @@ class FeedPostService:
             description=description,
             visibility=visibility,
             category=category,
-            topics=topics,
+            topic_ids=topic_ids,
+            topics_v2=topics_v2,
             image=image,
             remove_image=remove_image,
             link_preview=link_preview,
@@ -128,6 +136,8 @@ class FeedPostService:
             geolocation=geolocation,
             new_images=new_images,
             existing_images=existing_images,
+            image_urls=image_urls,
+            aspect_ratio=aspect_ratio,
         )
 
     def get_feed_posts(self):

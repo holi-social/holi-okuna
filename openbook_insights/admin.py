@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.forms import Select
+from typing import get_args
+from openbook_common.topics import TopicV2
 
 from openbook_insights.models import Discussion, Initiative, Insight, Quote, Recommendation
 
@@ -40,6 +43,15 @@ class InsightAdmin(admin.ModelAdmin):
     list_display = ("title", "description_preview", "creator", "header_image", "recommendations_count")
 
     inlines = [InsightRecommendationInline, InsightQuoteInline, InsightInitiativeInline, DiscussionInline]
+
+    # Override the formfield_for_dbfield to customize the topic_v2 field widget
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name == "topic_v2":
+            kwargs["widget"] = Select(
+                choices=[("", "---------")] + list(zip(get_args(TopicV2), get_args(TopicV2), strict=True))
+            )
+            kwargs["required"] = False
+        return super().formfield_for_dbfield(db_field, request, **kwargs)
 
     @admin.display(description="Description Preview")
     def description_preview(self, obj):

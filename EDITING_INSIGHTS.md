@@ -4,21 +4,11 @@ You can edit insights via the admin interface that Django provides.
 
 ## Editing insights on Production (and Staging)
 
-All okuna deployments in the cloud are not open to the internet. Therefore, we need to do a little work in order to
-connect to it.
-
 ### Using reverse proxy
 
-https://0kuna-adm1n.holi.social/admin currently provides the admin interface of the branch. We should switch this to production later. And provide access to staging as well via another domain.
+https://0kuna-adm1n.holi.social/production/admin provides the admin interface for production, https://0kuna-adm1n.holi.social/staging/admin for the staging/main branch.
 
-## Setting up editing insights
-
-### reverse proxy
-
-The reverse proxy is set up manually on the hop host. The hop host also is created manually. It has a public IPv4 and costs around 10€/month when running 24/7, 4€/month when stopped
-in between usages. We need to decide how to provide this service.
-
-For now I have created a schedule on which the VM starts 
+## Protocol of setting up editing insights
 
 ### Creating Superuser in DB
 

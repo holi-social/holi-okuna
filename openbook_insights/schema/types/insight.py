@@ -35,7 +35,10 @@ class Insight:
     date_published: strawberry.auto
     header_image: Optional[str]
     header_image_blurhash: Optional[str]
-    topic: Optional[Topic]
+    topic: Optional[Topic] = strawberry_django.field(
+        deprecation_reason="Deprecated since version 1.52, use topic_v2 instead.", default=None
+    )
+    topic_v2: Optional[str] = None
 
     @strawberry_django.field()
     def posts(self, info) -> List[Post]:
@@ -88,16 +91,6 @@ class Insight:
     def quotes(self) -> list[Quote]:
         return self.quotes.all()
 
-    @strawberry_django.field(
-        deprecation_reason="This type has been renamed. Keep for backwards compatibility. Versions 1.14.XX"
-    )
-    def is_bookmarked(self, info) -> bool:
-        current_user = info.context.request.user
-        if current_user.is_anonymous:
-            return False
-
-        return UserFavorite.objects.filter(user=current_user, favoritable_id=self.id).exists()
-
     @strawberry_django.field()
     def is_favorite(self, info) -> bool:
         current_user = info.context.request.user
@@ -125,3 +118,14 @@ class Insight:
     @strawberry_django.field()
     def initiative(self, id: uuid.UUID) -> Initiative:
         return self.initiatives.get(id=id)
+
+
+@strawberry_django.type(InsightModel)
+class InsightPreview:
+    id: strawberry.auto
+    title: strawberry.auto
+    description: strawberry.auto
+    creator: Optional[User] = strawberry_django.field(select_related=["creator__profile"])
+    date_published: strawberry.auto
+    header_image: Optional[str]
+    header_image_blurhash: Optional[str]

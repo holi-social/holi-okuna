@@ -6,6 +6,7 @@ from graphql import GraphQLError
 from strawberry.tools import merge_types
 from strawberry.types import ExecutionContext
 from strawberry_django.optimizer import DjangoOptimizerExtension
+from openbook import settings
 
 from comments.schema import mutations as comments_mutations
 from comments.schema import queries as comments_queries
@@ -16,6 +17,7 @@ from openbook.middleware.graphql_error_extension import GraphQLErrorExtension
 from openbook.settings.sentry_config import HoliSentryTracingExtension
 from openbook_appointments.schema import mutations as appointments_mutations
 from openbook_appointments.schema import queries as appointments_queries
+from anon_stats.schema import mutations as anon_stats
 from openbook_auth.schema import mutations as auth_mutations
 from openbook_auth.schema import queries as auth_queries
 from openbook_common.schema import queries as commons_queries
@@ -34,6 +36,7 @@ from openbook_polls.schema import queries as polls_queries
 from openbook_terms.schema import queries as terms_queries
 from feed_posts.schema import mutations as feed_posts_mutations
 from feed_posts.schema import queries as feed_posts_queries
+from openbook.storage_imagekit_io import ImagekitIoStorage
 from feed_posts.schema import feed_queries
 
 logger = structlog.get_logger(__name__)
@@ -86,9 +89,34 @@ Query = merge_types(
     ),
 )
 
+
+@strawberry.type
+class ImageKitAuthParams:
+    token: str
+    signature: str
+    expire: str
+    public_key: str
+
+
+@strawberry.type
+class ImageKitMutations:
+    @strawberry.mutation
+    def get_imagekit_auth_params(self) -> ImageKitAuthParams:
+        storage = ImagekitIoStorage()
+        auth_params = storage.get_imagekit_auth_params()
+
+        return ImageKitAuthParams(
+            token=auth_params["token"],
+            signature=auth_params["signature"],
+            expire=auth_params["expire"],
+            public_key=settings.IMAGEKIT_PUBLIC_KEY,
+        )
+
+
 Mutation = merge_types(
     "Mutation",
     (
+        anon_stats.Mutation,
         auth_mutations.Mutation,
         connections_mutations.Mutation,
         posts_mutations.Mutation,
@@ -101,9 +129,9 @@ Mutation = merge_types(
         favorites_mutations.Mutation,
         comments_mutations.Mutation,
         feed_posts_mutations.Mutation,
+        ImageKitMutations,
     ),
 )
-
 
 schema = HoliSchema(
     query=Query,

@@ -21,7 +21,13 @@ from openbook_common.serializers_fields.request import (
     FriendlyUrlField,
     RestrictedImageFileSizeField,
 )
-from openbook_common.validators import name_characters_validator, sanitize_text, url_safety_validator
+from openbook_common.validators import (
+    name_characters_validator,
+    sanitize_text,
+    url_safety_validator,
+    topic_v2_exists,
+    skill_v2_exists,
+)
 
 
 class UpdateAuthenticatedUserSerializer(serializers.Serializer):
@@ -36,12 +42,6 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
         required=False,
         allow_null=True,
         max_upload_size=settings.PROFILE_AVATAR_MAX_SIZE,
-    )
-    cover = RestrictedImageFileSizeField(
-        allow_empty_file=False,
-        required=False,
-        allow_null=True,
-        max_upload_size=settings.PROFILE_COVER_MAX_SIZE,
     )
     password = serializers.CharField(
         min_length=PASSWORD_MIN_LENGTH,
@@ -89,6 +89,11 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
         allow_empty=True,
         child=serializers.UUIDField(validators=[interest_with_id_exists]),
     )
+    interests_v2 = serializers.ListField(
+        required=False,
+        allow_empty=True,
+        child=serializers.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH, validators=[topic_v2_exists]),
+    )
     sdgs = serializers.ListField(
         required=False,
         allow_empty=True,
@@ -99,6 +104,11 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
         allow_empty=True,
         child=serializers.UUIDField(validators=[skill_with_id_exists]),
     )
+    skills_v2 = serializers.ListField(
+        required=False,
+        allow_empty=True,
+        child=serializers.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH, validators=[skill_v2_exists]),
+    )
     identity = serializers.CharField(
         min_length=1,
         max_length=settings.IDENTITY_MAX_LENGTH,
@@ -108,3 +118,4 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
     )
     tracking_consent_analytics = serializers.BooleanField(required=False, default=None, allow_null=True)
     tracking_consent_personalization = serializers.BooleanField(required=False, default=None, allow_null=True)
+    tracking_consent_ad_partners = serializers.BooleanField(required=False, default=None, allow_null=True)

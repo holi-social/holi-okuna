@@ -4,6 +4,7 @@ from typing import Annotated, List, Optional, TypeVar, TypeAlias, Any
 
 import strawberry
 import strawberry_django
+from django.contrib.auth.models import AnonymousUser
 from django.db.models import Q
 from django.utils import timezone
 from strawberry.django.context import StrawberryDjangoContext
@@ -48,9 +49,16 @@ Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
 class ValidateSpaceInput:
     title: Optional[str] = strawberry.UNSET
     description: Optional[str] = strawberry.UNSET
-    topics: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    topics: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.52. Use topics_v2 instead."),
+    ] = strawberry.UNSET
+    topics_v2: Optional[List[str]] = strawberry.UNSET
     cover: Optional[Upload] = strawberry.UNSET
-    sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    sdgs: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.53."),
+    ] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
 
 
@@ -58,7 +66,11 @@ class ValidateSpaceInput:
 class CreateSpaceInput:
     title: str
     description: str
-    topics: List[Optional[uuid.UUID]]
+    topics: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.52. Use topics_v2 instead."),
+    ] = strawberry.UNSET
+    topics_v2: Optional[List[str]] = strawberry.UNSET
     cover: Upload
 
 
@@ -70,13 +82,23 @@ class CreateTaskInput:
     visibility: VisibilityType
     location_type: TaskModel.LocationType
     regularity: TaskModel.Regularity
+    interaction_type: Optional[TaskModel.InteractionType] = strawberry.UNSET
+    # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+    duration: Optional[TaskModel.Duration] = strawberry.UNSET
+    timeframe_start_date: Optional[str] = strawberry.UNSET
+    timeframe_end_date: Optional[str] = strawberry.UNSET
     contact_email: str
     slots_available: Optional[int] = strawberry.UNSET
     thumbnail: Optional[Upload] = strawberry.UNSET
-    skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    skills: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.52. Use skills_v2 instead."),
+    ] = strawberry.UNSET
+    skills_v2: Optional[List[str]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     contact_phone: Optional[str] = strawberry.UNSET
+    interaction_signup_link: Optional[str] = strawberry.UNSET
 
 
 @strawberry.input
@@ -88,13 +110,23 @@ class UpdateTaskInput:
     visibility: VisibilityType
     location_type: TaskModel.LocationType
     regularity: TaskModel.Regularity
+    interaction_type: Optional[TaskModel.InteractionType] = strawberry.UNSET
+    # make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+    duration: Optional[TaskModel.Duration] = strawberry.UNSET
+    timeframe_start_date: Optional[str] = strawberry.UNSET
+    timeframe_end_date: Optional[str] = strawberry.UNSET
     contact_email: str
     slots_available: Optional[int] = strawberry.UNSET
     thumbnail: Optional[Upload] = strawberry.UNSET
-    skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    skills: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.52. Use skills_v2 instead."),
+    ] = strawberry.UNSET
+    skills_v2: Optional[List[str]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     contact_phone: Optional[str] = strawberry.UNSET
+    interaction_signup_link: Optional[str] = strawberry.UNSET
 
 
 @strawberry.input
@@ -151,10 +183,17 @@ class UpdateSpaceInput:
     id: uuid.UUID
     title: Optional[str] = strawberry.UNSET
     description: Optional[str] = strawberry.UNSET
-    topics: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    topics: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.52. Use topics_v2 instead."),
+    ] = strawberry.UNSET
+    topics_v2: Optional[List[str]] = strawberry.UNSET
     cover: Optional[Upload] = strawberry.UNSET
     avatar: Optional[Upload] = strawberry.UNSET
-    sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    sdgs: Annotated[
+        Optional[List[Optional[uuid.UUID]]],
+        strawberry.argument(description="Deprecated since 1.53."),
+    ] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     contact_description: Optional[str] = strawberry.UNSET
@@ -187,13 +226,21 @@ class Task:
     slots_taken: strawberry.auto
     visibility: VisibilityType
     location_type: TaskModel.LocationType
+    interaction_type: Optional[TaskModel.InteractionType]
     location: strawberry.auto
     regularity: TaskModel.Regularity
-    skills: List[Skill]
+    duration: Optional[TaskModel.Duration]
+    timeframe_start_date: strawberry.auto
+    timeframe_end_date: strawberry.auto
+    skills: List[Skill] = strawberry_django.field(
+        deprecation_reason="Deprecated since version 1.52, use skills_v2 instead.", default=None
+    )
+    skills_v2: List[str]
     thumbnail: Optional[str]
     thumbnail_blurhash: Optional[str]
     contact_email: str
     contact_phone: Optional[str]
+    interaction_signup_link: strawberry.auto
 
     @strawberry_django.field()
     def geolocation(self) -> Optional[GeolocationPoint]:
@@ -258,8 +305,13 @@ class Space:
     cover_blurhash: Optional[str]
     location: strawberry.auto
     links: List[Optional[ExternalLink]]
-    topics: List[Optional[Topic]]
-    sdgs: List[Optional[SDG]]
+    topics: List[Optional[Topic]] = strawberry_django.field(
+        deprecation_reason="Deprecated since version 1.52, use topics_v2 instead.", default=None
+    )
+    topics_v2: List[str]
+    sdgs: List[Optional[SDG]] = strawberry_django.field(
+        deprecation_reason="Deprecated since version 1.53.", default=None
+    )
     contact_description: Optional[str]
     contact_email: Optional[str]
     contact_phone: Optional[str]
@@ -423,20 +475,34 @@ class Space:
 
     @strawberry_django.field()
     def tasks(self, info: Info) -> list[Task]:
-        current_user: UserModel = info.context.request.user
-        return TaskModel.objects.filter(community=self).filter(TaskModel.is_visible_query(current_user)).distinct()
+        current_user: UserModel | AnonymousUser = info.context.request.user
+        filtered_tasks_query = (
+            TaskModel.objects.filter(community=self).filter(TaskModel.is_visible_query(current_user)).distinct()
+        )
+
+        if current_user.is_anonymous or not current_user.is_member_of_community_with_id(self.id):
+            filtered_tasks_query = filtered_tasks_query.filter(TaskModel.is_not_expired_query())
+
+        return filtered_tasks_query
 
 
 @strawberry.type
 class DiscoverSpaces:
     spaces: Paged[Space]
-    topic_id: Optional[uuid.UUID] = None
+    topic_id: Optional[uuid.UUID] = strawberry.field(
+        deprecation_reason="Deprecated since version 1.52, use topic_v2 instead", default=None
+    )
+    topic_v2: Optional[str] = None
     location: Optional[str] = strawberry.field(
-        deprecation_reason="Unsupported since version 1.0.16, use location_id instead",
+        deprecation_reason="Deprecated since version 1.0.16, use location_id instead",
         default=None,
     )
     location_id: Optional[str] = None
-    skill_id: Optional[uuid.UUID] = None
+    skill_id: Optional[uuid.UUID] = strawberry.field(
+        deprecation_reason="Deprecated since version 1.52, use skill_v2 instead",
+        default=None,
+    )
+    skill_v2: Optional[str] = None
 
 
 @strawberry.type

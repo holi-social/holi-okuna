@@ -16,8 +16,10 @@ class FeedPostAdminModel(admin.ModelAdmin):
         "image",
         "visibility",
         "display_topics",
+        "display_topics_v2",
         "language_code",
         "creator",
+        "display_poll",
         "display_category",
         "display_is_co_founder",
         "priority_duration",
@@ -28,8 +30,13 @@ class FeedPostAdminModel(admin.ModelAdmin):
 
     search_fields = ("title", "creator")
 
+    exclude = ["geolocation_geojson"]
+
     def display_topics(self, obj):
         return ", ".join([topic.title for topic in obj.topics.all()])
+
+    def display_topics_v2(self, obj):
+        return ", ".join(obj.topics_v2)
 
     def display_category(self, obj):
         return obj.category.title if obj.category else ""
@@ -37,7 +44,11 @@ class FeedPostAdminModel(admin.ModelAdmin):
     def display_is_co_founder(self, obj):
         return obj.creator.role == UserRole.CO_FOUNDER
 
+    def display_poll(self, obj):
+        return obj.poll.question_text if obj.poll else ""
+
     display_topics.short_description = "Topics"
+    display_topics_v2.short_description = "Topics V2"
     display_category.short_description = "Category"
     display_is_co_founder.short_description = "Co-founder's Post"
 

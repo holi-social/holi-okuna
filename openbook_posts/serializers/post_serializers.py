@@ -78,7 +78,7 @@ class PostCreatorProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ("avatar", "cover", "badges", "name")
+        fields = ("avatar", "badges", "name")
 
 
 class PostImageSerializer(serializers.ModelSerializer):
@@ -265,7 +265,7 @@ class PostParticipantProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ("avatar", "cover", "badges", "name")
+        fields = ("avatar", "badges", "name")
 
 
 class PostParticipantSerializer(serializers.ModelSerializer):

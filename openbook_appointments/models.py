@@ -14,7 +14,7 @@ from openbook import settings
 from openbook_appointments.enums import PermissionType
 from openbook_appointments.helpers import upload_to_space_appointment_thumbnail_directory
 from openbook_auth.models import User
-from openbook_common.helpers import ExifRotate, generate_blurhash
+from openbook_common.helpers import ExifRotate, generate_blurhash, geojson_from_geolocation
 from openbook_common.models import ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field
 from openbook_communities.models import Community
@@ -44,6 +44,8 @@ class Appointment(ModelWithUUID):
     )
 
     geolocation = models.PointField(blank=True, null=True, spatial_index=True)
+    # also store as GeoJSON as downstream processes (Google Datastream) can't understand Postgis binary format
+    geolocation_geojson = models.JSONField(blank=True, null=True)
 
     location_details = models.OneToOneField(
         "LocationDetails",
@@ -118,6 +120,11 @@ class Appointment(ModelWithUUID):
             suffix = str(uuid.uuid4())[:8]
             self.slug = f"{base_slug}-{suffix}"
 
+        if self.geolocation:
+            self.geolocation_geojson = geojson_from_geolocation(self.geolocation)
+        else:
+            self.geolocation_geojson = None
+
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs) -> None:
@@ -188,9 +195,19 @@ class LocationDetails(ModelWithUUID):
     )
 
     geolocation = models.PointField(blank=True, null=True, spatial_index=True)
+    # also store as GeoJSON as downstream processes (Google Datastream) can't understand Postgis binary format
+    geolocation_geojson = models.JSONField(blank=True, null=True)
 
     city = models.CharField(max_length=settings.APPOINTMENT_LOCATION_MAX_LENGTH, blank=True, null=True)
 
     state = models.CharField(max_length=settings.APPOINTMENT_LOCATION_MAX_LENGTH, blank=True, null=True)
 
     country = models.CharField(max_length=settings.APPOINTMENT_LOCATION_MAX_LENGTH, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if self.geolocation:
+            self.geolocation_geojson = geojson_from_geolocation(self.geolocation)
+        else:
+            self.geolocation_geojson = None
+
+        super().save(*args, **kwargs)

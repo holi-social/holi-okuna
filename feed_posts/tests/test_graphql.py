@@ -27,11 +27,12 @@ from openbook_auth.models import UserRole
 from openbook_common.enums import ReactionType, ReactionAction, VisibilityType
 from openbook_common.tests.helpers import (
     make_user,
-    make_topic,
     make_feed_post_category,
     simple_jpeg_bytes,
     make_community,
     make_feed_post_founder_update_category,
+    make_topics,
+    make_feed_post_good_deed_category,
 )
 from openbook_notifications.notifications import PostReactionNotification
 
@@ -54,13 +55,15 @@ class TestFeedPosts(TestCase):
         cls.yet_another_user = make_user()
         cls.space = make_community(creator=cls.user)
         cls.space.add_member(cls.yet_another_user)
+        topics = make_topics(6)
+        cls.topics_v2 = [t.slug for t in topics]
 
         cls.public_feed_post_input_data = {
             "title": fake.text(max_nb_chars=settings.FEED_POST_TITLE_MAX_LENGTH),
             "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
             "visibility": VisibilityLevel.PUBLIC,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(make_topic().id) for _ in range(6)],
+            "topicIds": [str(t.id) for t in topics],
             "image": SimpleUploadedFile(name="image_1.jpg", content=simple_jpeg_bytes),
             "location": "Munich, Germany",
             "geolocation": {
@@ -74,7 +77,7 @@ class TestFeedPosts(TestCase):
             "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
             "visibility": VisibilityLevel.REGISTERED_USERS_ONLY,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(make_topic().id) for _ in range(3)],
+            "topicsV2": cls.topics_v2[:3],
             "image": SimpleUploadedFile(name="image_2.jpg", content=simple_jpeg_bytes),
             "location": "Munich, Germany",
             "geolocation": {
@@ -88,7 +91,7 @@ class TestFeedPosts(TestCase):
             "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
             "visibility": VisibilityLevel.PUBLIC,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(make_topic().id) for _ in range(6)],
+            "topicIds": [str(t.id) for t in topics],
             "image": SimpleUploadedFile(name="image_3.jpg", content=simple_jpeg_bytes),
             "location": "Munich, Germany",
             "geolocation": {
@@ -102,7 +105,7 @@ class TestFeedPosts(TestCase):
             "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
             "visibility": VisibilityLevel.REGISTERED_USERS_ONLY,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(make_topic().id) for _ in range(3)],
+            "topicIds": [str(t.id) for t in topics[:3]],
             "image": SimpleUploadedFile(name="image_4.jpg", content=simple_jpeg_bytes),
             "location": "Munich, Germany",
             "geolocation": {
@@ -116,7 +119,7 @@ class TestFeedPosts(TestCase):
             "description": f"@{cls.another_user.username} @{cls.yet_another_user.username} {fake.text(max_nb_chars=100)}",
             "visibility": VisibilityLevel.PUBLIC,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(make_topic().id) for _ in range(6)],
+            "topicIds": [str(t.id) for t in topics],
             "image": SimpleUploadedFile(name="image_1.jpg", content=simple_jpeg_bytes),
             "location": "Munich, Germany",
             "geolocation": {
@@ -130,7 +133,7 @@ class TestFeedPosts(TestCase):
             "description": f"@{cls.another_user.username} {fake.text(max_nb_chars=100)}",
             "visibility": VisibilityLevel.PUBLIC,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(make_topic().id) for _ in range(6)],
+            "topicIds": [str(t.id) for t in topics],
             "image": SimpleUploadedFile(name="image_1.jpg", content=simple_jpeg_bytes),
             "location": "Munich, Germany",
             "geolocation": {
@@ -144,7 +147,7 @@ class TestFeedPosts(TestCase):
             "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
             "visibility": VisibilityLevel.REGISTERED_USERS_ONLY,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(make_topic().id) for _ in range(3)],
+            "topicIds": [str(t.id) for t in topics[:3]],
             "newImages": [
                 {
                     "image": SimpleUploadedFile(name="image_2.jpg", content=simple_jpeg_bytes),
@@ -165,7 +168,7 @@ class TestFeedPosts(TestCase):
             "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
             "visibility": VisibilityLevel.PUBLIC,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(make_topic().id) for _ in range(6)],
+            "topicIds": [str(t.id) for t in topics],
             "image": SimpleUploadedFile(name="image_3.jpg", content=simple_jpeg_bytes),
             "images": [
                 {
@@ -220,6 +223,7 @@ class TestFeedPosts(TestCase):
         assert data["location"] == self.public_feed_post_input_data["location"]
         assert data["geolocation"]["latitude"] == self.public_feed_post_input_data["geolocation"]["latitude"]
         assert data["geolocation"]["longitude"] == self.public_feed_post_input_data["geolocation"]["longitude"]
+        assert sorted(data["topicsV2"]) == sorted(self.topics_v2)
 
     def test_can_query_my_posts_if_anonymous_user(self):
         first_mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
@@ -332,6 +336,7 @@ class TestFeedPosts(TestCase):
         assert data["visibility"] == self.public_feed_post_input_data["visibility"]
         assert data["category"]["id"] == self.public_feed_post_input_data["categoryId"]
         assert len(data["topics"]) == len(self.public_feed_post_input_data["topicIds"])
+        assert sorted(data["topicsV2"]) == sorted(self.topics_v2)
         assert data["creator"]["id"] == str(self.user.pk)
         assert data["image"]
 
@@ -353,7 +358,7 @@ class TestFeedPosts(TestCase):
         assert data["description"] == self.registered_users_only_feed_post_input_data["description"]
         assert data["visibility"] == self.registered_users_only_feed_post_input_data["visibility"]
         assert data["category"]["id"] == self.registered_users_only_feed_post_input_data["categoryId"]
-        assert len(data["topics"]) == len(self.registered_users_only_feed_post_input_data["topicIds"])
+        assert sorted(data["topicsV2"]) == sorted(self.registered_users_only_feed_post_input_data["topicsV2"])
         assert data["creator"]["id"] == str(self.user.pk)
         assert data["image"]
         assert data["location"] == self.registered_users_only_feed_post_input_data["location"]
@@ -381,6 +386,7 @@ class TestFeedPosts(TestCase):
         assert data["visibility"] == self.public_feed_post_input_data["visibility"]
         assert data["category"]["id"] == self.public_feed_post_input_data["categoryId"]
         assert len(data["topics"]) == len(self.public_feed_post_input_data["topicIds"])
+        assert sorted(data["topicsV2"]) == sorted(self.topics_v2)
         assert data["creator"]["id"] == str(self.user.pk)
         assert data["image"]
         assert data["location"] == self.public_feed_post_input_data["location"]
@@ -446,6 +452,7 @@ class TestFeedPosts(TestCase):
         assert data["visibility"] == self.registered_users_only_feed_post_update_input_data["visibility"]
         assert data["category"]["id"] == self.registered_users_only_feed_post_update_input_data["categoryId"]
         assert len(data["topics"]) == len(self.registered_users_only_feed_post_update_input_data["topicIds"])
+        assert sorted(data["topicsV2"]) == sorted(self.topics_v2[:3])
         assert data["creator"]["id"] == str(self.user.pk)
         assert data["image"]
         assert len(data["images"]) == 1
@@ -835,30 +842,36 @@ class TestFeedPosts(TestCase):
             title=input_data["title"],
             visibility=input_data["visibility"],
             description=input_data["description"],
-            topics=input_data["topicIds"],
+            topic_ids=input_data["topicIds"],
+            topics_v2=None,
             category=founder_update_category,
             creator=self.co_founder,
             image=input_data["image"],
-            location=input_data["location"],
-            geolocation=input_data["geolocation"],
             link_preview=None,
             language=None,
+            location=input_data["location"],
+            geolocation=input_data["geolocation"],
             images=None,
+            image_urls=None,
+            aspect_ratio=None,
         )
 
         regular_post = FeedPostRepository().create_feed_post(
             title=input_data["title"],
             visibility=input_data["visibility"],
             description=input_data["description"],
-            topics=input_data["topicIds"],
+            topic_ids=input_data["topicIds"],
+            topics_v2=None,
             category=regular_category,
             creator=self.user,
             image=input_data["image"],
-            location=input_data["location"],
-            geolocation=input_data["geolocation"],
             link_preview=None,
             language=None,
+            location=input_data["location"],
+            geolocation=input_data["geolocation"],
             images=None,
+            image_urls=None,
+            aspect_ratio=None,
         )
 
         public_space_post = self.user.create_community_post(
@@ -887,3 +900,30 @@ class TestFeedPosts(TestCase):
         assert data["data"][0]["id"] == str(founder_post.id)
         assert data["data"][1]["id"] == str(public_space_post.id)
         assert data["data"][2]["id"] == str(regular_post.id)
+
+    def test_can_create_feed_post_with_good_deed_category(self):
+        good_deed_category = make_feed_post_good_deed_category()
+        input_data = self.public_feed_post_input_data.copy()
+        input_data["categoryId"] = str(good_deed_category.id)
+
+        response = create_feed_post(user=self.user, input=input_data)
+        data = response.data["createFeedPost"]
+
+        assert data["title"] == input_data["title"]
+        assert data["description"] == input_data["description"]
+        assert data["visibility"] == input_data["visibility"]
+        assert data["category"]["id"] == input_data["categoryId"]
+        assert len(data["topics"]) == len(input_data["topicIds"])
+        assert data["creator"]["id"] == str(self.user.pk)
+        assert data["image"]
+        assert data["location"] == input_data["location"]
+        assert data["geolocation"]["latitude"] == input_data["geolocation"]["latitude"]
+        assert data["geolocation"]["longitude"] == input_data["geolocation"]["longitude"]
+        assert sorted(data["topicsV2"]) == sorted(self.topics_v2)
+
+        # Verify the post can be queried
+        post_slug = data["slug"]
+        query_response = post(user=self.another_user, id_or_slug=post_slug)
+        query_data = query_response.data["post"]
+
+        assert query_data["category"]["id"] == input_data["categoryId"]

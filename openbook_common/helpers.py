@@ -6,21 +6,40 @@ from urllib.parse import urlparse
 import blurhash
 import requests
 import strawberry
+from django.contrib.gis.db.models import PointField
+from PIL import ExifTags, Image
+from PIL.Image import Transpose
 from django.conf import settings
 from django.db.models import Q
 from langdetect import DetectorFactory
-from langdetect.lang_detect_exception import LangDetectException
-from PIL import ExifTags, Image
-from PIL.Image import Transpose
 from urlextract import URLExtract
 
 from openbook.settings import ALERT_HOOK_URL
-from openbook_common.utils.model_loaders import get_language_model
 
 # seed the language detector
 DetectorFactory.seed = 0
 
 extractor = URLExtract()
+stop_left = extractor.get_stop_chars_left()
+stop_left.add("\u00a0")
+stop_left.add("\u2007")
+stop_left.add("\u202f")
+stop_left.add("\u2060")
+extractor.set_stop_chars_left(stop_left)
+
+stop_right = extractor.get_stop_chars_right()
+stop_right.add("\u00a0")
+stop_right.add("\u2007")
+stop_right.add("\u202f")
+stop_right.add("\u2060")
+extractor.set_stop_chars_right(stop_right)
+
+after_tld = extractor.get_after_tld_chars()
+after_tld.append("\u00a0")
+after_tld.append("\u2007")
+after_tld.append("\u202f")
+after_tld.append("\u2060")
+extractor.set_after_tld_chars(after_tld)
 
 
 def extract_urls_from_string(text):
@@ -145,3 +164,13 @@ def to_input_dict(input):
     converts a strawberry input object to a dict without null values, so it can be validated
     """
     return {k: v for k, v in strawberry.asdict(input).items() if v != strawberry.UNSET}
+
+
+def geojson_from_geolocation(geolocation: PointField) -> object:
+    return {
+        "type": "Point",
+        "coordinates": [
+            geolocation.x,  # longitude
+            geolocation.y,  # latitude
+        ],
+    }

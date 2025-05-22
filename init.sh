@@ -7,6 +7,11 @@ brewInstall() { # only install, when not present, so it's not accidentally updat
   brew list "$1" &>/dev/null || brew install "$1"
 }
 
+fail() {
+  echo -e >&2 "${RED}${1}${NOCOLOR}"
+  exit 1
+}
+
 # install the Python virtualenv
 pyenv install -s "$(cat .python-version)"
 pyenv local "$(cat .python-version)"

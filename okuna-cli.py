@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # ruff: noqa: S603
 # ruff: noqa: S607
 
@@ -36,11 +37,10 @@ LOCAL_API_ENV_FILE_TEMPLATE = os.path.join(current_dir, "templates/.env")
 DOCKER_COMPOSE_ENV_FILE = os.path.join(current_dir, ".docker-compose.env")
 DOCKER_COMPOSE_ENV_FILE_TEMPLATE = os.path.join(current_dir, "templates/.docker-compose.env")
 
-REQUIREMENTS_TXT_FILE = os.path.join(current_dir, "requirements.txt")
-DOCKER_API_IMAGE_REQUIREMENTS_TXT_FILE = os.path.join(current_dir, ".docker", "api", "requirements.txt")
-DOCKER_WORKER_IMAGE_REQUIREMENTS_TXT_FILE = os.path.join(current_dir, ".docker", "worker", "requirements.txt")
-DOCKER_SCHEDULER_IMAGE_REQUIREMENTS_TXT_FILE = os.path.join(current_dir, ".docker", "scheduler", "requirements.txt")
-DOCKER_API_TEST_IMAGE_REQUIREMENTS_TXT_FILE = os.path.join(current_dir, ".docker", "api-test", "requirements.txt")
+UV_LOCK_FILE = os.path.join(current_dir, "uv.lock")
+PYPROJECT_FILE = os.path.join(current_dir, "pyproject.toml")
+DOCKER_API_IMAGE_UV_LOCK_FILE = os.path.join(current_dir, ".docker", "api", "uv.lock")
+DOCKER_API_IMAGE_PYPROJECT_FILE = os.path.join(current_dir, ".docker", "api", "pyproject.toml")
 
 CONTEXT_SETTINGS = dict(default_map={})
 
@@ -57,7 +57,7 @@ def _remove_file_silently(filename):
 
 def _generate_random_string(
     length=12,
-    allowed_chars="abcdefghijklmnopqrstuvwxyz" "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+    allowed_chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
 ):
     """
     Return a securely generated random string.
@@ -85,7 +85,8 @@ def _generate_redis_password():
 
 
 def _copy_requirements_txt_to_docker_images_dir():
-    copyfile(REQUIREMENTS_TXT_FILE, DOCKER_API_IMAGE_REQUIREMENTS_TXT_FILE)
+    copyfile(UV_LOCK_FILE, DOCKER_API_IMAGE_UV_LOCK_FILE)
+    copyfile(PYPROJECT_FILE, DOCKER_API_IMAGE_PYPROJECT_FILE)
 
 
 def _check_okuna_api_is_running(address, port):
@@ -286,12 +287,6 @@ def cli():
     pass
 
 
-def _down_test():
-    """Bring Okuna down"""
-    logger.error("⬇️  Bringing the Okuna test services down...")
-    subprocess.run(["docker", "compose", "-f", "docker-compose-test-services-only.yml", "down"])
-
-
 def _down_full():
     """Bring Okuna down"""
     logger.error("⬇️  Bringing the whole of Okuna down...")
@@ -373,49 +368,6 @@ def up_services_only():
 
 
 @click.command()
-def down_test():
-    _down_test()
-
-
-@click.command()
-def up_test():
-    """Bring the Okuna test services up"""
-    _print_okuna_logo()
-    _ensure_has_required_cli_config_files()
-
-    logger.info("⬆️  Bringing the Okuna test services up...")
-
-    atexit.register(_down_test)
-    subprocess.run(
-        [
-            "docker",
-            "compose",
-            "-f",
-            "docker-compose-test-services-only.yml",
-            "up",
-            "-d",
-            "-V",
-        ]
-    )
-
-    logger.info("🥳  Okuna  tests services are live")
-
-    subprocess.run(
-        [
-            "docker",
-            "compose",
-            "-f",
-            "docker-compose-test-services-only.yml",
-            "logs",
-            "--follow",
-            "--tail=0",
-        ]
-    )
-
-    input()
-
-
-@click.command()
 def build_full():
     """Rebuild Okuna services"""
     _ensure_has_required_cli_config_files()
@@ -448,8 +400,6 @@ def clean():
 
 cli.add_command(up_full)
 cli.add_command(down_full)
-cli.add_command(up_test)
-cli.add_command(down_test)
 cli.add_command(up_services_only)
 cli.add_command(down_services_only)
 cli.add_command(build_full)

@@ -7,16 +7,10 @@
 reports
 .coverage
 coverage.xml
-src/
 static/
 docker-compose.override.yml
 core
 
-# Elastic Beanstalk Files
-.elasticbeanstalk/*
-!.elasticbeanstalk/*.cfg.yml
-!.elasticbeanstalk/*.global.yml
-/open-book-api
 /supervisord.pid
 /supervisord.log
 /.docker-cache
@@ -28,3 +22,4 @@ core
 /.run/_*
 .envrc.local
 terraform*.log
+/.gitlab-ci-local

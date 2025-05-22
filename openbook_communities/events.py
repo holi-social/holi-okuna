@@ -1,187 +1,180 @@
-from enum import Enum
-from typing import Optional
+from typing import Dict, Any
 
 import structlog
-from django.contrib.gis.geos.point import Point
 
-from openbook_auth.events import UserPayload
+from openbook_auth.events import user_to_event_payload
 from openbook_auth.models import User
 from openbook_common.pubsub.event import Event
 from openbook_common.pubsub.publisher import publish_event
 from openbook_common.pubsub.topic import Topic as PubSubTopic
-from openbook_communities.models import Community
+from openbook_communities.models import Community, Task
 
 logger = structlog.getLogger(__name__)
 
 
-class SpacePayload:
-    def __init__(
-        self,
-        id: str,
-        name: str,
-        slug: str,
-        avatar: str,
-        description: Optional[str] = None,
-        location: Optional[str] = None,
-        location_lat_lng: Optional[Point] = None,
-    ):
-        self.id = id
-        self.name = name
-        self.avatar = avatar
-        self.slug = slug
-        self.description = description
-        self.location = location
-        self.location_lat_lng = location_lat_lng
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "slug": self.slug,
-            "avatar": self.avatar,
-            "description": self.description,
-            "location": self.location,
-            "locationLatLng": (
-                {
-                    "latitude": self.location_lat_lng.x,
-                    "longitude": self.location_lat_lng.y,
-                }
-                if self.location_lat_lng
-                else None
-            ),
-        }
-
-    @classmethod
-    def from_community(cls, community: Community):
-        if community.avatar:
-            avatarUrl = community.avatar.url
-        else:
-            avatarUrl = None
-
-        return cls(
-            id=str(community.id),
-            name=community.title,
-            slug=community.name,
-            avatar=avatarUrl,
-            description=community.description,
-            location=community.location,
-            location_lat_lng=community.geolocation,
-        )
+def space_to_event_payload(community):
+    return {
+        "id": str(community.id),
+        "name": community.title,
+        "slug": community.name,
+        "avatar": community.avatar.url if community.avatar else None,
+        "description": community.description,
+        "location": community.location,
+        "locationLatLng": {"latitude": community.geolocation.x, "longitude": community.geolocation.y}
+        if community.geolocation
+        else None,
+        "topicsV2": community.topics_v2,
+    }
 
 
 class SpaceUserRemovedEvent(Event):
-    EVENT_VERSION = "1.1.0"
-
-    def __init__(self, user: UserPayload, space: SpacePayload):
+    def __init__(self, user: User, space: Community):
         super().__init__(
-            data={"user": user.to_dict(), "space": space.to_dict()},
-            event_type=SpaceEventType.SPACE_USER_REMOVED.value,
-            event_version=SpaceUserRemovedEvent.EVENT_VERSION,
+            data={"user": user_to_event_payload(user), "space": space_to_event_payload(space)},
+            event_type="SpaceUserRemoved",
+            event_version="1.2.0",
         )
 
 
 class SpaceUserLeftEvent(Event):
-    EVENT_VERSION = "1.1.0"
-
-    def __init__(self, user: UserPayload, space: SpacePayload):
+    def __init__(self, user: User, space: Community):
         super().__init__(
-            data={"user": user.to_dict(), "space": space.to_dict()},
-            event_type=SpaceEventType.SPACE_USER_LEFT.value,
-            event_version=SpaceUserLeftEvent.EVENT_VERSION,
+            data={"user": user_to_event_payload(user), "space": space_to_event_payload(space)},
+            event_type="SpaceUserLeft",
+            event_version="1.2.0",
         )
 
 
 class SpaceDeletedEvent(Event):
-    EVENT_VERSION = "1.1.0"
-
-    def __init__(self, space: SpacePayload):
+    def __init__(self, space: Community):
         super().__init__(
-            data={"space": space.to_dict()},
-            event_type=SpaceEventType.SPACE_DELETED.value,
-            event_version=SpaceDeletedEvent.EVENT_VERSION,
+            data={"space": space_to_event_payload(space)},
+            event_type="SpaceDeleted",
+            event_version="1.2.0",
         )
 
 
 class SpaceUserAddedEvent(Event):
-    EVENT_VERSION = "1.1.0"
-
-    def __init__(self, user: UserPayload, space: SpacePayload):
+    def __init__(self, user: User, space: Community):
         super().__init__(
-            data={"user": user.to_dict(), "space": space.to_dict()},
-            event_type=SpaceEventType.SPACE_USER_ADDED.value,
-            event_version=SpaceUserAddedEvent.EVENT_VERSION,
+            data={"user": user_to_event_payload(user), "space": space_to_event_payload(space)},
+            event_type="SpaceUserAdded",
+            event_version="1.2.0",
         )
 
 
 class SpaceUpdatedEvent(Event):
-    EVENT_VERSION = "1.1.0"
-
-    def __init__(self, creator: UserPayload, space: SpacePayload):
+    def __init__(self, creator: User, space: Community):
         super().__init__(
-            data={"creator": creator.to_dict(), "space": space.to_dict()},
-            event_type=SpaceEventType.SPACE_UPDATED.value,
-            event_version=SpaceUpdatedEvent.EVENT_VERSION,
+            data={"creator": user_to_event_payload(creator), "space": space_to_event_payload(space)},
+            event_type="SpaceUpdated",
+            event_version="1.2.0",
         )
 
 
 class SpaceCreatedEvent(Event):
-    EVENT_VERSION = "1.1.0"
-
-    def __init__(self, creator: UserPayload, space: SpacePayload):
+    def __init__(self, creator: User, space: Community):
         super().__init__(
-            data={"creator": creator.to_dict(), "space": space.to_dict()},
-            event_type=SpaceEventType.SPACE_CREATED.value,
-            event_version=SpaceCreatedEvent.EVENT_VERSION,
+            data={"creator": user_to_event_payload(creator), "space": space_to_event_payload(space)},
+            event_type="SpaceCreated",
+            event_version="1.2.0",
         )
 
 
-class SpaceEventType(Enum):
-    SPACE_CREATED = "SpaceCreated"
-    SPACE_UPDATED = "SpaceUpdated"
-    SPACE_DELETED = "SpaceDeleted"
+def task_to_event_payload(task: Task) -> Dict[str, Any]:
+    return {
+        "id": str(task.id),
+        "name": task.name,
+        "description": task.description,
+        "created": task.created.isoformat() if task.created else None,
+        "timeframeStartDate": task.timeframe_start_date.isoformat() if task.timeframe_start_date else None,
+        "timeframeEndDate": task.timeframe_end_date.isoformat() if task.timeframe_end_date else None,
+        "regularity": task.regularity,
+        "duration": task.duration,
+        "slotsAvailable": task.slots_available,
+        "slotsTaken": task.slots_taken,
+        "visibility": task.visibility,
+        "locationType": task.location_type,
+        "location": task.location,
+        "geolocationGeoJSON": task.geolocation_geojson,
+        "skillsV2": task.skills_v2,
+        "thumbnail": task.thumbnail.url if task.thumbnail else None,
+        "contactEmail": task.contact_email,
+        "contactPhone": task.contact_phone,
+    }
 
-    SPACE_USER_ADDED = "SpaceUserAdded"
-    SPACE_USER_LEFT = "SpaceUserLeft"
-    SPACE_USER_REMOVED = "SpaceUserRemoved"
+
+class TaskCreatedEvent(Event):
+    def __init__(self, user: User, task: Task):
+        super().__init__(
+            data={
+                "user": user_to_event_payload(user),
+                "space": space_to_event_payload(task.community),
+                "task": task_to_event_payload(task),
+            },
+            event_type="TaskCreated",
+            event_version="1.0.0",
+        )
+
+
+class TaskUpdatedEvent(Event):
+    def __init__(self, user: User, task: Task):
+        super().__init__(
+            data={
+                "user": user_to_event_payload(user),
+                "space": space_to_event_payload(task.community),
+                "task": task_to_event_payload(task),
+            },
+            event_type="TaskUpdated",
+            event_version="1.0.0",
+        )
+
+
+class TaskDeletedEvent(Event):
+    def __init__(self, user: User, task: Task):
+        super().__init__(
+            data={
+                "user": user_to_event_payload(user),
+                "space": space_to_event_payload(task.community),
+                "task": task_to_event_payload(task),
+            },
+            event_type="TaskDeleted",
+            event_version="1.0.0",
+        )
 
 
 def publish_space_created_event(community: Community):
-    creator = UserPayload.from_user(community.creator)
-    space = SpacePayload.from_community(community)
-    event = SpaceCreatedEvent(creator, space)
-    publish_event(event=event, topic=PubSubTopic.OKUNA.value)
+    publish_event(event=SpaceCreatedEvent(community.creator, community), topic=PubSubTopic.OKUNA.value)
 
 
 def publish_space_updated_event(community: Community):
-    creator = UserPayload.from_user(community.creator)
-    space = SpacePayload.from_community(community)
-    event = SpaceUpdatedEvent(creator, space)
-    publish_event(event=event, topic=PubSubTopic.OKUNA.value)
+    publish_event(event=SpaceUpdatedEvent(community.creator, community), topic=PubSubTopic.OKUNA.value)
 
 
 def publish_space_user_added_event(username: str, community: Community):
     space_member: User = User.objects.get(username=username)
-    user = UserPayload.from_user(space_member)
-    space = SpacePayload.from_community(community)
-    event = SpaceUserAddedEvent(user, space)
-    publish_event(event=event, topic=PubSubTopic.OKUNA.value)
+    publish_event(event=SpaceUserAddedEvent(space_member, community), topic=PubSubTopic.OKUNA.value)
 
 
 def publish_space_deleted_event(community: Community):
-    space = SpacePayload.from_community(community)
-    event = SpaceDeletedEvent(space)
-    publish_event(event=event, topic=PubSubTopic.OKUNA.value)
+    publish_event(event=SpaceDeletedEvent(community), topic=PubSubTopic.OKUNA.value)
 
 
 def publish_space_user_left_event(user: User, community: Community):
-    user = UserPayload.from_user(user)
-    space = SpacePayload.from_community(community)
-    event = SpaceUserLeftEvent(user, space)
-    publish_event(event=event, topic=PubSubTopic.OKUNA.value)
+    publish_event(event=SpaceUserLeftEvent(user, community), topic=PubSubTopic.OKUNA.value)
 
 
 def publish_space_user_removed_event(user: User, community: Community):
-    user = UserPayload.from_user(user)
-    space = SpacePayload.from_community(community)
-    event = SpaceUserRemovedEvent(user, space)
-    publish_event(event=event, topic=PubSubTopic.OKUNA.value)
+    publish_event(event=SpaceUserRemovedEvent(user, community), topic=PubSubTopic.OKUNA.value)
+
+
+def publish_task_created_event(user: User, task: Task) -> None:
+    publish_event(event=TaskCreatedEvent(user, task), topic=PubSubTopic.OKUNA.value)
+
+
+def publish_task_updated_event(user: User, task: Task) -> None:
+    publish_event(event=TaskUpdatedEvent(user, task), topic=PubSubTopic.OKUNA.value)
+
+
+def publish_task_deleted_event(user: User, task: Task) -> None:
+    publish_event(event=TaskDeletedEvent(user, task), topic=PubSubTopic.OKUNA.value)

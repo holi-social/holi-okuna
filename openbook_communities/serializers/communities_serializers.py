@@ -7,7 +7,13 @@ from openbook_categories.validators import category_name_exists
 from openbook_common.serializers import CommonCommunityMembershipSerializer, GeolocationPointSerializer
 from openbook_common.serializers_fields.community import CommunityPostsCountField
 from openbook_common.serializers_fields.request import RestrictedImageFileSizeField
-from openbook_common.validators import hex_color_validator, url_safety_validator, sanitize_text
+from openbook_common.validators import (
+    hex_color_validator,
+    url_safety_validator,
+    sanitize_text,
+    topic_v2_exists,
+    skill_v2_exists,
+)
 from openbook_communities.models import CollaborationTool, Community, ExternalLinkType, Task, VisibilityType
 from openbook_communities.serializers_fields import (
     IsInvitedField,
@@ -78,8 +84,14 @@ class CreateCommunitySerializer(serializers.Serializer):
     topics = serializers.ListField(
         min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
         max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
-        required=True,
+        required=False,
         child=serializers.UUIDField(validators=[topic_with_id_exists]),
+    )
+    topics_v2 = serializers.ListField(
+        min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
+        max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
+        required=False,
+        child=serializers.CharField(validators=[topic_v2_exists]),
     )
 
 
@@ -97,6 +109,12 @@ class ValidateCommunitySerializer(serializers.Serializer):
         max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
         required=False,
         child=serializers.UUIDField(validators=[topic_with_id_exists]),
+    )
+    topics_v2 = serializers.ListField(
+        min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
+        max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
+        required=False,
+        child=serializers.CharField(validators=[topic_v2_exists]),
     )
     cover = RestrictedImageFileSizeField(
         allow_empty_file=False,
@@ -140,6 +158,12 @@ class UpdateCommunitySerializer(serializers.Serializer):
         max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
         required=False,
         child=serializers.UUIDField(validators=[topic_with_id_exists]),
+    )
+    topics_v2 = serializers.ListField(
+        min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
+        max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
+        required=False,
+        child=serializers.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH, validators=[topic_v2_exists]),
     )
     cover = RestrictedImageFileSizeField(
         allow_empty_file=False,
@@ -391,7 +415,14 @@ class CreateTaskSerializer(serializers.Serializer):
     geolocation = GeolocationPointSerializer(required=False)
     visibility = serializers.ChoiceField(required=True, choices=VisibilityType.choices)
     location_type = serializers.ChoiceField(required=True, choices=Task.LocationType.choices)
+    # TODO: make regularity required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
     regularity = serializers.ChoiceField(required=False, choices=Task.Regularity.choices)
+    # TODO: make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+    duration = serializers.ChoiceField(required=False, choices=Task.Duration.choices)
+    # TODO: make interaction_type required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+    interaction_type = serializers.ChoiceField(required=False, choices=Task.InteractionType.choices)
+    timeframe_start_date = serializers.DateField(required=False)
+    timeframe_end_date = serializers.DateField(required=False)
     contact_email = serializers.EmailField(
         required=True,
     )
@@ -406,12 +437,38 @@ class CreateTaskSerializer(serializers.Serializer):
         required=False,
         child=serializers.UUIDField(validators=[skill_with_id_exists]),
     )
+    skills_v2 = serializers.ListField(
+        min_length=settings.TASK_SKILLS_MIN_AMOUNT,
+        max_length=settings.TASK_SKILLS_MAX_AMOUNT,
+        required=False,
+        child=serializers.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH, validators=[skill_v2_exists]),
+    )
     thumbnail = RestrictedImageFileSizeField(
         allow_empty_file=False,
         required=False,
         max_upload_size=settings.TASK_THUMBNAIL_MAX_SIZE,
     )
     remove_thumbnail = serializers.BooleanField(default=False)
+    interaction_signup_link = serializers.URLField(
+        max_length=settings.TASK_INTERACTION_SIGNUP_LINK_MAX_LENGTH,
+        required=False,
+        validators=[url_safety_validator],
+    )
+
+    def validate(self, data):
+        if "timeframe_start_date" not in data and "timeframe_end_date" not in data:
+            return data
+
+        if "timeframe_start_date" not in data and "timeframe_end_date" in data:
+            raise serializers.ValidationError("Timeframe incomplete start missing")
+
+        if "timeframe_start_date" in data and "timeframe_end_date" not in data:
+            raise serializers.ValidationError("Timeframe incomplete end missing")
+
+        if data["timeframe_end_date"] < data["timeframe_start_date"]:
+            raise serializers.ValidationError("Timeframe end must occur after start")
+
+        return data
 
 
 class UpdateTaskSerializer(serializers.Serializer):
@@ -440,7 +497,14 @@ class UpdateTaskSerializer(serializers.Serializer):
     geolocation = GeolocationPointSerializer(required=False)
     visibility = serializers.ChoiceField(required=True, choices=VisibilityType.choices)
     location_type = serializers.ChoiceField(required=True, choices=Task.LocationType.choices)
+    # TODO: make regularity required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
     regularity = serializers.ChoiceField(required=False, choices=Task.Regularity.choices)
+    # TODO: make duration required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+    duration = serializers.ChoiceField(required=False, choices=Task.Duration.choices)
+    # TODO: make interaction_type required after FE clients that don't send this for updates/creation of task are phased out (1.54+?)
+    interaction_type = serializers.ChoiceField(required=False, choices=Task.InteractionType.choices)
+    timeframe_start_date = serializers.DateField(required=False)
+    timeframe_end_date = serializers.DateField(required=False)
     contact_email = serializers.EmailField(
         required=True,
     )
@@ -455,11 +519,23 @@ class UpdateTaskSerializer(serializers.Serializer):
         required=False,
         child=serializers.UUIDField(validators=[skill_with_id_exists]),
     )
+    skills_v2 = serializers.ListField(
+        min_length=settings.TASK_SKILLS_MIN_AMOUNT,
+        max_length=settings.TASK_SKILLS_MAX_AMOUNT,
+        required=False,
+        allow_empty=True,
+        child=serializers.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH, validators=[skill_v2_exists]),
+    )
     thumbnail = RestrictedImageFileSizeField(
         allow_empty_file=False,
         allow_null=True,
         required=False,
         max_upload_size=settings.TASK_THUMBNAIL_MAX_SIZE,
+    )
+    interaction_signup_link = serializers.URLField(
+        max_length=settings.TASK_INTERACTION_SIGNUP_LINK_MAX_LENGTH,
+        required=False,
+        validators=[url_safety_validator],
     )
 
 

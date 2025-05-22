@@ -32,12 +32,15 @@ class Mutation:
             description=data.get("description"),
             category_id=data.get("category_id"),
             topic_ids=data.get("topic_ids"),
+            topics_v2=data.get("topics_v2"),
             image=data.get("image"),
             creator=user,
             language=data.get("language"),
             location=data.get("location"),
             geolocation=data.get("geolocation"),
             images=data.get("images"),
+            image_urls=data.get("image_urls"),
+            aspect_ratio=data.get("aspect_ratio"),
         )
 
     @strawberry.mutation
@@ -58,6 +61,7 @@ class Mutation:
             description=data.get("description"),
             category_id=data.get("category_id"),
             topic_ids=data.get("topic_ids"),
+            topics_v2=data.get("topics_v2"),
             image=data.get("image"),
             remove_image=is_parameter_null(data, "image"),
             language=data.get("language"),
@@ -65,15 +69,15 @@ class Mutation:
             geolocation=data.get("geolocation"),
             new_images=data.get("new_images"),
             existing_images=data.get("existing_images"),
+            image_urls=data.get("image_urls"),
+            aspect_ratio=data.get("aspect_ratio"),
         )
 
     @strawberry.mutation
     @sync_to_async
     def delete_feed_post(self, info, post_id: uuid.UUID) -> Result:
         user = verify_authorized_user(info)
-
         FeedPostService().delete_feed_post(user=user, post_id=post_id)
-
         return Result(success=True)
 
     @strawberry.mutation

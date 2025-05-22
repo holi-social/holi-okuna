@@ -1,10 +1,10 @@
 # ruff: noqa
-
+import os
 import json
 import logging
-import sys
 import uuid
 from datetime import datetime, timedelta
+from typing import Dict
 from unittest import mock
 from unittest.mock import call
 
@@ -15,6 +15,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis import geos
 from django.core.management import call_command
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import HttpRequest
 from django.test import AsyncClient
 from django.urls import reverse
@@ -24,14 +25,19 @@ from structlog.testing import capture_logs
 
 from openbook.graphql_schema import schema
 from openbook.tests.test_data import geolocation, geolocation_geometry, geolocation_id
-from openbook_auth.models import EngagementLevelChoice, User
+from openbook_auth.models import EngagementLevelChoice, User, AccountType
 from openbook_auth.tests.helpers import (
     api_update_authenticated_user_names_data,
     get_user_connection_status_to_space_data,
     get_user_with_id_raw,
+    get_user_by_id_raw,
     get_users_by_chat_identities,
     get_connected_users,
     get_connected_users_raw,
+    get_my_connections,
+    get_my_connections_query,
+    get_connections_by_user_id,
+    get_connections_by_user_id_query,
 )
 from openbook_common.tests.helpers import (
     assert_is_unauthorized,
@@ -42,6 +48,9 @@ from openbook_common.tests.helpers import (
     make_user,
     assert_paged_results_equal,
     assert_is_forbidden,
+    make_topic,
+    make_sdg,
+    make_skill,
 )
 from openbook_common.tracking import TrackingEvent
 from openbook_communities.enums import UpdateConnectionAction
@@ -52,6 +61,7 @@ from openbook_communities.tests.helpers import (
 from openbook_connections.tests.helpers import connect_to_user
 from openbook_notifications.enums import NotificationProvider
 from openbook_posts.tests.helpers import get_post_with_id_data, get_post_with_id_raw
+from openbook_common.utils.test import MockJsonResponse
 
 logger = logging.getLogger(__name__)
 
@@ -140,10 +150,11 @@ class TestUsers:
         assert authenticated_user["connectionStatusToMyself"] is None
 
     @pytest.mark.asyncio
+    @mock.patch("openbook_auth.tasks.requests.get", return_value=MockJsonResponse({}))
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     async def test_creates_user_if_not_exists(
-        self, mock_create_or_update_subscriber, mock_get_language_from_request, client
+        self, mock_create_or_update_subscriber, mock_get_language_from_request, mock_get, client
     ):
         username = uuid.uuid4()
         email = "test@example.com"
@@ -179,10 +190,11 @@ class TestUsers:
         assert user.email == email
 
     @pytest.mark.asyncio
+    @mock.patch("openbook_auth.tasks.requests.get", return_value=MockJsonResponse({}))
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     async def test_creates_user_with_invalid_email(
-        self, mock_create_or_update_subscriber, mock_get_language_from_request, client
+        self, mock_create_or_update_subscriber, mock_get_language_from_request, mock_get, client
     ):
         username = uuid.uuid4()
         email = "invalid address"
@@ -414,7 +426,7 @@ class TestUsers:
         mock_create_or_update_subscriber.assert_called_once_with(
             user=user, locale=mock_get_language_from_request.return_value
         )
-        mock_track.assert_called_once_with(user, TrackingEvent("userUpdated"))
+        self._validate_tracking_event_user_updated(mock_track)
 
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
@@ -515,7 +527,240 @@ class TestUsers:
         mock_create_or_update_subscriber.assert_called_once_with(
             user=user, locale=mock_get_language_from_request.return_value
         )
-        mock_track.assert_called_once_with(user, TrackingEvent("userUpdated"))
+        self._validate_tracking_event_user_updated(mock_track)
+
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_updated_event")
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
+    @mock.patch("openbook_auth.schema.mutations.track")
+    def test_updating_topics_skills_is_backward_compatible(
+        self,
+        mock_track,
+        mock_create_or_update_subscriber,
+        mock_get_language_from_request,
+        mock_publish_user_name_updated_event,
+        mock_publish_user_updated_event,
+        mock_patch,
+    ):
+        # test exemplary topics and skills, there are separate unit tests for exhaustive testing the
+        # backwards-compatibility mapping itself
+
+        # GIVEN V1 topic slugs and V1 skill slugs
+        topics_v1 = [make_topic(slug="biodiversity-animal-welfare"), make_topic(slug="agriculture-food")]
+        skills_v1 = [make_skill(slug="development-concept"), make_skill(slug="empathy")]
+        user = make_user(interests=[], skills=[], interests_v2=[], skills_v2=[])
+
+        # WHEN updating topics and skills of a user using the V1 API
+        self._update_user(
+            user,
+            {"interests": [str(topic.id) for topic in topics_v1], "skills": [str(skill.id) for skill in skills_v1]},
+        )
+
+        # THEN they are updated for the V1 API
+        response = get_user_by_id_raw(
+            user,
+            fields="""
+                interests { slug }
+                skills { slug }
+                interestsV2
+                skillsV2
+            """,
+        )
+        user_data = response.data["userById"]
+
+        assert len(user_data["interests"]) == 2
+        assert sorted([interest["slug"] for interest in user_data["interests"]]) == [
+            "agriculture-food",
+            "biodiversity-animal-welfare",
+        ]
+
+        assert len(user_data["skills"]) == 2
+        assert sorted([skill["slug"] for skill in user_data["skills"]]) == ["development-concept", "empathy"]
+
+        # AND THEN they are updated in a backwards-compatible way in the V2 API
+        assert len(user_data["interestsV2"]) == 2
+        assert sorted(user_data["interestsV2"]) == ["animal-welfare", "food-hunger-relief"]
+        assert len(user_data["skillsV2"]) == 2
+        assert sorted(user_data["skillsV2"]) == ["creativity-design", "other"]
+
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_updated_event")
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
+    @mock.patch("openbook_auth.schema.mutations.track")
+    def test_updating_topics_skills_v2(
+        self,
+        mock_track,
+        mock_create_or_update_subscriber,
+        mock_get_language_from_request,
+        mock_publish_user_name_updated_event,
+        mock_publish_user_updated_event,
+        mock_patch,
+    ):
+        # GIVEN V2 topic slugs and V2 skill slugs
+        topics_v2 = ["human-rights", "literacy-education"]
+        skills_v2 = ["legal-assistance", "nursing-caregiving"]
+        user = make_user(interests=[], skills=[], interests_v2=[], skills_v2=[])
+
+        # WHEN updating topics and skills of a user using the V2 API
+        self._update_user(
+            user,
+            {"interestsV2": topics_v2, "skillsV2": skills_v2},
+        )
+
+        # THEN they are updated for the V2 API
+        response = get_user_by_id_raw(
+            user,
+            fields="""
+                interests { slug }
+                skills { slug }
+                interestsV2
+                skillsV2
+            """,
+        )
+        user_data = response.data["userById"]
+
+        assert len(user_data["interestsV2"]) == 2
+        assert user_data["interestsV2"] == topics_v2
+        assert len(user_data["skillsV2"]) == 2
+        assert user_data["skillsV2"] == skills_v2
+
+        # AND THEN they are NOT updated in the V1 API
+        assert len(user_data["interests"]) == 0
+        assert len(user_data["skills"]) == 0
+
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_updated_event")
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
+    @mock.patch("openbook_auth.schema.mutations.track")
+    def test_validating_topics_skills_v2(
+        self,
+        mock_track,
+        mock_create_or_update_subscriber,
+        mock_get_language_from_request,
+        mock_publish_user_name_updated_event,
+        mock_publish_user_updated_event,
+        mock_patch,
+    ):
+        # GIVEN V2 topic slugs and V2 skill slugs with invalid values
+        topics_v2 = ["literacy-education", "invalid"]
+        skills_v2 = ["unknown", "nursing-caregiving"]
+        user = make_user()
+
+        # WHEN updating topics and skills of a user using the V2 API
+        request = HttpRequest()
+        request.COOKIES = {}
+        request.user = user
+        response = async_to_sync(schema.execute)(
+            """
+            mutation updateAuthenticatedUserV2($input: UpdateAuthenticatedUserInput!) {
+                updateAuthenticatedUserV2(input: $input) { id }
+            }
+        """,
+            context_value=benedict({"request": request}),
+            variable_values={"input": {"interestsV2": topics_v2, "skillsV2": skills_v2}},
+        )
+
+        # THEN the request fails
+        assert response.data is None
+        assert response.errors is not None
+
+    # noinspection PyMethodMayBeStatic
+    def _update_user(self, user: User, inputs: Dict[str, any]) -> None:
+        request = HttpRequest()
+        request.COOKIES = {}
+        request.user = user
+        executed = async_to_sync(schema.execute)(
+            """
+            mutation updateAuthenticatedUserV2($input: UpdateAuthenticatedUserInput!) {
+                updateAuthenticatedUserV2(input: $input) { id }
+            }
+        """,
+            context_value=benedict({"request": request}),
+            variable_values={"input": inputs},
+        )
+        assert executed.errors is None
+
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_updated_event")
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
+    @mock.patch("openbook_auth.schema.mutations.track")
+    def test_user_updated_tracking_event(
+        self,
+        mock_track,
+        mock_create_or_update_subscriber,
+        mock_get_language_from_request,
+        mock_publish_user_name_updated_event,
+        mock_publish_user_updated_event,
+        mock_patch,
+    ):
+        response = self.create_response(200)
+        mock_patch.return_value = response
+        topic = make_topic(slug="animal-welfare")
+        topic_v2 = "arts-culture"
+
+        skill = make_skill(slug="animal-care")
+        skill_v2 = "arts-crafts"
+
+        sdg = make_sdg()
+        user = make_user(name="John", last_name="Doe", engagement_level=EngagementLevelChoice.ENGAGED.value)
+
+        self._update_user(user, {})
+        mock_track.assert_not_called()
+        mock_track.reset_mock()
+
+        # should not contain updated_fields if field values didn't change
+        self._update_user(user, {"firstName": "John", "lastName": "Doe"})
+        mock_track.assert_not_called()
+        mock_track.reset_mock()
+
+        self._update_user(user, {"firstName": "Johnny", "lastName": "Doey", "aboutMe": "All about me"})
+        self._validate_tracking_event_user_updated(mock_track, {"firstName", "lastName", "aboutMe"})
+        mock_track.reset_mock()
+
+        self._update_user(user, {"location": "New York", "geolocation": geolocation})
+        self._validate_tracking_event_user_updated(mock_track, {"location", "geolocation"})
+        mock_track.reset_mock()
+
+        self._update_user(user, {"pronouns": "They/Them", "engagementLevel": EngagementLevelChoice.INITIATOR.value})
+        self._validate_tracking_event_user_updated(mock_track, {"pronouns", "engagementLevel"})
+        mock_track.reset_mock()
+
+        self._update_user(user, {"interests": [str(topic.id)], "sdgs": [str(sdg.id)], "skills": [str(skill.id)]})
+        self._validate_tracking_event_user_updated(mock_track, {"interests", "sdgs", "skills"})
+        mock_track.reset_mock()
+
+        self._update_user(user, {"interestsV2": [topic_v2], "skillsV2": [skill_v2]})
+        self._validate_tracking_event_user_updated(mock_track, {"interests", "skills"})
+        mock_track.reset_mock()
+
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        test_image_path = os.path.join(current_dir, "test_avatar.jpg")
+        with open(test_image_path, "rb") as image_file:
+            image_content = image_file.read()
+            image = SimpleUploadedFile(name="test_avatar.jpg", content=image_content, content_type="image/jpeg")
+        self._update_user(user, {"avatar": image})
+        self._validate_tracking_event_user_updated(mock_track, {"avatar"})
+        mock_track.reset_mock()
+
+    @staticmethod
+    def _validate_tracking_event_user_updated(mock_track, expected_updated_fields=None):
+        mock_track.assert_called_once()
+        user_arg, event_arg = mock_track.call_args.args
+        assert isinstance(event_arg, TrackingEvent)
+        assert event_arg.name == "userUpdated"
+        assert isinstance(event_arg.properties, dict)
+        assert isinstance(event_arg.properties["updatedFields"], list)
+        if expected_updated_fields:
+            assert set(event_arg.properties["updatedFields"]) == expected_updated_fields
+            assert event_arg.properties["accountType"] == AccountType.EMAIL
 
     @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")
@@ -1396,3 +1641,70 @@ class TestUsers:
         assert response.errors is None
         assert response.data["userSuggestions"]["totalResults"] == 25
         assert len(response.data["userSuggestions"]["data"]) == 5
+
+    def test_my_connections(self):
+        user1 = make_user(name="First", last_name="User")
+        user2 = make_user(name="Second", last_name="User")
+        user3 = make_user(name="Third", last_name="User")
+
+        connect_to_user(user1, user2)
+        connect_to_user(user2, user1)
+        connect_to_user(user1, user3)
+        connect_to_user(user3, user1)
+
+        connected_users = get_my_connections(current_user=user1)
+        assert connected_users["totalResults"] == 2
+        assert connected_users["data"][0]["id"] == str(user3.id)
+        assert connected_users["data"][1]["id"] == str(user2.id)
+
+    def test_cannot_retrieve_my_connections_if_anonymous_user(self):
+        response = get_my_connections_query()
+        assert_is_unauthorized(response)
+
+    def test_connections_by_user_id(self):
+        user1 = make_user(name="First", last_name="User")
+        user2 = make_user(name="Second", last_name="User")
+        user3 = make_user(name="Third", last_name="User")
+
+        connect_to_user(user1, user2)
+        connect_to_user(user2, user1)
+        connect_to_user(user1, user3)
+        connect_to_user(user3, user1)
+
+        connected_users = get_connections_by_user_id(user_id=user1.id, current_user=user2)
+
+        assert connected_users["totalResults"] == 2
+        assert connected_users["data"][0]["id"] == str(user3.id)
+        assert connected_users["data"][1]["id"] == str(user2.id)
+
+    def test_cannot_retrieve_connections_by_user_id_if_anonymous_user(self):
+        user1 = make_user(name="First", last_name="User")
+        user2 = make_user(name="Second", last_name="User")
+        user3 = make_user(name="Third", last_name="User")
+
+        connect_to_user(user1, user2)
+        connect_to_user(user2, user1)
+        connect_to_user(user1, user3)
+        connect_to_user(user3, user1)
+
+        response = get_connections_by_user_id_query(user_id=user1.id)
+        assert_is_unauthorized(response)
+
+    @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
+    def test_can_unsubscribe_from_newsletter(self, mock_cancel_workflow):
+        token = str(uuid.uuid4())
+        executed = async_to_sync(schema.execute)(
+            """
+            mutation test($token: String!) {
+                unsubscribeFromNewsletter(token: $token) {
+                    success
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": AnonymousUser}}),
+            variable_values={"token": token},
+        )
+
+        assert executed.errors is None
+        mock_cancel_workflow.assert_called_once_with(transaction_id=token)
+        assert executed.data["unsubscribeFromNewsletter"]["success"] is True

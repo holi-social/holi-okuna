@@ -11,6 +11,8 @@ from requests import Session
 from requests.adapters import HTTPAdapter, Retry
 from requests.exceptions import ConnectionError
 
+from django.conf import settings
+
 from openbook_notifications.payloads import (
     PostCommentAuthorPayload,
     PostCommentMentionPayload,
@@ -29,7 +31,17 @@ from openbook_notifications.payloads import (
     PostReactionPayload,
     CommentReactionPayload,
     WelcomeEmailSeriesPayload,
+    FeedbackInterviewPayload,
 )
+
+environment_id = settings.ENVIRONMENT_ID
+
+
+class EmailIdentifier(Enum):
+    DEV_SUPPORT_EMAIL = "DEV_SUPPORT_EMAIL"
+    PROD_SUPPORT_EMAIL = "PROD_SUPPORT_EMAIL"
+    DEV_FEEDBACK_EMAIL = "DEV_FEEDBACK_EMAIL"
+    PROD_FEEDBACK_EMAIL = "PROD_FEEDBACK_EMAIL"
 
 
 class Workflow(Enum):
@@ -53,6 +65,7 @@ class Workflow(Enum):
     POST_REACTIONS = "post-reactions"
     COMMENT_REACTIONS = "comment-reactions"
     WELCOME_EMAIL_SERIES = "welcome-email-series"
+    FEEDBACK_INTERVIEW = "feedback-interview"
 
 
 # INTERNAL USE ONLY, use NotificationsService  to trigger notifications
@@ -60,7 +73,14 @@ class Notification:
     class DeliveryError(Exception):
         pass
 
-    def __init__(self, workflow: str, recipients: str | List[str], payload: dict, transaction_id: str):
+    def __init__(
+        self,
+        workflow: str,
+        recipients: str | List[str],
+        payload: dict,
+        transaction_id: str,
+        email_identifier: EmailIdentifier = None,
+    ):
         session = Session()
         retries = Retry(
             total=3,
@@ -75,6 +95,7 @@ class Notification:
         self.payload = payload
         self.session = session
         self.transaction_id = transaction_id
+        self.email_identifier = email_identifier
 
         # Android notifications only allow for key/value pairs in the data field to be of type string, not objects/JSON
         # (see https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#androidconfig).
@@ -88,6 +109,9 @@ class Notification:
             "fcm": {"type": "notification", "data": android_payload},
             "apns": {"payload": payload},
         }
+
+        if email_identifier:
+            self.overrides["email"] = {"integrationIdentifier": email_identifier.value}
 
     def send(self):
         if not self.recipients:
@@ -391,10 +415,32 @@ class WelcomeEmailSeriesNotification(Notification):
         self,
         user: str,
         payload: WelcomeEmailSeriesPayload,
+        token: str,
     ):
         super().__init__(
             workflow=Workflow.WELCOME_EMAIL_SERIES.value,
             recipients=user,
             payload=payload.to_dict(),
-            transaction_id=user,  # user id is used as transaction id so that we can easily unsubscribe from the email series
+            transaction_id=token,  # token is used as transaction_id to cancel the workflow and unsubscribe the user from newsletter
+            email_identifier=EmailIdentifier.PROD_SUPPORT_EMAIL
+            if environment_id == "production"
+            else EmailIdentifier.DEV_SUPPORT_EMAIL,
+        )
+
+
+class FeedbackInterviewNotification(Notification):
+    def __init__(
+        self,
+        user: str,
+        payload: FeedbackInterviewPayload,
+        token: str,
+    ):
+        super().__init__(
+            workflow=Workflow.FEEDBACK_INTERVIEW.value,
+            recipients=user,
+            payload=payload.to_dict(),
+            transaction_id=token,  # token is used as transaction_id to cancel the workflow and unsubscribe the user from newsletter
+            email_identifier=EmailIdentifier.PROD_FEEDBACK_EMAIL
+            if environment_id == "production"
+            else EmailIdentifier.DEV_FEEDBACK_EMAIL,
         )

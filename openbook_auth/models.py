@@ -5,7 +5,7 @@ import secrets
 from datetime import datetime, timedelta
 from enum import Enum
 from itertools import chain
-from typing import Iterable, Set, Callable, Type, Optional
+from typing import Iterable, Set, Callable, Type, Optional, List
 from uuid import UUID
 
 import strawberry
@@ -13,6 +13,7 @@ from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import ArrayField
 from django.core import validators
 from django.core.cache import caches
 from django.core.mail import EmailMultiAlternatives
@@ -24,23 +25,20 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
-from pilkit.processors import ResizeToFill, ResizeToFit
+from pilkit.processors import ResizeToFill
 from rest_framework.authtoken.models import Token
 from unidecode import unidecode
 
-from openbook_common.tracking import track, TrackingEvent
 from openbook.settings import USERBLOCK
 from openbook.utils import DEFAULT_EMAIL_LANGUAGE, get_supported_language_for_email
 from openbook_auth.checkers import *
-from openbook_auth.helpers import (
-    upload_to_user_avatar_directory,
-    upload_to_user_cover_directory,
-)
+from openbook_auth.helpers import upload_to_user_avatar_directory
 from openbook_auth.utils import normalize_spaces
 from openbook_common.enums import VisibilityType
 from openbook_common.helpers import ExifRotate, generate_blurhash, PrefixedQ
 from openbook_common.models import Badge, ModelWithUUID
 from openbook_common.schema.types import Paged
+from openbook_common.tracking import track, TrackingEvent
 from openbook_common.types import GeolocationFeature, ReactableType
 from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import (
@@ -103,11 +101,12 @@ from openbook_hashtags.queries import (
 from openbook_notifications.toggles import mute_notifications
 from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
 from openbook_posts.query_collections import get_posts_for_user_collection
+from openbook_terms.helpers import topics_to_topic_v2_slugs, skills_to_skill_v2_slugs
 from openbook_terms.models import Topic, SDG, Skill
 
 if typing.TYPE_CHECKING:
     from comments.models import Comment
-    from openbook_communities.models import Task
+    from openbook_communities.models import Task, Community
     from feed_posts.models import FeedPost
     from openbook_appointments.models import Appointment
 
@@ -146,7 +145,14 @@ class UserRole(models.TextChoices):
     EDITOR = ("EDITOR",)
     JOURNALIST = ("JOURNALIST",)
     CO_FOUNDER = ("CO_FOUNDER", "Co-founder")
-    COMMUNITY_MANAGER = ("COMMUNITY_MANAGER",)
+    COMMUNITY_TEAM = ("COMMUNITY_TEAM",)
+
+
+@strawberry.enum
+class AccountType(models.TextChoices):
+    EMAIL = ("EMAIL",)
+    GOOGLE = ("GOOGLE",)
+    UNKNOWN = ("UNKNOWN",)
 
 
 class UserWithProfileManager(UserManager):
@@ -280,6 +286,10 @@ class User(ModelWithUUID, AbstractUser):
     invite_count = models.SmallIntegerField(default=0)
 
     is_moderator = models.BooleanField(default=False)
+    is_oidc = models.BooleanField(null=False, blank=False, default=False)
+    account_type = models.CharField(
+        max_length=16, choices=AccountType.choices, blank=False, null=False, default=AccountType.EMAIL
+    )
 
     # introduced in HOLI-8545 as a means to be able to filter out employees within PostHog analytics
     is_employee = models.BooleanField(
@@ -288,6 +298,7 @@ class User(ModelWithUUID, AbstractUser):
 
     tracking_consent_analytics = models.BooleanField(blank=True, null=True, default=None)
     tracking_consent_personalization = models.BooleanField(blank=True, null=True, default=None)
+    tracking_consent_ad_partners = models.BooleanField(blank=True, null=True, default=None)
 
     JWT_TOKEN_TYPE_CHANGE_EMAIL = "CE"
     JWT_TOKEN_TYPE_PASSWORD_RESET = "PR"
@@ -339,10 +350,12 @@ class User(ModelWithUUID, AbstractUser):
         email=None,
         password=None,
         name=None,
+        last_name=None,
         avatar=None,
         is_of_legal_age=None,
         are_guidelines_accepted=None,
         badge=None,
+        account_type=AccountType.EMAIL,
     ):
         if not is_of_legal_age:
             raise ValidationError(
@@ -359,9 +372,13 @@ class User(ModelWithUUID, AbstractUser):
             email=email,
             password=password,
             are_guidelines_accepted=are_guidelines_accepted,
+            is_oidc=account_type != AccountType.EMAIL,
+            account_type=account_type,
         )
 
-        user_profile = bootstrap_user_profile(name=name, user=new_user, avatar=avatar, is_of_legal_age=is_of_legal_age)
+        user_profile = bootstrap_user_profile(
+            name=name, last_name=last_name, user=new_user, avatar=avatar, is_of_legal_age=is_of_legal_age
+        )
 
         try:
             new_user.send_pending_community_invites_to_new_user()
@@ -647,22 +664,6 @@ class User(ModelWithUUID, AbstractUser):
         self.is_deleted = False
         self.save()
 
-    def _update_profile_cover(self, cover, save=True):
-        if cover is None:
-            self._delete_profile_cover(save=False)
-        else:
-            self.profile.cover = cover
-            self.profile.cover_blurhash = generate_blurhash(cover)
-
-        if save:
-            self.profile.save()
-
-    def _delete_profile_cover(self, save=True):
-        delete_file_field(self.profile.cover)
-        self.profile.cover = None
-        self.profile.cover_blurhash = None
-        self.profile.cover.delete(save=save)
-
     def _update_profile_avatar(self, avatar, save=True):
         if self.profile.avatar:
             self._delete_profile_avatar(save=False)
@@ -678,11 +679,6 @@ class User(ModelWithUUID, AbstractUser):
         self.profile.avatar_blurhash = None
         self.profile.avatar.delete(save=save)
 
-    def update_username(self, username):
-        check_username_not_taken(user=self, username=username)
-        self.username = username
-        self.save()
-
     def update_password(self, password):
         self.set_password(password)
         self._reset_auth_token()
@@ -693,11 +689,6 @@ class User(ModelWithUUID, AbstractUser):
         self.save()
         verify_token = self._make_email_verification_token_for_email(new_email=email)
         return verify_token
-
-    # engagement_level may only be set once
-    def update_engagement_level(self, engagement_level):
-        self.profile.engagement_level = engagement_level
-        self.profile.save()
 
     def verify_email_with_token(self, token):
         new_email = check_email_verification_token_is_valid_for_email(user=self, email_verification_token=token)
@@ -724,26 +715,6 @@ class User(ModelWithUUID, AbstractUser):
         password_reset_token = self._make_password_reset_verification_token()
         self._send_password_reset_email_with_token(password_reset_token)
         return password_reset_token
-
-    def bookmark_insight(self, insight_id):
-        Insight = get_insight_model()
-        insight = Insight.objects.get(pk=insight_id)
-
-        if not insight:
-            raise ValidationError(_("Insight does not exist"))
-
-        self.profile.favorite_insights.add(insight)
-        self.save()
-
-    def remove_insight_bookmark(self, insight_id):
-        Insight = get_insight_model()
-        insight = Insight.objects.get(pk=insight_id)
-
-        if not insight:
-            raise ValidationError(_("Insight does not exist"))
-
-        self.profile.favorite_insights.remove(insight)
-        self.save()
 
     @classmethod
     def sanitize_identity_input(cls, identity):
@@ -805,7 +776,6 @@ class User(ModelWithUUID, AbstractUser):
 
     def update(
         self,
-        username=None,
         name=None,
         location=None,
         geolocation=None,
@@ -815,55 +785,53 @@ class User(ModelWithUUID, AbstractUser):
         community_posts_visible=None,
         visibility=None,
         avatar=None,
-        cover=None,
-        remove_cover=False,
         last_name=None,
         pronouns=None,
         engagement_level=None,
-        interests=None,
+        interests: Optional[List[Topic]] = None,
+        interests_v2: Optional[List[str]] = None,
         sdgs=None,
-        skills=None,
+        skills: Optional[List[Skill]] = None,
+        skills_v2: Optional[List[str]] = None,
         save=True,
         update_location=False,
         remove_avatar=False,
         tracking_consent_analytics=None,
         tracking_consent_personalization=None,
-    ):
-        profile = self.profile
-
-        if username:
-            self.update_username(username)
-
+        tracking_consent_ad_partners=None,
+    ) -> None:
         if url is not None:
             if len(url) == 0:
-                profile.url = None
+                self.profile.url = None
             else:
-                profile.url = url
+                self.profile.url = url
 
         if name:
-            profile.name = normalize_spaces(name)
+            self.profile.name = normalize_spaces(name)
+        if last_name is not None:
+            self.profile.last_name = normalize_spaces(last_name)
 
         if update_location:
             if geolocation:
-                profile.location = location or geolocation.name
-                profile.geolocation = geolocation.geometry
-                profile.geolocation_id = geolocation.id
+                self.profile.location = location or geolocation.name
+                self.profile.geolocation = geolocation.geometry
+                self.profile.geolocation_id = geolocation.id
             else:
-                profile.location = location
-                profile.geolocation = None
-                profile.geolocation_id = None
+                self.profile.location = location
+                self.profile.geolocation = None
+                self.profile.geolocation_id = None
 
         if about_me is not None:
             if len(about_me) == 0:
-                profile.about_me = None
+                self.profile.about_me = None
             else:
-                profile.about_me = about_me
+                self.profile.about_me = about_me
 
         if followers_count_visible is not None:
-            profile.followers_count_visible = followers_count_visible
+            self.profile.followers_count_visible = followers_count_visible
 
         if community_posts_visible is not None:
-            profile.community_posts_visible = community_posts_visible
+            self.profile.community_posts_visible = community_posts_visible
 
         if visibility:
             if self.visibility == User.VISIBILITY_TYPE_PRIVATE and visibility != User.VISIBILITY_TYPE_PRIVATE:
@@ -880,32 +848,35 @@ class User(ModelWithUUID, AbstractUser):
             self.tracking_consent_analytics = tracking_consent_analytics
         if tracking_consent_personalization is not None:
             self.tracking_consent_personalization = tracking_consent_personalization
+        if tracking_consent_ad_partners is not None:
+            self.tracking_consent_ad_partners = tracking_consent_ad_partners
 
-        if last_name is not None:
-            profile.last_name = normalize_spaces(last_name)
         if pronouns is not None:
-            profile.pronouns = pronouns
+            self.profile.pronouns = pronouns
         if engagement_level:
-            self.update_engagement_level(engagement_level)
+            self.profile.engagement_level = engagement_level
         if interests is not None:
-            profile.interests.set(interests)
+            updated_interests = Topic.objects.filter(id__in=interests)
+            self.profile.interests.set(updated_interests)
+            self.profile.interests_v2 = topics_to_topic_v2_slugs(updated_interests)
+        elif interests_v2 is not None:
+            self.profile.interests_v2 = interests_v2
         if sdgs is not None:
-            profile.sdgs.set(sdgs)
+            self.profile.sdgs.set(sdgs)
         if skills is not None:
-            profile.skills.set(skills)
+            updated_skills = Skill.objects.filter(id__in=skills)
+            self.profile.skills.set(updated_skills)
+            self.profile.skills_v2 = skills_to_skill_v2_slugs(updated_skills)
+        elif skills_v2 is not None:
+            self.profile.skills_v2 = skills_v2
 
         if remove_avatar:
             self._delete_profile_avatar(save=False)
         elif avatar:
             self._update_profile_avatar(avatar, save=False)
 
-        if remove_cover:
-            self._delete_profile_cover(save=False)
-        elif cover:
-            self._update_profile_cover(cover, save=False)
-
         if save:
-            profile.save()
+            self.profile.save()
             self.save()
 
     def update_notifications_settings(
@@ -1763,6 +1734,7 @@ class User(ModelWithUUID, AbstractUser):
         invites_enabled=None,
         location=None,
         topic_ids=None,
+        topics_v2=None,
     ):
         Community = get_community_model()
         community = Community.create_community(
@@ -1780,6 +1752,7 @@ class User(ModelWithUUID, AbstractUser):
             invites_enabled=invites_enabled,
             location=location,
             topic_ids=topic_ids,
+            topics_v2=topics_v2,
         )
 
         return community
@@ -1800,38 +1773,6 @@ class User(ModelWithUUID, AbstractUser):
 
         community.delete()
 
-    def update_community(
-        self,
-        community,
-        title=None,
-        description=None,
-        color=None,
-        type=None,
-        user_adjective=None,
-        users_adjective=None,
-        rules=None,
-        topic_ids=None,
-        cover=None,
-        sdg_ids=None,
-        location=None,
-        geolocation=None,
-    ):
-        return self.update_community_with_name(
-            community.name,
-            title=title,
-            description=description,
-            color=color,
-            type=type,
-            user_adjective=user_adjective,
-            users_adjective=users_adjective,
-            rules=rules,
-            topic_ids=topic_ids,
-            cover=cover,
-            sdg_ids=sdg_ids,
-            location=location,
-            geolocation=geolocation,
-        )
-
     def update_community_with_id(
         self,
         community_id,
@@ -1845,6 +1786,7 @@ class User(ModelWithUUID, AbstractUser):
         categories_names=None,
         invites_enabled=None,
         topic_ids=None,
+        topics_v2=None,
         cover=None,
         remove_cover=False,
         avatar=None,
@@ -1859,9 +1801,8 @@ class User(ModelWithUUID, AbstractUser):
     ):
         Community = get_community_model()
         community = Community.objects.get(id=community_id)
-
-        return self.update_community_with_name(
-            community.name,
+        return self.update_community(
+            community,
             title=title,
             description=description,
             color=color,
@@ -1872,6 +1813,7 @@ class User(ModelWithUUID, AbstractUser):
             categories_names=categories_names,
             invites_enabled=invites_enabled,
             topic_ids=topic_ids,
+            topics_v2=topics_v2,
             cover=cover,
             remove_cover=remove_cover,
             avatar=avatar,
@@ -1898,6 +1840,7 @@ class User(ModelWithUUID, AbstractUser):
         categories_names=None,
         invites_enabled=None,
         topic_ids=None,
+        topics_v2=None,
         cover=None,
         remove_cover=False,
         avatar=None,
@@ -1910,14 +1853,10 @@ class User(ModelWithUUID, AbstractUser):
         contact_phone=None,
         onboarding_steps=None,
     ):
-        check_can_update_community_with_name(user=self, community_name=community_name)
-
         Community = get_community_model()
-        community_to_update = Community.objects.get(name=community_name)
-
-        check_community_data(user=self, community=community_to_update, type=type)
-
-        community_to_update.update(
+        community = Community.objects.get(name=community_name)
+        return self.update_community(
+            community=community,
             title=title,
             description=description,
             color=color,
@@ -1928,6 +1867,7 @@ class User(ModelWithUUID, AbstractUser):
             categories_names=categories_names,
             invites_enabled=invites_enabled,
             topic_ids=topic_ids,
+            topics_v2=topics_v2,
             cover=cover,
             remove_cover=remove_cover,
             avatar=avatar,
@@ -1941,7 +1881,60 @@ class User(ModelWithUUID, AbstractUser):
             onboarding_steps=onboarding_steps,
         )
 
-        return community_to_update
+    def update_community(
+        self,
+        community,
+        title=None,
+        description=None,
+        color=None,
+        type=None,
+        user_adjective=None,
+        users_adjective=None,
+        rules=None,
+        categories_names=None,
+        invites_enabled=None,
+        topic_ids=None,
+        topics_v2=None,
+        cover=None,
+        remove_cover=False,
+        avatar=None,
+        remove_avatar=False,
+        sdg_ids=None,
+        location=None,
+        geolocation=None,
+        contact_description=None,
+        contact_email=None,
+        contact_phone=None,
+        onboarding_steps=None,
+    ):
+        check_can_update_community_with_name(user=self, community_name=community.name)
+        check_community_data(user=self, community=community, type=type)
+        community.update(
+            title=title,
+            description=description,
+            color=color,
+            type=type,
+            user_adjective=user_adjective,
+            users_adjective=users_adjective,
+            rules=rules,
+            categories_names=categories_names,
+            invites_enabled=invites_enabled,
+            topic_ids=topic_ids,
+            topics_v2=topics_v2,
+            cover=cover,
+            remove_cover=remove_cover,
+            avatar=avatar,
+            remove_avatar=remove_avatar,
+            sdg_ids=sdg_ids,
+            location=location,
+            geolocation=geolocation,
+            contact_description=contact_description,
+            contact_email=contact_email,
+            contact_phone=contact_phone,
+            onboarding_steps=onboarding_steps,
+        )
+
+        return community
 
     def update_community_with_name_avatar(self, community_name, avatar):
         check_can_update_community_with_name(user=self, community_name=community_name)
@@ -4974,13 +4967,19 @@ class User(ModelWithUUID, AbstractUser):
         visibility,
         location_type,
         contact_email,
+        duration,
+        interaction_type,
         slots_available=None,
         location=None,
         geolocation=None,
         regularity=None,
+        timeframe_start_date=None,
+        timeframe_end_date=None,
         contact_phone=None,
         skills=None,
+        skills_v2=None,
         thumbnail=None,
+        interaction_signup_link=None,
     ):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
@@ -5001,9 +5000,15 @@ class User(ModelWithUUID, AbstractUser):
             location=location,
             geolocation=geolocation,
             regularity=regularity,
+            duration=duration,
+            interaction_type=interaction_type,
+            timeframe_start_date=timeframe_start_date,
+            timeframe_end_date=timeframe_end_date,
             contact_phone=contact_phone,
             skills=skills,
+            skills_v2=skills_v2,
             thumbnail=thumbnail,
+            interaction_signup_link=interaction_signup_link,
         )
 
     def update_task(
@@ -5015,14 +5020,20 @@ class User(ModelWithUUID, AbstractUser):
         visibility,
         location_type,
         contact_email,
+        duration,
+        interaction_type,
         slots_available=None,
         location=None,
         geolocation=None,
         regularity=None,
+        timeframe_start_date=None,
+        timeframe_end_date=None,
         contact_phone=None,
-        skills=None,
+        skill_ids=None,
+        skills_v2=None,
         thumbnail=None,
         remove_thumbnail=False,
+        interaction_signup_link=None,
     ):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
@@ -5041,10 +5052,16 @@ class User(ModelWithUUID, AbstractUser):
             location=location,
             geolocation=geolocation,
             regularity=regularity,
+            duration=duration,
+            interaction_type=interaction_type,
+            timeframe_start_date=timeframe_start_date,
+            timeframe_end_date=timeframe_end_date,
             contact_phone=contact_phone,
-            skills=skills,
+            skill_ids=skill_ids,
+            skills_v2=skills_v2,
             thumbnail=thumbnail,
             remove_thumbnail=remove_thumbnail,
+            interaction_signup_link=interaction_signup_link,
         )
 
     def delete_task_with_id(self, task_id):
@@ -5240,8 +5257,10 @@ class UserProfile(ModelWithUUID):
         null=True,
     )
     interests = models.ManyToManyField(Topic, blank=True)
+    interests_v2 = ArrayField(models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH), blank=True, default=list)
     sdgs = models.ManyToManyField(SDG, blank=True)
     skills = models.ManyToManyField(Skill, blank=True)
+    skills_v2 = ArrayField(models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH), blank=True, default=list)
     is_of_legal_age = models.BooleanField(default=False)
     avatar = ProcessedImageField(
         verbose_name=_("avatar"),
@@ -5259,22 +5278,6 @@ class UserProfile(ModelWithUUID):
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     avatar_blurhash = models.CharField(max_length=50, blank=True, null=True)
-    cover = ProcessedImageField(
-        verbose_name=_("cover"),
-        blank=False,
-        null=True,
-        upload_to=upload_to_user_cover_directory,
-        processors=[
-            ExifRotate(),
-            ResizeToFit(
-                width=settings.CONTENT_IMAGE_MAX_DIMENSION,
-                height=settings.CONTENT_IMAGE_MAX_DIMENSION,
-                upscale=False,
-            ),
-        ],
-        max_length=settings.IMAGE_URL_MAX_LENGTH,
-    )
-    cover_blurhash = models.CharField(max_length=50, blank=True, null=True)
     about_me = models.TextField(
         _("about me"),
         max_length=settings.PROFILE_ABOUT_ME_MAX_LENGTH,
@@ -5285,16 +5288,12 @@ class UserProfile(ModelWithUUID):
     followers_count_visible = models.BooleanField(_("followers count visible"), blank=False, null=False, default=False)
     community_posts_visible = models.BooleanField(_("community posts visible"), blank=False, null=False, default=True)
     badges = models.ManyToManyField(Badge, related_name="users_profiles")
-    # gregor: deprecated - remove after new favorites package is used everywhere
-    favorite_insights = models.ManyToManyField(to="openbook_insights.insight", blank=True)
 
     class Meta:
         verbose_name = _("user profile")
         verbose_name_plural = _("users profiles")
 
-        index_together = [
-            ("id", "user"),
-        ]
+        indexes = [models.Index(fields=["id", "user"])]
 
         # Django's Choices don't constrain other values in the db, it needs to be set here:
         constraints = [
@@ -5517,11 +5516,13 @@ def bootstrap_user_auth_token(user):
 def bootstrap_user_profile(
     user,
     name,
+    last_name,
     is_of_legal_age,
     avatar=None,
 ):
     return UserProfile.objects.create(
         name=name,
+        last_name=last_name,
         user=user,
         avatar=avatar,
         avatar_blurhash=generate_blurhash(avatar),

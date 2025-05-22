@@ -15,6 +15,8 @@ from openbook_insights.models import Discussion as DiscussionModel
 from openbook_insights.models import Insight as InsightModel
 from openbook_insights.schema.types import Insight
 from openbook_insights.schema.types.discussion import Discussion
+from openbook_insights.schema.types.insight import InsightPreview
+from django.core.cache import cache
 
 
 @strawberry.type
@@ -33,26 +35,52 @@ class Query:
     @strawberry_django.field()
     def last_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         current_user = info.context.request.user
+
+        base_queryset = InsightModel.objects.filter(
+            Q(creator__isnull=True) | UserModel.is_visible_ignore_blocked_query("creator"),
+            date_published__lte=datetime.now(),
+        ).select_related("creator", "creator__profile", "topic")
+
+        base_queryset = base_queryset.prefetch_related("posts")
+
+        base_queryset = base_queryset.order_by("-date_published", "id")
+
         paged_insights = UserBlock.paged(
             current_user,
             lambda insight: None if insight.creator is None else insight.creator.id,
-            InsightModel.objects.filter(
-                Q(creator__isnull=True) | UserModel.is_visible_ignore_blocked_query("creator"),
-                # resolution in cache and DB is day, so result will be cached until midnight
-                date_published__lte=datetime.now(),  # timezone...
-            )
-            .select_related("creator", "creator__profile", "topic")
-            .prefetch_related(
-                "posts",
-                "posts__creator",
-                "posts__comments__commenter",
-            )
-            .order_by("-date_published", "id")
-            .cache(ops=["fetch", "count"], timeout=300),
+            base_queryset,
             offset,
             limit,
         )
 
+        return paged_insights
+
+    @strawberry_django.field()
+    def feed_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[InsightPreview]:
+        current_user = info.context.request.user
+
+        # Generate cache key based on pagination
+        cache_key = f"feed_insights:o{offset}:l{limit}"
+        cached_insights = cache.get(cache_key)
+        if cached_insights:
+            return cached_insights
+
+        base_queryset = InsightModel.objects.filter(
+            Q(creator__isnull=True) | UserModel.is_visible_ignore_blocked_query("creator"),
+            date_published__lte=datetime.now(),
+        ).select_related("creator", "creator__profile")
+
+        base_queryset = base_queryset.order_by("-date_published", "id")
+
+        paged_insights = UserBlock.paged(
+            current_user,
+            lambda insight: None if insight.creator is None else insight.creator.id,
+            base_queryset,
+            offset,
+            limit,
+        )
+
+        cache.set(cache_key, paged_insights)
         return paged_insights
 
     @strawberry_django.field()

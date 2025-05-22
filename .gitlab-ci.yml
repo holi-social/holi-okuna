@@ -2,15 +2,24 @@ variables:
   PIP_CACHE_DIR: '$CI_PROJECT_DIR/.cache/pip' # Change pip's cache directory to be inside the project directory since we can only cache local items.
   API_DOMAIN_PATH: '$CI_PROJECT_DIR/api_domain'
 
-cache:
-  key: $CI_COMMIT_REF_SLUG # using requirements.txt hash led to too many cache files
+.uv_cache_rw:
+  policy: pull-push
+  key:
+    files:
+      - "uv.lock"
   paths:
-    - .cache/pip
-    - venv/
+    - .uv-cache
+
+.uv_cache_ro:
+  key:
+    files:
+      - "uv.lock"
+  policy: pull
+  paths:
+    - .uv-cache
 
 stages:
-  - 'setup'
-  - 'test'
+  - 'validate'
   - 'build'
   - 'deploy'
   - 'smoketest'
@@ -20,77 +29,68 @@ stages:
 default:
   before_script:
     - set -eu
-    # env -0 | sort -z | tr '\0' '\n': Sort env output alphabetically, keeping multiline variables intact
-    # egrep: Remove sensitive information from the output of env
-    #- env -0 | sort -z | tr '\0' '\n' | egrep -ve '^(DOCKER_AUTH_CONFIG|GOOGLE_APPLICATION_CREDENTIALS)=.*'
+    # DANGER don't use `set -x` or print the environment via e.g. `env` in pipeline runs, this might leak credentials (has leaked them)
   interruptible: true
   tags:
     - 1cpu-4gb # build on smaller machine
 
-setup:
+validate:
   image: 'europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/holi-okuna-builder'
-  stage: 'setup'
-  script:
-    - python3 -m venv venv
-    - source venv/bin/activate
-    #- pip install --upgrade pip
-    - pip install -r requirements.txt --exists-action s
-
-unit-test:
-  image: 'europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/holi-okuna-builder'
+  cache: !reference [ .uv_cache_rw ]
   services:
     - name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/postgis/postgis:17-3.4'
       alias: postgres
-  stage: 'test'
+  stage: 'validate'
   variables:
     SECRET_KEY: 'secret'
     POSTGRES_DB: okuna_test_db
     POSTGRES_USER: okuna_test_user
     POSTGRES_PASSWORD: okuna_test_pass
     POSTGRES_HOST_AUTH_METHOD: trust
-  script:
-    - /etc/init.d/redis-server start
-    - source venv/bin/activate
-    - python -m pytest --cov
-  tags:
-    - 4cpu-4gb # more cpu, quicker testing
-
-lint:
-  image: 'europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/holi-okuna-builder'
-  stage: test
-  variables:
-    GIT_STRATEGY: clone
-    GIT_CHECKOUT: 'false'
+    UV_CACHE_DIR: .uv-cache
   before_script:
-    - git fetch --all
-    - git checkout "$CI_COMMIT_REF_NAME"
-    - export COMPARISON_SHA=$(git merge-base "$CI_COMMIT_REF_NAME" origin/"$CI_DEFAULT_BRANCH")
-    - source venv/bin/activate
-  script:
-    - 'ruff check --output-format=gitlab | tee .gl-lint-report.json'
-    - 'ruff format --diff'
+    - uv sync --locked --link-mode=copy
+  script: |
+    /etc/init.d/redis-server start
+    uv run ruff check --output-format=gitlab | tee .gl-lint-report.json
+    uv run ruff format --diff
+    uv run pytest --cov
+    # remove pre-built wheels from cache, keep source-built wheels (see https://docs.astral.sh/uv/concepts/cache/#caching-in-continuous-integration)
+    uv cache prune --ci
   artifacts:
     reports:
       codequality:
         - .gl-lint-report.json
-  except:
+  tags:
+    - 4cpu-4gb # more cpu, quicker testing
+
+alert_matching_on_migrations:
+  stage: validate
+  image:
+    name: alpine/git:latest
+    entrypoint: [ "" ]
+  before_script:
+    - apk add --no-cache curl
+  only:
     - main
-    - production
-    - release/*
+  script:
+    - scripts/notify-matching-on-migrations.sh
 
 build_docker:
-  image: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:27'
+  image: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:28'
+  cache: !reference [ .uv_cache_ro ]
   stage: 'build'
   services:
-    - name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:27-dind'
+    - name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:28-dind'
       alias: 'docker'
   variables:
     # this could be fetched via terraform output ("gcr_location" in infra project), but then we would need an extra job for terraform
     GCR_IMAGE: europe-north1-docker.pkg.dev/holi-shared/docker/holi-okuna
+    UV_CACHE_DIR: .uv-cache
   script:
     - docker pull "$GCR_IMAGE" || true # Allows us to use --cache-from, we need to tag with latest in the next command for this to work
     - docker build --cache-from "$GCR_IMAGE" -t "$GCR_IMAGE":latest -t "$GCR_IMAGE":"$CI_COMMIT_SHA" -t "$GCR_IMAGE":"$CI_COMMIT_REF_SLUG" .
-    - docker push "$GCR_IMAGE":"$CI_COMMIT_SHA" # this is the tag that is used for deployment
+    - docker push "$GCR_IMAGE":"$CI_COMMIT_SHA" # this is the tag used for deployment
     - docker push "$GCR_IMAGE":"$CI_COMMIT_REF_SLUG" # just for easily knowing which is the last image for a branch
     - docker push "$GCR_IMAGE":latest # for caching the build
   tags:
@@ -153,7 +153,7 @@ review_smoketest:
 review_destroy:
   stage: destroy
   image:
-    name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/hashicorp/terraform:1.9.8'
+    name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/hashicorp/terraform:1.11.4'
     # default entrypoint is terraform command, but we want to run shell scripts
     entrypoint: ['/bin/sh', '-c']
   variables:
@@ -194,21 +194,27 @@ staging_deploy:
     url: https://staging.social.apis.holi.social
   variables:
     ENVIRONMENT_ID: staging
-  only:
-    - main
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
 
 staging_smoketest:
   extends: .smoketest
-  only:
-    - main
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
 
 staging_trigger_unified-api_redeployment:
   stage: downstream
   trigger:
     project: 'app/holi-unified-api'
     branch: 'main'
-  only:
-    - main
+    forward:
+      yaml_variables: false
+      pipeline_variables: false
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
   resource_group: unified-api-staging
 
 production_deploy:
@@ -220,19 +226,25 @@ production_deploy:
     url: https://production.social.apis.holi.social
   variables:
     ENVIRONMENT_ID: production
-  only:
-    - production
+  rules:
+    - if: $CI_COMMIT_BRANCH == "production"
+      when: on_success
 
 production_smoketest:
   extends: .smoketest
-  only:
-    - production
+  rules:
+    - if: $CI_COMMIT_BRANCH == "production"
+      when: on_success
 
 production_trigger_unified-api_redeployment:
   stage: downstream
   trigger:
     project: 'app/holi-unified-api'
     branch: 'production'
-  only:
-    - production
+    forward:
+      yaml_variables: false
+      pipeline_variables: false
+  rules:
+    - if: $CI_COMMIT_BRANCH == "production"
+      when: on_success
   resource_group: unified-api-production

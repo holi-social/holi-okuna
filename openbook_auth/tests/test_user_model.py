@@ -4,7 +4,7 @@ from django.test import TransactionTestCase
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from comments.models import Comment
-from openbook_auth.models import EngagementLevelChoice, User
+from openbook_auth.models import User
 from openbook_common.enums import VisibilityType
 from openbook_common.tests.assertions import TestAssertionsMixin
 from openbook_common.tests.helpers import (
@@ -247,15 +247,6 @@ class UserModelTest(TestAssertionsMixin, TransactionTestCase):
             )
 
         self.assertEqual(space.posts.count(), 0)
-
-    def test_update_engagement_level(self):
-        user = make_user()
-
-        user.update_engagement_level(EngagementLevelChoice.INITIATOR)
-        self.assertEqual(user.profile.engagement_level, EngagementLevelChoice.INITIATOR)
-
-        user.update_engagement_level(EngagementLevelChoice.INTERESTED)
-        self.assertEqual(user.profile.engagement_level, EngagementLevelChoice.INTERESTED)
 
     def test_update_tracking_consent(self):
         user = make_user()

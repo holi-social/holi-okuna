@@ -89,6 +89,7 @@ INSTALLED_APPS = [
     "rangefilter",
     "django_rq",
     "django_extensions",
+    "anon_stats",
     "openbook_common",
     "openbook_auth",
     "openbook_posts",
@@ -517,8 +518,6 @@ PROFILE_GEOLOCATION_ID_MAX_LENGTH = 255
 PROFILE_ABOUT_ME_MAX_LENGTH = int(os.environ.get("PROFILE_ABOUT_ME_MAX_LENGTH", "3000"))
 PROFILE_AVATAR_MAX_SIZE = int(os.environ.get("PROFILE_AVATAR_MAX_SIZE", "10485760"))
 PROFILE_AVATAR_URL_MAX_LENGTH = 500
-PROFILE_COVER_MAX_SIZE = int(os.environ.get("PROFILE_COVER_MAX_SIZE", "10485760"))
-PROFILE_COVER_URL_MAX_LENGTH = 500
 PASSWORD_RESET_TIMEOUT_DAYS = 1
 COMMUNITY_NAME_MAX_LENGTH = 80
 COMMUNITY_TITLE_MIN_LENGTH = 2
@@ -601,9 +600,14 @@ AWS_STATIC_LOCATION = "static"
 AWS_PRIVATE_MEDIA_LOCATION = os.environ.get("AWS_PRIVATE_MEDIA_LOCATION")
 AWS_DEFAULT_ACL = None
 
-# TODO Think about what to do for storage backend
-
-DEFAULT_FILE_STORAGE = "openbook.storage_imagekit_io.ImagekitIoStorage"
+STORAGES = {
+    "default": {
+        "BACKEND": "openbook.storage_imagekit_io.ImagekitIoStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 
 # ONE SIGNAL
 ONE_SIGNAL_APP_ID = os.environ.get("ONE_SIGNAL_APP_ID")
@@ -639,6 +643,7 @@ TASK_CONTACT_PHONE_MAX_LENGTH = COMMUNITY_CONTACT_PHONE_MAX_LENGTH
 TASK_THUMBNAIL_MAX_SIZE = COMMUNITY_COVER_MAX_SIZE
 TASK_SKILLS_MIN_AMOUNT = 0
 TASK_SKILLS_MAX_AMOUNT = 24
+TASK_INTERACTION_SIGNUP_LINK_MAX_LENGTH = 500
 
 LINK_PREVIEW_CACHE_TIME_H = 24
 

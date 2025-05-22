@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import TYPE_CHECKING, Optional
 
@@ -37,6 +37,7 @@ class NotificationType(Enum):
     POST_REACTION = "POST_REACTION"
     COMMENT_REACTION = "COMMENT_REACTION"
     WELCOME_EMAIL_SERIES = "WELCOME_EMAIL_SERIES"
+    FEEDBACK_INTERVIEW = "FEEDBACK_INTERVIEW"
 
 
 app_url = settings.APP_URL
@@ -613,13 +614,29 @@ class CommentReactionPayload(Payload):
 class WelcomeEmailSeriesPayload(Payload):
     NOTIFICATION_VERSION = "1.0.0"
 
-    def __init__(self, user: User, spaces, insights):
+    def __init__(self, user: User, spaces, insights, token: str):
         super().__init__(
             data={
                 "user": UserData.from_user(user).to_dict(),
                 "recommendedSpaces": [SpaceData.from_community(space).to_dict() for space in spaces],
                 "recommendedInsights": [InsightData.from_insight(insight).to_dict() for insight in insights],
+                "unsubscribeUrl": f"{app_url}/unsubscribe?series=welcome&email={user.email}&token={token}",
             },
             notification_type=NotificationType.WELCOME_EMAIL_SERIES.value,
             notification_version=WelcomeEmailSeriesPayload.NOTIFICATION_VERSION,
+        )
+
+
+class FeedbackInterviewPayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+    send_at = datetime.now().replace(hour=16, minute=0, second=0, microsecond=0) + timedelta(days=1)
+
+    def __init__(self, user: User, token: str):
+        super().__init__(
+            data={
+                "sendAt": FeedbackInterviewPayload.send_at.isoformat(),
+                "unsubscribeUrl": f"{app_url}/unsubscribe?series=feedback-interview&email={user.email}&token={token}",
+            },
+            notification_type=NotificationType.FEEDBACK_INTERVIEW.value,
+            notification_version=FeedbackInterviewPayload.NOTIFICATION_VERSION,
         )

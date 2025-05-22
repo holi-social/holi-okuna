@@ -120,9 +120,9 @@ class TestExternalLinks:
 
             if "expected_code" in testCase:
                 field_errors = json.loads(response.errors[0].extensions["errors"])
-                assert (
-                    testCase["expected_code"] == field_errors[testCase["field"]][0]["code"]
-                ), f"{str(response.errors[0].extensions)} does not contain code: {testCase['expected_code']} from testCase: {testCase}"
+                assert testCase["expected_code"] == field_errors[testCase["field"]][0]["code"], (
+                    f"{str(response.errors[0].extensions)} does not contain code: {testCase['expected_code']} from testCase: {testCase}"
+                )
             else:
                 assert testCase["expected_error"] in str(response.errors[0].message)
             assert (response.data["addExternalLink"] if response.data else response.data) is None
@@ -346,9 +346,9 @@ class TestExternalLinks:
 
             if "expected_code" in testCase:
                 field_errors = json.loads(response.errors[0].extensions["errors"])
-                assert (
-                    testCase["expected_code"] == field_errors[testCase["field"]][0]["code"]
-                ), f"{str(response.errors[0].extensions)} does not contain code: {testCase['expected_code']} from testCase: {testCase}"
+                assert testCase["expected_code"] == field_errors[testCase["field"]][0]["code"], (
+                    f"{str(response.errors[0].extensions)} does not contain code: {testCase['expected_code']} from testCase: {testCase}"
+                )
             else:
                 assert testCase["expected_error"] in str(response.errors[0].message)
             assert (response.data["updateExternalLink"] if response.data else response.data) is None

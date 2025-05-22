@@ -10,6 +10,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Count
 from django.contrib.gis.db.models import Q
+from django.contrib.postgres.indexes import GinIndex
 from django.core.files.storage import default_storage
 from django.db import transaction
 from django.db.models import QuerySet
@@ -21,7 +22,7 @@ from pilkit.processors import ResizeToFill, ResizeToFit
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
 from openbook_auth.models import User
 from openbook_common.enums import VisibilityType
-from openbook_common.helpers import ExifRotate, generate_blurhash, PrefixedQ
+from openbook_common.helpers import ExifRotate, generate_blurhash, PrefixedQ, geojson_from_geolocation
 from openbook_common.models import ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field, extract_and_capitalize_domain_name
 from openbook_common.utils.model_loaders import (
@@ -43,6 +44,7 @@ from openbook_communities.helpers import (
     upload_to_community_avatar_directory,
     upload_to_community_cover_directory,
     upload_to_community_task_thumbnail_directory,
+    upload_to_community_tool_thumbnail_directory,
 )
 from openbook_communities.queries import (
     make_search_communities_query_for_user,
@@ -52,6 +54,8 @@ from openbook_communities.queries import (
 from openbook_moderation.models import ModeratedObject
 from openbook_notifications.api import NotificationApi
 from openbook_terms.models import SDG, Topic, Skill
+from openbook_terms.helpers import topics_to_topic_v2_slugs, skills_to_skill_v2_slugs
+from django.contrib.postgres.fields import ArrayField
 
 community_image_storage = default_storage
 community_task_image_storage = default_storage
@@ -186,8 +190,11 @@ class Community(ModelWithUUID):
         db_index=True,
     )
     topics = models.ManyToManyField(Topic, related_name="communities", blank=False, db_index=True)
+    topics_v2 = ArrayField(models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH), blank=True, default=list)
     sdgs = models.ManyToManyField(SDG, related_name="communities", blank=True, db_index=True)
     geolocation = models.PointField(blank=True, null=True, spatial_index=True)
+    # also store as GeoJSON as downstream processes (Google Datastream) can't understand Postgis binary format
+    geolocation_geojson = models.JSONField(blank=True, null=True)
     contact_description = models.CharField(
         max_length=settings.COMMUNITY_CONTACT_DESCRIPTION_MAX_LENGTH,
         blank=True,
@@ -209,6 +216,7 @@ class Community(ModelWithUUID):
 
     class Meta:
         verbose_name_plural = "communities"
+        indexes = [GinIndex(fields=["topics_v2"])]
 
     @property
     def avatar_default_color(self):
@@ -351,6 +359,7 @@ class Community(ModelWithUUID):
         invites_enabled=None,
         location=None,
         topic_ids=None,
+        topics_v2=None,
     ):
         # If it's a private community and no invites_enabled
         if type == Community.COMMUNITY_TYPE_PRIVATE and invites_enabled is None:
@@ -358,6 +367,9 @@ class Community(ModelWithUUID):
         else:
             # The default for this field is not working when passed None?
             invites_enabled = True
+
+        if topics_v2 is None:
+            topics_v2 = []
 
         community = cls.objects.create(
             title=title,
@@ -374,6 +386,7 @@ class Community(ModelWithUUID):
             rules=rules,
             invites_enabled=invites_enabled,
             location=location,
+            topics_v2=topics_v2,
         )
 
         CommunityMembership.create_membership(
@@ -544,6 +557,7 @@ class Community(ModelWithUUID):
         categories_names=None,
         invites_enabled=None,
         topic_ids=None,
+        topics_v2=None,
         sdg_ids=None,
         cover=None,
         remove_cover=False,
@@ -582,6 +596,9 @@ class Community(ModelWithUUID):
 
         if categories_names is not None:
             self.set_categories_with_names(categories_names=categories_names)
+
+        if topics_v2 is not None:
+            self.topics_v2 = topics_v2
 
         if topic_ids is not None:
             self.set_topics_with_ids(topic_ids=topic_ids)
@@ -678,13 +695,11 @@ class Community(ModelWithUUID):
         self.categories.clear()
 
     def set_topics_with_ids(self, topic_ids):
-        self.clear_topics()
+        self.topics.clear()
         Topic = get_topic_model()
         topics = Topic.objects.filter(id__in=topic_ids)
+        self.topics_v2 = topics_to_topic_v2_slugs(topics)
         self.topics.set(topics)
-
-    def clear_topics(self):
-        self.topics.clear()
 
     def set_sdgs_with_ids(self, sdg_ids):
         self.clear_sdgs()
@@ -795,6 +810,11 @@ class Community(ModelWithUUID):
 
         if self.users_adjective:
             self.users_adjective = self.users_adjective.title()
+
+        if self.geolocation:
+            self.geolocation_geojson = geojson_from_geolocation(self.geolocation)
+        else:
+            self.geolocation_geojson = None
 
         return super(Community, self).save(*args, **kwargs)
 
@@ -1230,7 +1250,34 @@ class Task(ModelWithUUID):
     class Regularity(models.TextChoices):
         REGULARLY = ("REGULARLY",)
         PROJECT_BASED = ("PROJECT_BASED",)
-        ONE_TIME = "ONE_TIME"
+        ONE_TIME = ("ONE_TIME",)
+        ONCE_WEEK = ("ONCE_WEEK",)
+        SEVERAL_TIMES_WEEK = ("SEVERAL_TIMES_WEEK",)
+        ONCE_MONTH = ("ONCE_MONTH",)
+        NEGOTIABLE = ("NEGOTIABLE",)
+
+    @strawberry.enum
+    class Duration(models.TextChoices):
+        MINUTES_10to15 = ("MINUTES_10to15",)
+        MINUTES_15to30 = ("MINUTES_15to30",)
+        MINUTES_30to60 = ("MINUTES_30to60",)
+        HOURS_1to2 = ("HOURS_1to2",)
+        HOURS_2to4 = ("HOURS_2to4",)
+        HOURS_4to6 = ("HOURS_4to6",)
+        DAYS_1 = ("DAYS_1",)
+        DAYS_2 = ("DAYS_2",)
+        DAYS_3_OR_MORE = ("DAYS_3_OR_MORE",)
+        INDETERMINATE = ("INDETERMINATE",)
+
+    @strawberry.enum
+    class InteractionType(models.TextChoices):
+        CHAT = ("CHAT",)
+        LINK = ("LINK",)
+        READY = ("READY",)
+
+    interaction_signup_link = models.URLField(
+        max_length=settings.TASK_INTERACTION_SIGNUP_LINK_MAX_LENGTH, blank=True, null=True
+    )
 
     name = models.CharField(
         max_length=settings.TASK_NAME_MAX_LENGTH,
@@ -1255,6 +1302,11 @@ class Task(ModelWithUUID):
         null=True,
     )
     created = models.DateTimeField(default=timezone.now, editable=False)
+    timeframe_start_date = models.DateField(null=True, blank=True)
+    timeframe_end_date = models.DateField(null=True, blank=True)
+    regularity = models.CharField(max_length=20, choices=Regularity.choices)
+    duration = models.CharField(max_length=20, choices=Duration.choices, default=Duration.INDETERMINATE)
+    interaction_type = models.CharField(max_length=20, choices=InteractionType.choices, default=InteractionType.CHAT)
     slots_available = models.PositiveIntegerField(blank=False)
     slots_taken = models.PositiveIntegerField(blank=False, default=0)
     visibility = models.CharField(max_length=12, choices=VisibilityType.choices, default=VisibilityType.PUBLIC)
@@ -1266,11 +1318,10 @@ class Task(ModelWithUUID):
         db_index=True,
     )
     geolocation = models.PointField(blank=True, null=True, spatial_index=True)
-    regularity = models.CharField(
-        max_length=13,
-        choices=Regularity.choices,
-    )
+    # also store as GeoJSON as downstream processes (Google Datastream) can't understand Postgis binary format
+    geolocation_geojson = models.JSONField(blank=True, null=True)
     skills = models.ManyToManyField(Skill, related_name="tasks", blank=True, db_index=True)
+    skills_v2 = ArrayField(models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH), blank=True, default=list)
     thumbnail = ProcessedImageField(
         storage=community_task_image_storage,
         verbose_name=_("thumbnail"),
@@ -1301,6 +1352,16 @@ class Task(ModelWithUUID):
 
     deleted_at = models.DateTimeField(blank=True, null=True, default=None)
 
+    class Meta:
+        indexes = [GinIndex(fields=["skills_v2"])]
+
+    def save(self, *args, **kwargs):
+        if self.geolocation:
+            self.geolocation_geojson = geojson_from_geolocation(self.geolocation)
+        else:
+            self.geolocation_geojson = None
+        super().save(*args, **kwargs)
+
     @property
     def is_deleted(self) -> bool:
         return self.deleted_at is not None
@@ -1320,13 +1381,16 @@ class Task(ModelWithUUID):
             & (pQ(visibility=VisibilityType.PUBLIC) | pQ(community__memberships__user__id=user.id))
         )
 
-    def clear_skills(self):
-        self.skills.clear()
+    @staticmethod
+    def is_not_expired_query(prefix=None) -> Q:
+        pQ = PrefixedQ(prefix)
+        return pQ(timeframe_end_date__isnull=True) | pQ(timeframe_end_date__gte=timezone.now())
 
     def set_skills_with_ids(self, skill_ids):
-        self.clear_skills()
+        self.skills.clear()
         Skill = get_skill_model()
         skills = Skill.objects.filter(id__in=skill_ids)
+        self.skills_v2 = skills_to_skill_v2_slugs(skills)
         self.skills.set(skills)
 
     @classmethod
@@ -1340,13 +1404,22 @@ class Task(ModelWithUUID):
         location_type,
         contact_email,
         slots_available,
+        duration=None,
+        interaction_type=None,
         location=None,
         geolocation=None,
         regularity=None,
+        timeframe_start_date=None,
+        timeframe_end_date=None,
         contact_phone=None,
         skills=None,
+        skills_v2=None,
         thumbnail=None,
+        interaction_signup_link=None,
     ):
+        if skills_v2 is None:
+            skills_v2 = []
+
         task = cls.objects.create(
             creator=creator,
             community=community,
@@ -1359,9 +1432,15 @@ class Task(ModelWithUUID):
             location=location,
             geolocation=geolocation,
             regularity=regularity,
+            duration=duration,
+            interaction_type=interaction_type,
+            timeframe_start_date=timeframe_start_date,
+            timeframe_end_date=timeframe_end_date,
             contact_phone=contact_phone,
             thumbnail=thumbnail,
             thumbnail_blurhash=generate_blurhash(thumbnail),
+            skills_v2=skills_v2,
+            interaction_signup_link=interaction_signup_link,
         )
 
         if skills:
@@ -1378,13 +1457,19 @@ class Task(ModelWithUUID):
         location_type,
         contact_email,
         slots_available,
+        duration=None,
         location=None,
         geolocation=None,
         regularity=None,
+        interaction_type=None,
+        timeframe_start_date=None,
+        timeframe_end_date=None,
         contact_phone=None,
-        skills=None,
+        skill_ids=None,
+        skills_v2=None,
         thumbnail=None,
         remove_thumbnail=False,
+        interaction_signup_link=None,
     ):
         self.name = name
         self.description = description
@@ -1393,6 +1478,11 @@ class Task(ModelWithUUID):
         self.contact_email = contact_email
         self.regularity = regularity
         self.slots_available = slots_available
+        self.duration = duration
+        self.interaction_type = interaction_type
+        self.timeframe_start_date = timeframe_start_date
+        self.timeframe_end_date = timeframe_end_date
+        self.interaction_signup_link = interaction_signup_link
 
         if location is not None:
             self.location = location
@@ -1400,8 +1490,13 @@ class Task(ModelWithUUID):
             self.geolocation = geolocation
         if contact_phone is not None:
             self.contact_phone = contact_phone
-        if skills is not None:
-            self.skills.set(skills)
+        if skills_v2 is not None:
+            self.skills_v2 = skills_v2
+        if skill_ids is not None:
+            Skill = get_skill_model()
+            updated_skills = Skill.objects.filter(id__in=skill_ids)
+            self.skills_v2 = skills_to_skill_v2_slugs(updated_skills)
+            self.skills.set(updated_skills)
 
         if remove_thumbnail:
             self._delete_thumbnail(save=False)
@@ -1539,7 +1634,7 @@ class CollaborationTool(ModelWithUUID):
         verbose_name=_("thumbnail"),
         blank=True,
         null=True,
-        upload_to=upload_to_community_task_thumbnail_directory,
+        upload_to=upload_to_community_tool_thumbnail_directory,
         processors=[
             ExifRotate(),
             ResizeToFit(
