@@ -46,7 +46,7 @@
     },
     {
       "matchManagers": [
-        "pip_requirements"
+        "uv"
       ],
       "matchUpdateTypes": [
         "minor",
