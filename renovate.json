@@ -45,19 +45,6 @@
       "groupName": "psycopg"
     },
     {
-      "matchManagers": [
-        "uv"
-      ],
-      "matchUpdateTypes": [
-        "minor",
-        "patch",
-        "pin",
-        "digest"
-      ],
-      "matchCurrentVersion": "!/^0/",
-      "automerge": true
-    },
-    {
       "matchDepNames": [
         "boto3",
         "botocore"
