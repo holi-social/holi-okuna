@@ -48,7 +48,7 @@ dependencies = [
     "frozenlist==1.6.0",
     "funcy==2.0",
     "google-api-core==2.24.2",
-    "google-auth==2.40.1",
+    "google-auth==2.40.2",
     "google-cloud-pubsub==2.29.0",
     "google-cloud-webrisk==1.18.0",
     "googleapis-common-protos==1.70.0",
