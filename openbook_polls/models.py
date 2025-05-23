@@ -21,8 +21,7 @@ from openbook_polls.checkers import (
 
 magic = get_magic()
 
-MIN_VOTES_RESULTS_REVEAL = 5
-RESULTS_REMINDER = 30
+MIN_VOTES_RESULTS_REVEAL = 10
 
 
 class Poll(ModelWithUUID):
@@ -153,11 +152,10 @@ class Vote(ModelWithUUID):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        # Notify if needed
-        voters = User.objects.filter(vote__choice__poll=self.choice.poll).distinct()
-        total_votes = voters.count()
+        voters = User.objects.filter(vote__choice__poll=self.choice.poll).exclude(id=self.user.id).distinct()
+        total_voters = voters.count() + 1
 
-        if total_votes == MIN_VOTES_RESULTS_REVEAL or total_votes == RESULTS_REMINDER:
+        if total_voters == MIN_VOTES_RESULTS_REVEAL:
             NotificationsService.send_poll_updates_notification(poll=self.choice.poll, recipients=voters)
 
         return self
