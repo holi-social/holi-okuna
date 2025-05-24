@@ -15,6 +15,11 @@
   },
   "packageRules": [
     {
+      "matchPackageNames": ["faker"],
+      "description": "Ignore faker updates due to unmaintained mixer dependency",
+      "enabled": false
+    },
+    {
       "matchSourceUrls": [
         "https://github.com/hashicorp/terraform"
       ],
