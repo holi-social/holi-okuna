@@ -38,6 +38,7 @@ class NotificationType(Enum):
     COMMENT_REACTION = "COMMENT_REACTION"
     WELCOME_EMAIL_SERIES = "WELCOME_EMAIL_SERIES"
     FEEDBACK_INTERVIEW = "FEEDBACK_INTERVIEW"
+    POLL_CLOSURE = "POLL_CLOSURE"
 
 
 app_url = settings.APP_URL
@@ -328,7 +329,12 @@ class PollData:
         # TODO: Update the following line when the relationship between insight and post
         #  changes from many-to-many to one-to-many.
         insight = poll.insights.first()
-        return cls(id=str(poll.id), title=poll.question_text, insight_id=str(insight.id))
+        truncated_title = poll.question_text
+
+        if len(truncated_title) > 40:
+            truncated_title = truncated_title[:40] + "..."
+
+        return cls(id=str(poll.id), title=truncated_title, insight_id=str(insight.id))
 
 
 class Payload:
@@ -578,6 +584,19 @@ class PollUpdatesPayload(Payload):
             },
             notification_type=NotificationType.POLL_UPDATES.value,
             notification_version=PollUpdatesPayload.NOTIFICATION_VERSION,
+        )
+
+
+class PollClosurePayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, poll: Poll):
+        super().__init__(
+            data={
+                "poll": PollData.from_poll(poll).to_dict(),
+            },
+            notification_type=NotificationType.POLL_CLOSURE.value,
+            notification_version=PollClosurePayload.NOTIFICATION_VERSION,
         )
 
 

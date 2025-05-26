@@ -103,6 +103,10 @@ class Poll(ModelWithUUID):
 
         super().save(*args, **kwargs)
 
+        if self.is_closed:
+            voters = User.objects.filter(vote__choice__poll=self).distinct()
+            NotificationsService.send_poll_closure_notification(poll=self, recipients=voters)
+
         return self
 
     def delete(self, *args, **kwargs):
