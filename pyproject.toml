@@ -92,7 +92,7 @@ dependencies = [
     "pycparser==2.22",
     "PyJWT==2.10.1",
     "pytest==8.3.5",
-    "pytest-asyncio==0.26.0",
+    "pytest-asyncio==1.0.0",
     "pytest-cov==6.1.1",
     "pytest-django==4.11.1",
     "pytest-xdist==3.6.1",
