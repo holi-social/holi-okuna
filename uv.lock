@@ -1096,7 +1096,7 @@ requires-dist = [
     { name = "typing-extensions", specifier = "==4.13.2" },
     { name = "tzdata", specifier = "==2025.2" },
     { name = "unidecode", specifier = "==1.4.0" },
-    { name = "uritools", specifier = "==4.0.3" },
+    { name = "uritools", specifier = "==5.0.0" },
     { name = "url-normalize", specifier = "==2.2.1" },
     { name = "urlextract", specifier = "==1.9.0" },
     { name = "urllib3", specifier = "==2.4.0" },
@@ -2029,11 +2029,11 @@ wheels = [
 
 [[package]]
 name = "uritools"
-version = "4.0.3"
+version = "5.0.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d3/43/4182fb2a03145e6d38698e38b49114ce59bc8c79063452eb585a58f8ce78/uritools-4.0.3.tar.gz", hash = "sha256:ee06a182a9c849464ce9d5fa917539aacc8edd2a4924d1b7aabeeecabcae3bc2", size = 24184, upload-time = "2024-05-28T18:07:45.194Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/36/b1/e482d43db3209663b82a59e37cf31f641254180190667c6b0bf18a297de8/uritools-5.0.0.tar.gz", hash = "sha256:68180cad154062bd5b5d9ffcdd464f8de6934414b25462ae807b00b8df9345de", size = 22730, upload-time = "2025-05-02T13:38:20.67Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e6/17/5a4510d9ca9cc8be217ce359eb54e693dca81cf4d442308b282d5131b17d/uritools-4.0.3-py3-none-any.whl", hash = "sha256:bae297d090e69a0451130ffba6f2f1c9477244aa0a5543d66aed2d9f77d0dd9c", size = 10304, upload-time = "2024-05-28T18:07:42.731Z" },
+    { url = "https://files.pythonhosted.org/packages/8c/74/0987d204b5fbf83861affa6b36a20da22cb3fe708583b955c99ab834bd5a/uritools-5.0.0-py3-none-any.whl", hash = "sha256:cead3a49ba8fbca3f91857343849d506d8639718f4a2e51b62e87393b493bd6f", size = 10432, upload-time = "2025-05-02T13:38:18.703Z" },
 ]
 
 [[package]]
