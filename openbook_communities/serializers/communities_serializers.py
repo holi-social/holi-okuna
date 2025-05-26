@@ -457,12 +457,6 @@ class CreateTaskSerializer(serializers.Serializer):
     impact = serializers.CharField(
         required=False, allow_blank=True, max_length=settings.TASK_IMPACT_MAX_LENGTH, validators=[sanitize_text]
     )
-    additional_context = serializers.CharField(
-        required=False,
-        allow_blank=True,
-        max_length=settings.TASK_ADDITIONAL_CONTEXT_MAX_LENGTH,
-        validators=[sanitize_text],
-    )
 
     def validate(self, data):
         if "timeframe_start_date" not in data and "timeframe_end_date" not in data:
@@ -548,12 +542,6 @@ class UpdateTaskSerializer(serializers.Serializer):
     )
     impact = serializers.CharField(
         required=False, allow_blank=True, max_length=settings.TASK_IMPACT_MAX_LENGTH, validators=[sanitize_text]
-    )
-    additional_context = serializers.CharField(
-        required=False,
-        allow_blank=True,
-        max_length=settings.TASK_ADDITIONAL_CONTEXT_MAX_LENGTH,
-        validators=[sanitize_text],
     )
 
 
