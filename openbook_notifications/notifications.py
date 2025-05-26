@@ -32,6 +32,7 @@ from openbook_notifications.payloads import (
     CommentReactionPayload,
     WelcomeEmailSeriesPayload,
     FeedbackInterviewPayload,
+    PollClosurePayload,
 )
 
 environment_id = settings.ENVIRONMENT_ID
@@ -66,6 +67,7 @@ class Workflow(Enum):
     COMMENT_REACTIONS = "comment-reactions"
     WELCOME_EMAIL_SERIES = "welcome-email-series"
     FEEDBACK_INTERVIEW = "feedback-interview"
+    POLL_CLOSURE = "poll-closure"
 
 
 # INTERNAL USE ONLY, use NotificationsService  to trigger notifications
@@ -374,6 +376,21 @@ class PollUpdatesNotification(Notification):
     ):
         super().__init__(
             workflow=Workflow.POLL_UPDATES.value,
+            recipients=recipients,
+            payload=payload.to_dict(),
+            transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
+        )
+
+
+class PollClosureNotification(Notification):
+    def __init__(
+        self,
+        recipients: List[str],
+        payload: PollClosurePayload,
+        transaction_id: Optional[str] = None,
+    ):
+        super().__init__(
+            workflow=Workflow.POLL_CLOSURE.value,
             recipients=recipients,
             payload=payload.to_dict(),
             transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
