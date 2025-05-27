@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Optional
 
 from django.conf import settings
 
+from openbook_common.utils.model_loaders import get_feed_post_model
 from openbook_notifications.helpers import replace_mentions_with_full_names
 
 if TYPE_CHECKING:
@@ -316,25 +317,35 @@ class CommentData:
 
 
 class PollData:
-    def __init__(self, id: str, title: str, insight_id: str):
+    def __init__(self, id: str, title: str, insight_id: Optional[str] = None, feed_post_id: Optional[str] = None):
         self.id = id
         self.title = title
         self.insight_id = insight_id
+        self.feed_post_id = feed_post_id
 
     def to_dict(self):
-        return {"id": self.id, "title": self.title, "insightId": self.insight_id}
+        return {"id": self.id, "title": self.title, "insightId": self.insight_id, "feedPostId": self.feed_post_id}
 
     @classmethod
     def from_poll(cls, poll: Poll):
         # TODO: Update the following line when the relationship between insight and post
         #  changes from many-to-many to one-to-many.
+        FeedPost = get_feed_post_model()
         insight = poll.insights.first()
+
+        feed_post = FeedPost.objects.filter(poll=poll).first()
+
         truncated_title = poll.question_text
 
         if len(truncated_title) > 40:
             truncated_title = truncated_title[:40] + "..."
 
-        return cls(id=str(poll.id), title=truncated_title, insight_id=str(insight.id))
+        return cls(
+            id=str(poll.id),
+            title=truncated_title,
+            insight_id=str(insight.id) if insight else "",
+            feed_post_id=str(feed_post.id) if feed_post else "",
+        )
 
 
 class Payload:
