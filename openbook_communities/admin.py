@@ -40,8 +40,8 @@ class CommunityNetworkRelationshipInline(admin.TabularInline):
 @admin.register(Community)
 class CommunityAdmin(admin.ModelAdmin):
     readonly_fields = ["name"]
-    list_display = ("name", "title", "creator", "created", "get_num_posts", "get_num_members", "is_deleted")
-    search_fields = ("title", "creator__email", "creator__profile__name", "creator__profile__last_name")
+    list_display = ("name", "title", "id", "creator", "created", "get_num_posts", "get_num_members", "is_deleted")
+    search_fields = ("id", "title", "creator__email", "creator__profile__name", "creator__profile__last_name")
     exclude = ["banned_users", "starrers", "geolocation_geojson"]
 
     def get_queryset(self, request):
