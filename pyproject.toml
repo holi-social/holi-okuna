@@ -54,7 +54,7 @@ dependencies = [
     "googleapis-common-protos==1.70.0",
     "graphql-core==3.2.6",
     "grpc-google-iam-v1==0.14.2",
-    "grpcio==1.71.0",
+    "grpcio==1.72.1",
     "grpcio-status==1.71.0",
     "h11==0.16.0",
     "hiredis==3.2.1",
