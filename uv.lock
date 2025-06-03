@@ -670,7 +670,7 @@ wheels = [
 
 [[package]]
 name = "google-cloud-pubsub"
-version = "2.29.0"
+version = "2.29.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "google-api-core", extra = ["grpc"] },
@@ -683,10 +683,7 @@ dependencies = [
     { name = "proto-plus" },
     { name = "protobuf" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d6/4d/1db6b937d76d4cb1dca484e4f61f138b5611f0658992bf1ad6679bbddfad/google_cloud_pubsub-2.29.0.tar.gz", hash = "sha256:b820f8d410c96ad87b8da79c696b979e1a182a170d0c0602626f5b9d8cbf21ee", size = 389745, upload-time = "2025-03-20T15:19:33.779Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/71/00/5dd16327bad524282a048b2efb10b335d9fe089ec260c8d2b2c8054950aa/google_cloud_pubsub-2.29.0-py2.py3-none-any.whl", hash = "sha256:3ccc76ae623e408c7a80f2f81bfd3ab9dca1d61231cc2a063d569d021449481a", size = 317313, upload-time = "2025-03-20T15:19:31.675Z" },
-]
+sdist = { url = "https://files.pythonhosted.org/packages/6d/50/fc5b33c9b09da486534c4e702ecce1b4b707695ff0634592cca7c67461a3/google_cloud_pubsub-2.29.1.tar.gz", hash = "sha256:5f4b0534c587394dd20538c1baeab7d4ebced789561058739555eb44d7924ce4", size = 390052, upload-time = "2025-06-03T17:05:32.43Z" }
 
 [[package]]
 name = "google-cloud-webrisk"
@@ -1016,7 +1013,7 @@ requires-dist = [
     { name = "funcy", specifier = "==2.0" },
     { name = "google-api-core", specifier = "==2.25.0" },
     { name = "google-auth", specifier = "==2.40.2" },
-    { name = "google-cloud-pubsub", specifier = "==2.29.0" },
+    { name = "google-cloud-pubsub", specifier = "==2.29.1" },
     { name = "google-cloud-webrisk", specifier = "==1.18.0" },
     { name = "googleapis-common-protos", specifier = "==1.70.0" },
     { name = "graphql-core", specifier = "==3.2.6" },
