@@ -43,7 +43,7 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
 
     category = models.ForeignKey(FeedPostCategory, on_delete=models.PROTECT, null=True)
 
-    poll = models.ForeignKey(Poll, on_delete=models.RESTRICT, null=True)
+    poll = models.ForeignKey(Poll, on_delete=models.RESTRICT, null=True, blank=True)
 
     creator = models.ForeignKey(
         User,
