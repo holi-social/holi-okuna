@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("openbook_auth", "0041_alter_user_role"),
+        ("openbook_auth", "0042_alter_user_role"),
     ]
 
     operations = [
