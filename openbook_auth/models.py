@@ -717,26 +717,6 @@ class User(ModelWithUUID, AbstractUser):
         self._send_password_reset_email_with_token(password_reset_token)
         return password_reset_token
 
-    def bookmark_insight(self, insight_id):
-        Insight = get_insight_model()
-        insight = Insight.objects.get(pk=insight_id)
-
-        if not insight:
-            raise ValidationError(_("Insight does not exist"))
-
-        self.profile.favorite_insights.add(insight)
-        self.save()
-
-    def remove_insight_bookmark(self, insight_id):
-        Insight = get_insight_model()
-        insight = Insight.objects.get(pk=insight_id)
-
-        if not insight:
-            raise ValidationError(_("Insight does not exist"))
-
-        self.profile.favorite_insights.remove(insight)
-        self.save()
-
     @classmethod
     def sanitize_identity_input(cls, identity):
         identity_with_spaces = re.sub(r"[^a-zA-Z0-9_. -]+", "", unidecode(identity).strip().lower())
@@ -4990,6 +4970,7 @@ class User(ModelWithUUID, AbstractUser):
         contact_email,
         duration,
         interaction_type,
+        impact=None,
         slots_available=None,
         location=None,
         geolocation=None,
@@ -5023,6 +5004,7 @@ class User(ModelWithUUID, AbstractUser):
             regularity=regularity,
             duration=duration,
             interaction_type=interaction_type,
+            impact=impact,
             timeframe_start_date=timeframe_start_date,
             timeframe_end_date=timeframe_end_date,
             contact_phone=contact_phone,
@@ -5043,6 +5025,7 @@ class User(ModelWithUUID, AbstractUser):
         contact_email,
         duration,
         interaction_type,
+        impact=None,
         slots_available=None,
         location=None,
         geolocation=None,
@@ -5075,6 +5058,7 @@ class User(ModelWithUUID, AbstractUser):
             regularity=regularity,
             duration=duration,
             interaction_type=interaction_type,
+            impact=impact,
             timeframe_start_date=timeframe_start_date,
             timeframe_end_date=timeframe_end_date,
             contact_phone=contact_phone,
@@ -5309,8 +5293,6 @@ class UserProfile(ModelWithUUID):
     followers_count_visible = models.BooleanField(_("followers count visible"), blank=False, null=False, default=False)
     community_posts_visible = models.BooleanField(_("community posts visible"), blank=False, null=False, default=True)
     badges = models.ManyToManyField(Badge, related_name="users_profiles")
-    # gregor: deprecated - remove after new favorites package is used everywhere
-    favorite_insights = models.ManyToManyField(to="openbook_insights.insight", blank=True)
 
     class Meta:
         verbose_name = _("user profile")

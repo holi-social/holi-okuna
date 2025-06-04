@@ -29,6 +29,7 @@ from openbook_notifications.notifications import (
     PostReactionNotification,
     WelcomeEmailSeriesNotification,
     FeedbackInterviewNotification,
+    PollClosureNotification,
 )
 from openbook_notifications.payloads import (
     SpaceMembershipRequestPayload,
@@ -50,6 +51,7 @@ from openbook_notifications.payloads import (
     CommentReactionPayload,
     WelcomeEmailSeriesPayload,
     FeedbackInterviewPayload,
+    PollClosurePayload,
 )
 
 from openbook_notifications.wrappers import skip_e2e_notifications
@@ -337,6 +339,17 @@ class NotificationsService:
         notification = PollUpdatesNotification(
             recipients=[str(recipient.username) for recipient in recipients],
             payload=PollUpdatesPayload(poll=poll),
+        )
+        notification.send()
+
+    @staticmethod
+    def send_poll_closure_notification(
+        poll: Poll,
+        recipients: List[User],
+    ):
+        notification = PollClosureNotification(
+            recipients=[str(recipient.username) for recipient in recipients],
+            payload=PollClosurePayload(poll=poll),
         )
         notification.send()
 

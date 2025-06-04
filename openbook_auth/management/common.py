@@ -25,7 +25,7 @@ def for_every_ory_user(function: Callable[[dict], None]):
         if next_page_url:
             response = requests.get(next_page_url, headers=ORY_HEADER, timeout=30)
         else:
-            params = {"per_page": per_page}
+            params = {"per_page": per_page, "include_credential": "oidc"}
             response = requests.get(
                 f"{settings.ORY_BASE_URL}/admin/identities/", params=params, headers=ORY_HEADER, timeout=30
             )
