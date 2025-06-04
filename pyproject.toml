@@ -45,7 +45,7 @@ dependencies = [
     "execnet==2.1.1",
     "Faker==12.0.1", # mixer 7.2.2 depends on Faker<12.1 and >=5.4.0, mixer was not updated anymore since 2022
     "filelock==3.18.0",
-    "frozenlist==1.6.0",
+    "frozenlist==1.6.2",
     "funcy==2.0",
     "google-api-core==2.25.0",
     "google-auth==2.40.2",
