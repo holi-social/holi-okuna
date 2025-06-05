@@ -113,7 +113,7 @@ dependencies = [
     "rsa==4.9.1",
     "ruamel.yaml==0.18.12",
     "ruamel.yaml.clib==0.2.12",
-    "ruff==0.11.12",
+    "ruff==0.11.13",
     "sentry-sdk==2.29.1",
     "setuptools==80.9.0",
     "six==1.17.0",
