@@ -1045,7 +1045,7 @@ requires-dist = [
     { name = "pillow", specifier = "==11.2.1" },
     { name = "platformdirs", specifier = "==4.3.8" },
     { name = "pluggy", specifier = "==1.6.0" },
-    { name = "posthog", specifier = "==4.2.0" },
+    { name = "posthog", specifier = "==4.3.2" },
     { name = "propcache", specifier = "==0.3.1" },
     { name = "proto-plus", specifier = "==1.26.1" },
     { name = "protobuf", specifier = "==5.29.5" },
@@ -1431,7 +1431,7 @@ wheels = [
 
 [[package]]
 name = "posthog"
-version = "4.2.0"
+version = "4.3.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "backoff" },
@@ -1440,9 +1440,9 @@ dependencies = [
     { name = "requests" },
     { name = "six" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ce/5b/2e9890700b7b55a370edbfbe5948eae780d48af9b46ad06ea2e7970576f4/posthog-4.2.0.tar.gz", hash = "sha256:c4abc95de03294be005b3b7e8735e9d7abab88583da26262112bacce64b0c3b5", size = 80727, upload-time = "2025-05-23T23:23:55.943Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/89/df/cb1b1837a38dfde0eca9b7947037ef0abf9e7732a7c29b8eab6cd4af1a0b/posthog-4.3.2.tar.gz", hash = "sha256:1dc422ccef560ee0949b00e340e8135160fd71a4eb03f06ec382c4672ab0fe4c", size = 85399, upload-time = "2025-06-06T14:26:12.221Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/51/16/7b6c5844acee2d343d463ee0e3143cd8c7c48a6c0d079a2f7daf0c80b95c/posthog-4.2.0-py2.py3-none-any.whl", hash = "sha256:60c7066caac43e43e326e9196d8c1aadeafc8b0be9e5c108446e352711fa456b", size = 96692, upload-time = "2025-05-23T23:23:54.384Z" },
+    { url = "https://files.pythonhosted.org/packages/2e/e7/2983efeec4356cbae0fcd775effc76576377ae86330d25c150a5bbf8fa4c/posthog-4.3.2-py2.py3-none-any.whl", hash = "sha256:e53d0e20cc8d4ec9cb62f0cbf6034e8f93e7f5b3fc502dfcc8813feb12a06bb7", size = 102036, upload-time = "2025-06-06T14:26:10.898Z" },
 ]
 
 [[package]]
