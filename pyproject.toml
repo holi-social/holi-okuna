@@ -208,3 +208,6 @@ exclude = '''
     | venv
 )/
 '''
+
+[tool.uv]
+index-url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/"
