@@ -13,6 +13,7 @@ RUN apt-get -y update && \
 
 FROM builder AS app_base_with_dependencies
 
+ENV UV_INDEX_URL="https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/"
 COPY pyproject.toml /opt/okuna-api/pyproject.toml
 WORKDIR /opt/okuna-api
 RUN --mount=type=cache,target=.uv-cache \
