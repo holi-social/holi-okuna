@@ -10,6 +10,19 @@ from openbook_communities.models import Task
 User = get_user_model()
 
 
+def saved_to_db(entity):
+    """
+    Checks if an entity has already been saved to the database.
+
+    The canonical way in Django is to check for the existence of the primary key (instance.pk), but for some reason
+    the property is already not None after instance creation in our codebase (hypothesis: related to extending
+    ModelWithUUID).
+
+    Warning: this uses Django internal APIs and might break in the future.
+    """
+    return entity._state.adding is False
+
+
 class CommunityTaskAdminTest(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
@@ -36,7 +49,7 @@ class CommunityTaskAdminTest(TestCase):
         request.user = self.user
 
         self.model_admin.save_model(request, task, form=None, change=False)
-        self.assertTrue(task.pk)
+        assert saved_to_db(task)
         mock_publish_task_created_event.assert_called_once_with(self.user, task)
 
     @patch("openbook_communities.events.publish_task_updated_event")
@@ -81,9 +94,9 @@ class CommunityTaskAdminTest(TestCase):
         request = self.factory.post("/admin/openbook_communities/task/add/")
         request.user = self.user
 
-        self.assertIsNone(task.pk)
+        assert not saved_to_db(task)
         self.model_admin.save_model(request, task, form=None, change=False)
-        self.assertIsNotNone(task.pk)
+        assert saved_to_db(task)
 
     @patch("openbook_communities.events.publish_task_updated_event")
     def test_save_model_with_form_data(self, mock_publish_task_updated_event):
@@ -117,8 +130,9 @@ class CommunityTaskAdminTest(TestCase):
         request = self.factory.post("/admin/openbook_communities/task/add/")
         request.user = self.user
 
+        assert not saved_to_db(task)
         self.model_admin.save_model(request, task, form=None, change=False)
-        self.assertIsNotNone(task.pk)
+        assert saved_to_db(task)
 
     @patch("openbook_communities.events.publish_task_deleted_event")
     @patch("django.contrib.admin.options.ModelAdmin.delete_model")
