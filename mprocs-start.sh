@@ -2,6 +2,22 @@
 
 # This file is used by the mprocs yaml files in https://gitlab.holi.team/app/holi-meta 
 
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+if [ -z "$GDAL_LIBRARY_PATH" ]; then
+    if command_exists brew; then
+        export GDAL_LIBRARY_PATH=$(brew --prefix)/lib/libgdal.dylib
+    fi
+fi
+
+if [ -z "$GEOS_LIBRARY_PATH" ]; then
+    if command_exists brew; then
+        export GEOS_LIBRARY_PATH=$(brew --prefix)/lib/libgeos_c.dylib
+    fi
+fi
+
 uv sync
 . .venv/bin/activate
 . ./.envrc.local
