@@ -131,6 +131,43 @@ class CommunityTaskAdmin(admin.ModelAdmin):
     )
     exclude = ["geolocation_geojson"]
 
+    def save_model(self, request, obj, form, change):
+        # Call the parent save_model to actually save the object
+        super().save_model(request, obj, form, change)
+
+        # Emit appropriate events based on whether this is a new or existing instance
+        try:
+            user = request.user
+            if not change:
+                # This is a new instance
+                from openbook_communities.events import publish_task_created_event
+
+                publish_task_created_event(user, obj)
+            else:
+                # This is an existing instance being updated
+                from openbook_communities.events import publish_task_updated_event
+
+                publish_task_updated_event(user, obj)
+        except Exception as e:
+            # Log the error but don't break the save operation
+            logger.error(f"Failed to publish task event: {e}")
+            logger.error(traceback.format_exc())
+
+    def delete_model(self, request, obj):
+        # Emit delete event before actually deleting the object
+        try:
+            user = request.user
+            from openbook_communities.events import publish_task_deleted_event
+
+            publish_task_deleted_event(user, obj)
+        except Exception as e:
+            # Log the error but don't break the delete operation
+            logger.error(f"Failed to publish task deleted event: {e}")
+            logger.error(traceback.format_exc())
+
+        # Call the parent delete_model to actually delete the object
+        super().delete_model(request, obj)
+
 
 @admin.register(OnboardingStep)
 class CommunityOnboardingStepAdmin(admin.ModelAdmin):
