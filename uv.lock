@@ -1045,7 +1045,7 @@ requires-dist = [
     { name = "pillow", specifier = "==11.2.1" },
     { name = "platformdirs", specifier = "==4.3.8" },
     { name = "pluggy", specifier = "==1.6.0" },
-    { name = "posthog", specifier = "==4.4.0" },
+    { name = "posthog", specifier = "==4.4.2" },
     { name = "propcache", specifier = "==0.3.1" },
     { name = "proto-plus", specifier = "==1.26.1" },
     { name = "protobuf", specifier = "==5.29.5" },
@@ -1431,7 +1431,7 @@ wheels = [
 
 [[package]]
 name = "posthog"
-version = "4.4.0"
+version = "4.4.2"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "backoff" },
@@ -1440,9 +1440,9 @@ dependencies = [
     { name = "requests" },
     { name = "six" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/posthog/posthog-4.4.0.tar.gz", hash = "sha256:18ff3e9448c79000626cb387ea71daf31baf2af745b5de4688835c10d1037ff0" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/posthog/posthog-4.4.2.tar.gz", hash = "sha256:00327143eaca87ce882fe6aa6ee682fee530edc10df1afa5adc9bdb7cb23e864" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/posthog/posthog-4.4.0-py2.py3-none-any.whl", hash = "sha256:22f81900ec1a811162cb032176d36a2c39f76e55b3933b4b73f240e51a089eba" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/posthog/posthog-4.4.2-py3-none-any.whl", hash = "sha256:c0236cdfd3b63e6d4146810c092fac48dbd65a71d35a17e4ddb311bcb2bd67cd" },
 ]
 
 [[package]]
