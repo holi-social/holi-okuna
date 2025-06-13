@@ -745,20 +745,20 @@ wheels = [
 
 [[package]]
 name = "grpcio"
-version = "1.72.1"
+version = "1.73.0"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.72.1.tar.gz", hash = "sha256:87f62c94a40947cec1a0f91f95f5ba0aa8f799f23a1d42ae5be667b6b27b959c" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.73.0.tar.gz", hash = "sha256:3af4c30918a7f0d39de500d11255f8d9da4f30e94a2033e70fe2a720e184bd8e" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.72.1-cp313-cp313-linux_armv7l.whl", hash = "sha256:294be6e9c323a197434569a41e0fb5b5aa0962fd5d55a3dc890ec5df985f611a" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.72.1-cp313-cp313-macosx_11_0_universal2.whl", hash = "sha256:41ec164dac8df2862f67457d9cdf8d8f8b6a4ca475a3ed1ba6547fff98d93717" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.72.1-cp313-cp313-manylinux_2_17_aarch64.whl", hash = "sha256:761736f75c6ddea3732d97eaabe70c616271f5f542a8be95515135fdd1a638f6" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.72.1-cp313-cp313-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:082003cb93618964c111c70d69b60ac0dc6566d4c254c9b2a775faa2965ba8f8" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.72.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8660f736da75424949c14f7c8b1ac60a25b2f37cabdec95181834b405373e8a7" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.72.1-cp313-cp313-musllinux_1_1_aarch64.whl", hash = "sha256:2ada1abe2ad122b42407b2bfd79d6706a4940d4797f44bd740f5c98ca1ecda9b" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.72.1-cp313-cp313-musllinux_1_1_i686.whl", hash = "sha256:0db2766d0c482ee740abbe7d00a06cc4fb54f7e5a24d3cf27c3352be18a2b1e8" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.72.1-cp313-cp313-musllinux_1_1_x86_64.whl", hash = "sha256:c4bdb404d9c2187260b34e2b22783c204fba8a9023a166cf77376190d9cf5a08" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.72.1-cp313-cp313-win32.whl", hash = "sha256:bb64722c3124c906a5b66e50a90fd36442642f653ba88a24f67d08e94bca59f3" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.72.1-cp313-cp313-win_amd64.whl", hash = "sha256:329cc6ff5b431df9614340d3825b066a1ff0a5809a01ba2e976ef48c65a0490b" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.73.0-cp313-cp313-linux_armv7l.whl", hash = "sha256:da1d677018ef423202aca6d73a8d3b2cb245699eb7f50eb5f74cae15a8e1f724" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.73.0-cp313-cp313-macosx_11_0_universal2.whl", hash = "sha256:36bf93f6a657f37c131d9dd2c391b867abf1426a86727c3575393e9e11dadb0d" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.73.0-cp313-cp313-manylinux_2_17_aarch64.whl", hash = "sha256:d84000367508ade791d90c2bafbd905574b5ced8056397027a77a215d601ba15" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.73.0-cp313-cp313-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:c98ba1d928a178ce33f3425ff823318040a2b7ef875d30a0073565e5ceb058d9" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.73.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a73c72922dfd30b396a5f25bb3a4590195ee45ecde7ee068acb0892d2900cf07" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.73.0-cp313-cp313-musllinux_1_1_aarch64.whl", hash = "sha256:10e8edc035724aba0346a432060fd192b42bd03675d083c01553cab071a28da5" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.73.0-cp313-cp313-musllinux_1_1_i686.whl", hash = "sha256:f5cdc332b503c33b1643b12ea933582c7b081957c8bc2ea4cc4bc58054a09288" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.73.0-cp313-cp313-musllinux_1_1_x86_64.whl", hash = "sha256:07ad7c57233c2109e4ac999cb9c2710c3b8e3f491a73b058b0ce431f31ed8145" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.73.0-cp313-cp313-win32.whl", hash = "sha256:0eb5df4f41ea10bda99a802b2a292d85be28958ede2a50f2beb8c7fc9a738419" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio/grpcio-1.73.0-cp313-cp313-win_amd64.whl", hash = "sha256:38cf518cc54cd0c47c9539cefa8888549fcc067db0b0c66a46535ca8032020c4" },
 ]
 
 [[package]]
@@ -1021,7 +1021,7 @@ requires-dist = [
     { name = "googleapis-common-protos", specifier = "==1.70.0" },
     { name = "graphql-core", specifier = "==3.2.6" },
     { name = "grpc-google-iam-v1", specifier = "==0.14.2" },
-    { name = "grpcio", specifier = "==1.72.1" },
+    { name = "grpcio", specifier = "==1.73.0" },
     { name = "grpcio-status", specifier = "==1.71.0" },
     { name = "h11", specifier = "==0.16.0" },
     { name = "hiredis", specifier = "==3.2.1" },
