@@ -3,7 +3,11 @@ import traceback
 from django.contrib import admin
 from rangefilter.filters import DateRangeQuickSelectListFilterBuilder
 
-from openbook_auth.events import publish_user_name_updated_event
+from openbook_auth.events import (
+    publish_user_name_updated_event,
+    publish_user_updated_event,
+    publish_user_deleted_event,
+)
 from openbook_auth.forms import UserProfileFormSet
 from openbook_auth.models import User, UserProfile
 import structlog
@@ -67,3 +71,21 @@ class UserAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request, obj=None):
         return False
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        try:
+            publish_user_updated_event(obj)
+        except Exception as e:
+            # Log the error but don't break the save operation
+            logger.error(f"Failed to publish user updated event: {e}")
+            logger.error(traceback.format_exc())
+
+    def delete_model(self, request, obj):
+        super().delete_model(request, obj)
+        try:
+            publish_user_deleted_event(obj)
+        except Exception as e:
+            # Log the error but don't break the delete operation
+            logger.error(f"Failed to publish user deleted event: {e}")
+            logger.error(traceback.format_exc())
