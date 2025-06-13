@@ -1075,7 +1075,7 @@ requires-dist = [
     { name = "rest-framework-generic-relations", specifier = "==2.2.0" },
     { name = "rq", specifier = "==2.3.3" },
     { name = "rsa", specifier = "==4.9.1" },
-    { name = "ruamel-yaml", specifier = "==0.18.13" },
+    { name = "ruamel-yaml", specifier = "==0.18.14" },
     { name = "ruamel-yaml-clib", specifier = "==0.2.12" },
     { name = "ruff", specifier = "==0.11.13" },
     { name = "sentry-sdk", specifier = "==2.29.1" },
@@ -1826,14 +1826,14 @@ wheels = [
 
 [[package]]
 name = "ruamel-yaml"
-version = "0.18.13"
+version = "0.18.14"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "ruamel-yaml-clib", marker = "python_full_version < '3.14' and platform_python_implementation == 'CPython'" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/ruamel-yaml/ruamel.yaml-0.18.13.tar.gz", hash = "sha256:b0d5ac0a2b0b4e39d87aed00ddff26e795de6750b064da364a8d009b97ce5f26" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/ruamel-yaml/ruamel.yaml-0.18.14.tar.gz", hash = "sha256:7227b76aaec364df15936730efbf7d72b30c0b79b1d578bbb8e3dcb2d81f52b7" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/ruamel-yaml/ruamel.yaml-0.18.13-py3-none-any.whl", hash = "sha256:cf9628cfdfe9d88b78429cd093aa766e9a4c69242f9f3c86ac1d9e56437e5572" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/ruamel-yaml/ruamel.yaml-0.18.14-py3-none-any.whl", hash = "sha256:710ff198bb53da66718c7db27eec4fbcc9aa6ca7204e4c1df2f282b6fe5eb6b2" },
 ]
 
 [[package]]
