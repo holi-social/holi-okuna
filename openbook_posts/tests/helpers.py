@@ -59,7 +59,10 @@ def get_post_with_id_raw(post_id, user=None):
                     HEART
                 }}
                 reactors {{
-                    id
+                    totalResults 
+                    data {{
+                        id
+                    }}
                 }}
             }}
         }}
@@ -175,7 +178,10 @@ def react_to_post(post, action, posting_user):
                     HEART
                 }
                 reactors {
-                    id
+                    totalResults
+                    data {
+                        id
+                    }
                 }
             }
         }
