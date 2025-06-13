@@ -1060,7 +1060,7 @@ requires-dist = [
     { name = "pyjwt", specifier = "==2.10.1" },
     { name = "pytest", specifier = "==8.4.0" },
     { name = "pytest-asyncio", specifier = "==1.0.0" },
-    { name = "pytest-cov", specifier = "==6.1.1" },
+    { name = "pytest-cov", specifier = "==6.2.1" },
     { name = "pytest-django", specifier = "==4.11.1" },
     { name = "pytest-xdist", specifier = "==3.7.0" },
     { name = "python-benedict", specifier = "==0.34.1" },
@@ -1623,15 +1623,16 @@ wheels = [
 
 [[package]]
 name = "pytest-cov"
-version = "6.1.1"
+version = "6.2.1"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "coverage" },
+    { name = "pluggy" },
     { name = "pytest" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/pytest-cov/pytest_cov-6.1.1.tar.gz", hash = "sha256:46935f7aaefba760e716c2ebfbe1c216240b9592966e7da99ea8292d4d3e2a0a" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/pytest-cov/pytest_cov-6.2.1.tar.gz", hash = "sha256:25cc6cc0a5358204b8108ecedc51a9b57b34cc6b8c967cc2c01a4e00d8a67da2" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/pytest-cov/pytest_cov-6.1.1-py3-none-any.whl", hash = "sha256:bddf29ed2d0ab6f4df17b4c55b0a657287db8684af9c42ea546b21b1041b3dde" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/pytest-cov/pytest_cov-6.2.1-py3-none-any.whl", hash = "sha256:f5bc4c23f42f1cdd23c70b1dab1bbaef4fc505ba950d53e0081d0730dd7e86d5" },
 ]
 
 [[package]]
