@@ -670,7 +670,7 @@ wheels = [
 
 [[package]]
 name = "google-cloud-pubsub"
-version = "2.29.1"
+version = "2.30.0"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "google-api-core", extra = ["grpc"] },
@@ -683,7 +683,10 @@ dependencies = [
     { name = "proto-plus" },
     { name = "protobuf" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/google-cloud-pubsub/google_cloud_pubsub-2.29.1.tar.gz", hash = "sha256:5f4b0534c587394dd20538c1baeab7d4ebced789561058739555eb44d7924ce4" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/google-cloud-pubsub/google_cloud_pubsub-2.30.0.tar.gz", hash = "sha256:26975ed728d2209479f4fb2667e3b3bd70de7605abadf4b301c651c39ed83042" }
+wheels = [
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/google-cloud-pubsub/google_cloud_pubsub-2.30.0-py3-none-any.whl", hash = "sha256:bd7adabc1b79ba2220529401e34dfd72bfdbdad9132a697b4200012a49281629" },
+]
 
 [[package]]
 name = "google-cloud-webrisk"
@@ -1013,7 +1016,7 @@ requires-dist = [
     { name = "funcy", specifier = "==2.0" },
     { name = "google-api-core", specifier = "==2.25.1" },
     { name = "google-auth", specifier = "==2.40.3" },
-    { name = "google-cloud-pubsub", specifier = "==2.29.1" },
+    { name = "google-cloud-pubsub", specifier = "==2.30.0" },
     { name = "google-cloud-webrisk", specifier = "==1.18.1" },
     { name = "googleapis-common-protos", specifier = "==1.70.0" },
     { name = "graphql-core", specifier = "==3.2.6" },
