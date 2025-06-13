@@ -20,7 +20,7 @@ from openbook_polls.schema.types import Poll
 from openbook_posts.schema.types import LinkPreview, Post
 from openbook_terms.schema.types import Topic, FeedPostCategory
 from comments.models import Comment as CommentModel
-from openbook_auth.models import UserBlock as UserBlockModel
+from openbook_auth.models import User as UserModel, UserBlock as UserBlockModel
 
 
 @strawberry_django.type(FeedPostImageModel)
@@ -73,6 +73,13 @@ class FeedPost:
     def reactions(self) -> ReactionCounts:
         reactions = FeedPostReactionService().count(post_id=self.pk)
         return ReactionCounts(**reactions)
+
+    @strawberry_django.field()
+    def reactors(self) -> Optional[List[Optional[User]]]:
+        reactor_ids = (
+            FeedPostReactionModel.objects.filter(feed_post_id=self.pk).values_list("reactor", flat=True).distinct()
+        )
+        return UserModel.objects.select_related("profile").filter(id__in=reactor_ids)
 
     @strawberry_django.field()
     def my_reaction(self, info) -> ReactionCounts:
