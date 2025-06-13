@@ -634,7 +634,7 @@ wheels = [
 
 [[package]]
 name = "google-api-core"
-version = "2.25.0"
+version = "2.25.1"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "google-auth" },
@@ -643,9 +643,9 @@ dependencies = [
     { name = "protobuf" },
     { name = "requests" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/google-api-core/google_api_core-2.25.0.tar.gz", hash = "sha256:9b548e688702f82a34ed8409fb8a6961166f0b7795032f0be8f48308dff4333a" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/google-api-core/google_api_core-2.25.1.tar.gz", hash = "sha256:d2aaa0b13c78c61cb3f4282c464c046e45fbd75755683c9c525e6e8f7ed0a5e8" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/google-api-core/google_api_core-2.25.0-py3-none-any.whl", hash = "sha256:1db79d1281dcf9f3d10023283299ba38f3dc9f639ec41085968fd23e5bcf512e" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/google-api-core/google_api_core-2.25.1-py3-none-any.whl", hash = "sha256:8a2a56c1fef82987a524371f99f3bd0143702fecc670c72e600c1cda6bf8dbb7" },
 ]
 
 [package.optional-dependencies]
@@ -1011,7 +1011,7 @@ requires-dist = [
     { name = "filelock", specifier = "==3.18.0" },
     { name = "frozenlist", specifier = "==1.6.2" },
     { name = "funcy", specifier = "==2.0" },
-    { name = "google-api-core", specifier = "==2.25.0" },
+    { name = "google-api-core", specifier = "==2.25.1" },
     { name = "google-auth", specifier = "==2.40.3" },
     { name = "google-cloud-pubsub", specifier = "==2.29.1" },
     { name = "google-cloud-webrisk", specifier = "==1.18.1" },
