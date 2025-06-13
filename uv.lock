@@ -687,7 +687,7 @@ sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/go
 
 [[package]]
 name = "google-cloud-webrisk"
-version = "1.18.0"
+version = "1.18.1"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "google-api-core", extra = ["grpc"] },
@@ -695,9 +695,9 @@ dependencies = [
     { name = "proto-plus" },
     { name = "protobuf" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/google-cloud-webrisk/google_cloud_webrisk-1.18.0.tar.gz", hash = "sha256:6be85be1c859ccf68f76e2628559901c177c6ab67a30429804316434ebeca6b2" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/google-cloud-webrisk/google_cloud_webrisk-1.18.1.tar.gz", hash = "sha256:dce53188366d45f9a2a5ec825bc8a7ebe1a4567962956804f07cebe86fb52905" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/google-cloud-webrisk/google_cloud_webrisk-1.18.0-py3-none-any.whl", hash = "sha256:54ec52a25cfd747168599148eab4a970e6ec1d7ec1bfd6a301926e60edfcd52f" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/google-cloud-webrisk/google_cloud_webrisk-1.18.1-py3-none-any.whl", hash = "sha256:be38ac01508fdfa43b006bc91e64a2233b9e050d3ba75893e194d6e04f44a4d5" },
 ]
 
 [[package]]
@@ -1014,7 +1014,7 @@ requires-dist = [
     { name = "google-api-core", specifier = "==2.25.0" },
     { name = "google-auth", specifier = "==2.40.3" },
     { name = "google-cloud-pubsub", specifier = "==2.29.1" },
-    { name = "google-cloud-webrisk", specifier = "==1.18.0" },
+    { name = "google-cloud-webrisk", specifier = "==1.18.1" },
     { name = "googleapis-common-protos", specifier = "==1.70.0" },
     { name = "graphql-core", specifier = "==3.2.6" },
     { name = "grpc-google-iam-v1", specifier = "==0.14.2" },
