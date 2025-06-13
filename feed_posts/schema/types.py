@@ -75,11 +75,12 @@ class FeedPost:
         return ReactionCounts(**reactions)
 
     @strawberry_django.field()
-    def reactors(self) -> Optional[List[Optional[User]]]:
+    def reactors(self, offset: int = 0, limit: int = 10) -> Paged[User]:
         reactor_ids = (
             FeedPostReactionModel.objects.filter(feed_post_id=self.pk).values_list("reactor", flat=True).distinct()
         )
-        return UserModel.objects.select_related("profile").filter(id__in=reactor_ids)
+        reactors = UserModel.objects.select_related("profile").filter(id__in=reactor_ids)
+        return Paged.of(reactors, offset, limit)
 
     @strawberry_django.field()
     def my_reaction(self, info) -> ReactionCounts:

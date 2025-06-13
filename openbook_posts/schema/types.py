@@ -167,8 +167,9 @@ class Post:
         return ReactionCounts(**reactions)
 
     @strawberry_django.field()
-    def reactors(self) -> Optional[List[Optional[User]]]:
-        return UserModel.objects.select_related("profile").filter(post_reactions__post=self)
+    def reactors(self, offset: int = 0, limit: int = 10) -> Paged[User]:
+        reactors = UserModel.objects.select_related("profile").filter(post_reactions__post=self)
+        return Paged.of(reactors, offset, limit)
 
     @strawberry_django.field(description="Only present, when the current user reacted to this post")
     def my_reaction(self, info) -> ReactionCounts:

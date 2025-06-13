@@ -213,19 +213,19 @@ class TestPosts(TestCase):
 
         assert updated_post["myReaction"]["HEART"] == 1
         assert updated_post["reactions"]["HEART"] == 1
-        assert updated_post["reactors"][0]["id"] == str(other_user.uuid)
+        assert updated_post["reactors"]["data"][0]["id"] == str(other_user.uuid)
 
         post_data = get_post_with_id_data(post, posting_user)
         assert post_data["myReaction"]["HEART"] == 0
         assert post_data["reactions"]["HEART"] == 1
-        assert post_data["reactors"][0]["id"] == str(other_user.uuid)
+        assert post_data["reactors"]["data"][0]["id"] == str(other_user.uuid)
 
         react_to_post(post, "REMOVE", other_user)
         executed = react_to_post(post, "REMOVE", other_user)  # setting twice is same as setting once
         updated_post = executed.data["updatePostReaction"]
         assert updated_post["myReaction"]["HEART"] == 0
         assert updated_post["reactions"]["HEART"] == 0
-        assert len(updated_post["reactors"]) == 0
+        assert updated_post["reactors"]["totalResults"] == 0
 
     @patch.object(PostReactionNotification, "send")
     def test_react_to_own_post(self, mock_send_post_reaction_notification: Mock):

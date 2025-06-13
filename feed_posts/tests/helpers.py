@@ -144,7 +144,10 @@ def update_feed_post_reaction(
                     HEART
                 }
                 reactors {
-                    id
+                    totalResults
+                    data {
+                        id
+                    }
                 }
                 location
                 geolocation {
