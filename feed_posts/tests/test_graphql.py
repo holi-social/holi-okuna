@@ -598,6 +598,7 @@ class TestFeedPosts(TestCase):
 
         assert data["myReaction"] == {"HEART": 1}
         assert data["reactions"] == {"HEART": 1}
+        assert data["reactors"][0]["id"] == str(self.another_user.id)
         mock_send_post_reaction_notification.assert_called_once()
 
     def test_can_remove_reaction_to_feed_post_if_authenticated_user(self):
@@ -626,6 +627,7 @@ class TestFeedPosts(TestCase):
 
         assert data["myReaction"] == {"HEART": 0}
         assert data["reactions"] == {"HEART": 0}
+        assert len(data["reactors"]) == 0
 
     def test_can_mention_users_in_feed_post(self):
         # create feed post with 2 mentioned users
