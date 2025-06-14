@@ -1076,7 +1076,7 @@ requires-dist = [
     { name = "requests-file", specifier = "==2.1.0" },
     { name = "requests-toolbelt", specifier = "==1.0.0" },
     { name = "rest-framework-generic-relations", specifier = "==2.2.0" },
-    { name = "rq", specifier = "==2.3.3" },
+    { name = "rq", specifier = "==2.4.0" },
     { name = "rsa", specifier = "==4.9.1" },
     { name = "ruamel-yaml", specifier = "==0.18.14" },
     { name = "ruamel-yaml-clib", specifier = "==0.2.12" },
@@ -1805,15 +1805,15 @@ wheels = [
 
 [[package]]
 name = "rq"
-version = "2.3.3"
+version = "2.4.0"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "click" },
     { name = "redis" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/rq/rq-2.3.3.tar.gz", hash = "sha256:20c41c977b6f27c852a41bd855893717402bae7b8d9607dca21fe9dd55453e22" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/rq/rq-2.4.0.tar.gz", hash = "sha256:750bab5dbb7cf1ec8a0aa2ebe8949472fa58fc121afd446c7bf5f7797f5e0655" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/rq/rq-2.3.3-py3-none-any.whl", hash = "sha256:2202c4409c4c527ac4bee409867d6c02515dd110030499eb0de54c7374aee0ce" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/rq/rq-2.4.0-py3-none-any.whl", hash = "sha256:4b854d27ad0d9687b9e6f686e001a3043807694ace5340a3f9697b42c6a9c65a" },
 ]
 
 [[package]]
