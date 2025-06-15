@@ -183,11 +183,11 @@ wheels = [
 
 [[package]]
 name = "certifi"
-version = "2025.4.26"
+version = "2025.6.15"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/certifi/certifi-2025.4.26.tar.gz", hash = "sha256:0a816057ea3cdefcef70270d2c515e4506bbc954f417fa5ade2021213bb8f0c6" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/certifi/certifi-2025.6.15.tar.gz", hash = "sha256:d747aa5a8b9bbbb1bb8c22bb13e22bd1f18e9796defa16bab421f7f7a317323b" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/certifi/certifi-2025.4.26-py3-none-any.whl", hash = "sha256:30350364dfe371162649852c63336a15c70c6510c2ad5015b21c2345311805f3" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/certifi/certifi-2025.6.15-py3-none-any.whl", hash = "sha256:2e0c7ce7cb5d8f8634ca55d2ba7e6ec2689a2fd6537d8dec1296a477a4910057" },
 ]
 
 [[package]]
@@ -984,7 +984,7 @@ requires-dist = [
     { name = "black", specifier = "==25.1.0" },
     { name = "blurhash-python", specifier = "==1.2.2" },
     { name = "cachetools", specifier = "==5.5.2" },
-    { name = "certifi", specifier = "==2025.4.26" },
+    { name = "certifi", specifier = "==2025.6.15" },
     { name = "cffi", specifier = "==1.17.1" },
     { name = "charset-normalizer", specifier = "==3.4.2" },
     { name = "colorama", specifier = "==0.4.6" },
