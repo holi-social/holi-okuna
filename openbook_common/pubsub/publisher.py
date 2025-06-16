@@ -37,6 +37,7 @@ def publish_event(topic: str, event: Event) -> None:
 
         try:
             future.result(PUBLISH_TIMEOUT_SECONDS)
+            logger.debug("Published event %s", event.log_str())
         except Exception as publish_error:
             logger.error(_publish_error_msg(event, publish_error))
 

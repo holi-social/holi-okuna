@@ -35,6 +35,9 @@ class SpaceUserRemovedEvent(Event):
             event_version="1.2.0",
         )
 
+    def log_str(self) -> str:
+        return f"SpaceUserRemoved(space_id={self.data['space']['id']}, user_id={self.data['user']['id']})"
+
 
 class SpaceUserLeftEvent(Event):
     def __init__(self, user: User, space: Community):
@@ -43,6 +46,9 @@ class SpaceUserLeftEvent(Event):
             event_type="SpaceUserLeft",
             event_version="1.2.0",
         )
+
+    def log_str(self) -> str:
+        return f"SpaceUserLeft(space_id={self.data['space']['id']}, user_id={self.data['user']['id']})"
 
 
 class SpaceDeletedEvent(Event):
@@ -53,6 +59,9 @@ class SpaceDeletedEvent(Event):
             event_version="1.2.0",
         )
 
+    def log_str(self) -> str:
+        return f"SpaceDeleted(space_id={self.data['space']['id']})"
+
 
 class SpaceUserAddedEvent(Event):
     def __init__(self, user: User, space: Community):
@@ -61,6 +70,9 @@ class SpaceUserAddedEvent(Event):
             event_type="SpaceUserAdded",
             event_version="1.2.0",
         )
+
+    def log_str(self) -> str:
+        return f"SpaceUserAdded(space_id={self.data['space']['id']}, user_id={self.data['user']['id']})"
 
 
 class SpaceUpdatedEvent(Event):
@@ -71,6 +83,9 @@ class SpaceUpdatedEvent(Event):
             event_version="1.2.0",
         )
 
+    def log_str(self) -> str:
+        return f"SpaceUpdated(space_id={self.data['space']['id']}, creator_id={self.data['creator']['id']})"
+
 
 class SpaceCreatedEvent(Event):
     def __init__(self, creator: User, space: Community):
@@ -79,6 +94,9 @@ class SpaceCreatedEvent(Event):
             event_type="SpaceCreated",
             event_version="1.2.0",
         )
+
+    def log_str(self) -> str:
+        return f"SpaceCreated(space_id={self.data['space']['id']}, creator_id={self.data['creator']['id']})"
 
 
 def task_to_event_payload(task: Task) -> Dict[str, Any]:
@@ -116,6 +134,9 @@ class TaskCreatedEvent(Event):
             event_version="1.0.0",
         )
 
+    def log_str(self) -> str:
+        return f"TaskCreated(space_id={self.data['space']['id']}, user_id={self.data['user']['id']}, task_id={self.data['task']['id']})"
+
 
 class TaskUpdatedEvent(Event):
     def __init__(self, user: User, task: Task):
@@ -129,6 +150,9 @@ class TaskUpdatedEvent(Event):
             event_version="1.0.0",
         )
 
+    def log_str(self) -> str:
+        return f"TaskUpdated(space_id={self.data['space']['id']}, user_id={self.data['user']['id']}, task_id={self.data['task']['id']})"
+
 
 class TaskDeletedEvent(Event):
     def __init__(self, user: User, task: Task):
@@ -141,6 +165,9 @@ class TaskDeletedEvent(Event):
             event_type="TaskDeleted",
             event_version="1.0.0",
         )
+
+    def log_str(self) -> str:
+        return f"TaskDeleted(space_id={self.data['space']['id']}, user_id={self.data['user']['id']}, task_id={self.data['task']['id']})"
 
 
 def publish_space_created_event(community: Community):
