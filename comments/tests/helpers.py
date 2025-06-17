@@ -145,6 +145,12 @@ def add_reaction_to_comment(comment, posting_user):
                 reactions {
                     HEART
                 }
+                reactors {
+                    totalResults
+                    data {
+                        id
+                    }
+                }
             }
         }
         """,
@@ -168,6 +174,12 @@ def remove_reaction_from_comment(comment, posting_user):
                 }
                 reactions {
                     HEART
+                }
+                reactors {
+                    totalResults
+                    data {
+                        id
+                    }
                 }
             }
         }

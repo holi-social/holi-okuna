@@ -257,16 +257,20 @@ class TestPostComments(TestCase):
 
         assert updated_post_comment["myReaction"]["HEART"] == 1
         assert updated_post_comment["reactions"]["HEART"] == 1
+        assert updated_post_comment["reactors"]["totalResults"] == 1
+        assert updated_post_comment["reactors"]["data"][0]["id"] == str(posting_user.id)
 
         post_data = get_post(post, other_user)
         assert post_data["comments"][0]["myReaction"]["HEART"] == 0
         assert post_data["comments"][0]["reactions"]["HEART"] == 1
+        assert post_data["comments"][0]["reactors"]["totalResults"] == 1
 
         react_to_post_comment(comment, "REMOVE", posting_user)
         executed = react_to_post_comment(comment, "REMOVE", posting_user)  # setting twice is same as setting once
         updated_post_comment = executed.data["updatePostCommentReaction"]
         assert updated_post_comment["myReaction"]["HEART"] == 0
         assert updated_post_comment["reactions"]["HEART"] == 0
+        assert updated_post_comment["reactors"]["totalResults"] == 0
 
     @patch.object(CommentReactionNotification, "send")
     def test_should_be_able_to_react_to_own_comment(self, mock_send_comment_reaction_notification):
@@ -288,6 +292,8 @@ class TestPostComments(TestCase):
 
         assert updated_post_comment["myReaction"]["HEART"] == 1
         assert updated_post_comment["reactions"]["HEART"] == 1
+        assert updated_post_comment["reactors"]["totalResults"] == 1
+        assert updated_post_comment["reactors"]["data"][0]["id"] == str(posting_user.id)
 
 
 @pytest.mark.usefixtures("mock_novu_api")
@@ -455,6 +461,9 @@ class TestReactingToComments(TestCase):
         updated_comment = response.data["addReactionToComment"]
         assert updated_comment["myReaction"]["HEART"] == 1
         assert updated_comment["reactions"]["HEART"] == 2
+        assert updated_comment["reactors"]["totalResults"] == 2
+        assert updated_comment["reactors"]["data"][0]["id"] == str(commenter.id)
+        assert updated_comment["reactors"]["data"][1]["id"] == str(other_user.id)
 
     def test_should_be_able_to_remove_a_reaction_to_a_comment(self):
         comment = make_space_post_comment()
@@ -469,6 +478,8 @@ class TestReactingToComments(TestCase):
         updated_comment = response.data["removeReactionFromComment"]
         assert updated_comment["myReaction"]["HEART"] == 0
         assert updated_comment["reactions"]["HEART"] == 1
+        assert updated_comment["reactors"]["totalResults"] == 1
+        assert updated_comment["reactors"]["data"][0]["id"] == str(other_user.id)
 
 
 @pytest.mark.usefixtures("mock_novu_api")
