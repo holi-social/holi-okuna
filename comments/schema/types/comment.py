@@ -5,13 +5,14 @@ from typing import List, Optional
 import strawberry
 import strawberry_django
 
-from comments.models import Comment as CommentModel
+from comments.models import Comment as CommentModel, CommentReaction
 from comments.models import CommentReaction as CommentReactionModel
 from comments.types import CommentableType
 from openbook_auth.schema.types import User
 from openbook_common.enums import ReactionType
-from openbook_common.schema.types import ReactionCounts
+from openbook_common.schema.types import ReactionCounts, Paged
 from openbook_posts.schema.types import LinkPreview
+from openbook_auth.models import User as UserModel
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,14 @@ class Comment:
     @strawberry_django.field()
     def reactions(self, info) -> ReactionCounts:
         return ReactionCounts(**self.reaction_counts_by_type())
+
+    @strawberry_django.field()
+    def reactors(self, offset: int = 0, limit: int = 10) -> Paged[User]:
+        reactor_ids = (
+            CommentReaction.objects.filter(post_comment_id=self.pk).values_list("reactor", flat=True).distinct()
+        )
+        reactors = UserModel.objects.select_related("profile").filter(id__in=reactor_ids)
+        return Paged.of(reactors, offset, limit)
 
     @strawberry_django.field()
     def my_reaction(self, info) -> ReactionCounts:
