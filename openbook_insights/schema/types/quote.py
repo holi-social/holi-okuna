@@ -1,7 +1,9 @@
 import strawberry
 import strawberry_django
 
-from openbook_common.schema.types import ReactionCounts
+from openbook_auth.models import User as UserModel
+from openbook_auth.schema.types import User
+from openbook_common.schema.types import ReactionCounts, Paged
 from openbook_common.types import ReactableType
 from openbook_insights.models import Quote as QuoteModel, QuoteReaction as QuoteReactionModel
 from openbook_posts.schema.types import LinkPreview
@@ -29,6 +31,12 @@ class Quote:
         else:
             reactions = current_user.get_reactions_count(reactable_type=ReactableType.QUOTE, reactable_id=self.pk)
         return ReactionCounts(**reactions)
+
+    @strawberry_django.field()
+    def reactors(self, offset: int = 0, limit: int = 10) -> Paged[User]:
+        reactor_ids = QuoteReactionModel.objects.filter(quote__id=self.pk).values_list("reactor", flat=True).distinct()
+        reactors = UserModel.objects.select_related("profile").filter(id__in=reactor_ids)
+        return Paged.of(reactors, offset, limit)
 
     @strawberry_django.field()
     def my_reaction(self, info) -> ReactionCounts:
