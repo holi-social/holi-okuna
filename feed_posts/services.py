@@ -9,7 +9,7 @@ from openbook_common.models import LinkPreview
 from openbook_common.tracking import TrackingEvent, track
 from openbook_common.utils.helpers import extract_usernames_from_string
 from openbook_notifications.services import NotificationsService
-from openbook_terms.models import FeedPostCategory, Topic
+from openbook_terms.models import FeedPostCategory
 
 
 class FeedPostService:
@@ -59,8 +59,6 @@ class FeedPostService:
             aspect_ratio=aspect_ratio,
         )
 
-        selected_topics = Topic.objects.filter(slug__in=topics_v2).values_list("slug", flat=True) if topics_v2 else []
-
         self.mention_service.add_mentions(post_id=post.id, description=description, creator=creator)
 
         track(
@@ -74,7 +72,7 @@ class FeedPostService:
                     "images": 0 if images is None else len(images),
                     "topics": len(topic_ids or topics_v2 or []),
                     "categoryId": category.title if category else None,
-                    "selectedTopics": selected_topics,
+                    "selectedTopics": topics_v2,
                     "account": creator.profile.full_name(),
                 },
             ),
