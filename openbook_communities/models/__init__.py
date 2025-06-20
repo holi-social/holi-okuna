@@ -1377,14 +1377,14 @@ class Task(ModelWithUUID):
     @staticmethod
     def is_visible_query(user, prefix=None):
         pQ = PrefixedQ(prefix)
-        space_not_moderated = pQ(community__is_deleted=False)
+        space_not_deleted = pQ(community__is_deleted=False)
         not_deleted = pQ(deleted_at=None)
 
         if user.is_anonymous:
-            return space_not_moderated & not_deleted & pQ(visibility=VisibilityType.PUBLIC)
+            return space_not_deleted & not_deleted & pQ(visibility=VisibilityType.PUBLIC)
 
         return (
-            space_not_moderated
+            space_not_deleted
             & not_deleted
             & (pQ(visibility=VisibilityType.PUBLIC) | pQ(community__memberships__user__id=user.id))
         )
@@ -1517,6 +1517,12 @@ class Task(ModelWithUUID):
 
         self.save()
         return self
+
+    @classmethod
+    def private_task_ids_of_community(cls, community: Community):
+        return list(
+            cls.objects.filter(community=community, visibility=VisibilityType.MEMBERS).values_list("id", flat=True),
+        )
 
     def soft_delete(self, save: bool = True) -> None:
         if self.is_deleted:

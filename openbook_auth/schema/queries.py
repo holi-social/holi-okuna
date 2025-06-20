@@ -15,7 +15,6 @@ from openbook_auth.schema.types import User, AuthenticatedUser
 from openbook_auth.utils import verify_authorized_user, check_max_limit
 from openbook_common.validators import string_not_empty
 from openbook_common.schema.types import Paged
-from openbook_insights.schema.types import Insight
 
 logger = structlog.get_logger(__name__)
 
@@ -127,11 +126,3 @@ class Query:
         verify_authorized_user(info)
         user = UserModel.objects.get(username=user_id)
         return get_ordered_user_connections(circle_id=user.connections_circle_id, offset=offset, limit=limit)
-
-    @strawberry_django.field(
-        deprecation_reason="This query is deprecated. Please switch to using the 'favorites' query instead."
-    )
-    def favorite_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
-        current_user = verify_authorized_user(info)
-
-        return Paged.of(current_user.profile.favorite_insights.all(), offset, limit)
