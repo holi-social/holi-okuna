@@ -18,6 +18,8 @@ from django.utils import timezone
 from faker import Faker
 from strawberry.types import ExecutionResult
 
+import favorites
+from favorites.models import UserFavorite as UserFavoriteModel, FavoritableType
 from openbook.graphql_schema import schema
 from openbook.tests.test_data import geolocation_geometry
 from openbook_common.enums import VisibilityType
@@ -32,6 +34,9 @@ from openbook_common.tests.helpers import (
     assert_is_forbidden,
     assert_is_404,
 )
+from openbook_communities.enums import UpdateConnectionAction
+from openbook_communities.models import SpaceUserConnectionType
+from openbook_communities.tests.helpers import mutate_update_space_user_connection_data
 
 logger = logging.getLogger(__name__)
 
@@ -1468,6 +1473,172 @@ class TestTasks:
             assert str(expired_task.id) in response_task_ids
         else:
             assert str(expired_task.id) not in response_task_ids
+
+
+@pytest.mark.django_db
+class TestTaskFavorites:
+    @mock.patch("openbook_communities.schema.mutations.publish_task_updated_event")
+    def test_updating_a_public_task_leaves_favorites(self, _):
+        user = make_user()
+
+        community = make_community(creator=user)
+        task = make_community_task(community, visibility=VisibilityType.PUBLIC)
+        [skill] = make_skills(1)
+        UserFavoriteModel.favorite(user=user, favoritable_id=task.id, favoritable_type=FavoritableType.TASK)
+
+        assert favorites.models.UserFavorite.objects.filter(user=user).count() == 1
+
+        update_task_mutation = """
+            mutation test($input: UpdateTaskInput!) {
+                updateTask(input: $input) {
+                    id
+                }
+            }
+            """
+
+        update_input = {
+            "visibility": "PUBLIC",
+            "taskId": str(task.id),
+            "spaceId": str(community.id),
+            "name": task.name,
+            "description": task.description,
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
+        }
+
+        async_to_sync(schema.execute)(
+            update_task_mutation,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"input": update_input},
+        )
+
+        assert favorites.models.UserFavorite.objects.filter(user=user).count() == 1
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_updated_event")
+    def test_updating_a_favorited_task_to_be_private_removes_its_favorites(self, _):
+        user = make_user()
+
+        community = make_community(creator=user)
+        task = make_community_task(community, visibility=VisibilityType.PUBLIC)
+        [skill] = make_skills(1)
+        UserFavoriteModel.favorite(user=user, favoritable_id=task.id, favoritable_type=FavoritableType.TASK)
+
+        assert favorites.models.UserFavorite.objects.filter(user=user).count() == 1
+
+        update_task_mutation = """
+            mutation test($input: UpdateTaskInput!) {
+                updateTask(input: $input) {
+                    id
+                }
+            }
+            """
+
+        update_input = {
+            "visibility": "MEMBERS",
+            "taskId": str(task.id),
+            "spaceId": str(community.id),
+            "name": task.name,
+            "description": task.description,
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
+        }
+
+        async_to_sync(schema.execute)(
+            update_task_mutation,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"input": update_input},
+        )
+
+        assert favorites.models.UserFavorite.objects.filter(user=user).count() == 0
+
+
+@pytest.mark.django_db
+class TestTaskFavoriteCommunityMembershipChanges:
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        self.user = make_user()
+        self.space_owner = make_user()
+        self.space = make_community(creator=self.space_owner)
+
+    def test_leaving_a_space_removes_private_task_favorite(self):
+        self.space.add_member(self.user)
+        task = make_community_task(self.space, user=self.user, visibility=VisibilityType.MEMBERS)
+        UserFavoriteModel.favorite(user=self.user, favoritable_id=task.id, favoritable_type=FavoritableType.TASK)
+
+        assert favorites.models.UserFavorite.objects.filter(user=self.user).count() == 1
+
+        mutate_update_space_user_connection_data(
+            auth_user=self.user,
+            space_id=self.space.id,
+            connection_type=SpaceUserConnectionType.MEMBER,
+            connect_action=UpdateConnectionAction.LEAVE_SPACE,
+        )
+
+        assert favorites.models.UserFavorite.objects.filter(user=self.user).count() == 0
+
+    def test_leaving_a_space_leaves_public_task_favorite(self):
+        self.space.add_member(self.user)
+        task = make_community_task(self.space, user=self.user, visibility=VisibilityType.PUBLIC)
+        UserFavoriteModel.favorite(user=self.user, favoritable_id=task.id, favoritable_type=FavoritableType.TASK)
+
+        assert favorites.models.UserFavorite.objects.filter(user=self.user).count() == 1
+
+        mutate_update_space_user_connection_data(
+            auth_user=self.user,
+            space_id=self.space.id,
+            connection_type=SpaceUserConnectionType.MEMBER,
+            connect_action=UpdateConnectionAction.LEAVE_SPACE,
+        )
+
+        assert favorites.models.UserFavorite.objects.filter(user=self.user).count() == 1
+
+    def test_kicking_a_member_removes_their_private_task_favorites(self):
+        self.space.add_member(self.user)
+        task = make_community_task(self.space, user=self.user, visibility=VisibilityType.MEMBERS)
+        UserFavoriteModel.favorite(user=self.user, favoritable_id=task.id, favoritable_type=FavoritableType.TASK)
+
+        assert favorites.models.UserFavorite.objects.filter(user=self.user).count() == 1
+
+        mutate_update_space_user_connection_data(
+            auth_user=self.space_owner,
+            space_id=self.space.id,
+            user_id=self.user.id,
+            connection_type=SpaceUserConnectionType.ADMINISTRATOR,
+            connect_action=UpdateConnectionAction.REMOVE_MEMBER,
+        )
+
+        assert favorites.models.UserFavorite.objects.filter(user=self.user).count() == 0
+
+    def test_kicking_a_member_leaves_their_public_task_favorites(self):
+        self.space.add_member(self.user)
+        task = make_community_task(self.space, user=self.user, visibility=VisibilityType.PUBLIC)
+        UserFavoriteModel.favorite(user=self.user, favoritable_id=task.id, favoritable_type=FavoritableType.TASK)
+
+        assert favorites.models.UserFavorite.objects.filter(user=self.user).count() == 1
+
+        mutate_update_space_user_connection_data(
+            auth_user=self.space_owner,
+            space_id=self.space.id,
+            user_id=self.user.id,
+            connection_type=SpaceUserConnectionType.ADMINISTRATOR,
+            connect_action=UpdateConnectionAction.REMOVE_MEMBER,
+        )
+
+        assert favorites.models.UserFavorite.objects.filter(user=self.user).count() == 1
 
 
 @pytest.mark.django_db
