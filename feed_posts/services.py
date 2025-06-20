@@ -6,7 +6,6 @@ from feed_posts.repositories import FeedPostReactionRepository, FeedPostReposito
 from openbook_auth.models import User
 from openbook_common.helpers import extract_urls_from_string
 from openbook_common.models import LinkPreview
-from openbook_common.topics import TopicV2
 from openbook_common.tracking import TrackingEvent, track
 from openbook_common.utils.helpers import extract_usernames_from_string
 from openbook_notifications.services import NotificationsService
