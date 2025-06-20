@@ -6,10 +6,11 @@ from feed_posts.repositories import FeedPostReactionRepository, FeedPostReposito
 from openbook_auth.models import User
 from openbook_common.helpers import extract_urls_from_string
 from openbook_common.models import LinkPreview
+from openbook_common.topics import TopicV2
 from openbook_common.tracking import TrackingEvent, track
 from openbook_common.utils.helpers import extract_usernames_from_string
 from openbook_notifications.services import NotificationsService
-from openbook_terms.models import FeedPostCategory
+from openbook_terms.models import FeedPostCategory, Topic
 
 
 class FeedPostService:
@@ -59,6 +60,8 @@ class FeedPostService:
             aspect_ratio=aspect_ratio,
         )
 
+        selected_topics = Topic.objects.filter(id__in=topic_ids).values_list("slug", flat=True) if topic_ids else []
+
         self.mention_service.add_mentions(post_id=post.id, description=description, creator=creator)
 
         track(
@@ -71,6 +74,9 @@ class FeedPostService:
                     "categories": 0 if category is None else 1,
                     "images": 0 if images is None else len(images),
                     "topics": len(topic_ids or topics_v2 or []),
+                    "categoryId": category.title if category else None,
+                    "selectedTopics": selected_topics,
+                    "account": creator.profile.full_name(),
                 },
             ),
         )
