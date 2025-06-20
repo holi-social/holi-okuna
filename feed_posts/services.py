@@ -59,7 +59,7 @@ class FeedPostService:
             aspect_ratio=aspect_ratio,
         )
 
-        selected_topics = Topic.objects.filter(id__in=topics_v2).values_list("slug", flat=True) if topics_v2 else []
+        selected_topics = Topic.objects.filter(slug__in=topics_v2).values_list("slug", flat=True) if topics_v2 else []
 
         self.mention_service.add_mentions(post_id=post.id, description=description, creator=creator)
 
