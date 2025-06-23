@@ -141,6 +141,6 @@ schema = HoliSchema(
         DjangoOptimizerExtension,
         GraphQLErrorExtension,
         HoliSentryTracingExtension,
-        QueryDepthLimiter(max_depth=5),
+        QueryDepthLimiter(max_depth=6),
     ],
 )
