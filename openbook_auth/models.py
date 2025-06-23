@@ -85,7 +85,6 @@ from openbook_common.utils.model_loaders import (
     get_notification_model,
     get_task_model,
     get_poll_model,
-    get_insight_model,
     get_quote_reaction_model,
     get_recommendation_reaction_model,
     get_initiative_reaction_model,

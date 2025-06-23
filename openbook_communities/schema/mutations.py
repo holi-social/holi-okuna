@@ -7,7 +7,10 @@ from asgiref.sync import sync_to_async
 from django.db import transaction
 from graphql import GraphQLError
 
+from django.contrib.contenttypes.models import ContentType as ContentTypeModel
+from favorites.models import UserFavorite as UserFavoriteModel, FavoritableType
 from openbook.graphql_errors import GraphQLErrorCodes
+from openbook_common.enums import VisibilityType
 from openbook_common.utils.model_loaders import get_community_model
 from openbook_communities.events import (
     publish_space_created_event,
@@ -86,6 +89,8 @@ class Mutation:
 
         ConnectionType = SpaceUserConnectionType
         Action = UpdateConnectionAction
+        UserFavorite = UserFavoriteModel
+        Task = TaskModel
 
         invalidate_discover_spaces_query_cache()
 
@@ -118,6 +123,9 @@ class Mutation:
                     # Remove the user as the organizer of the appointments they have created in this space
                     community_to_leave.appointments.filter(creator=current_user).update(creator=None)
                     community_to_leave.delete_pending_notifications_for_user(current_user.username)
+                    UserFavorite.delete_multiple_favorites_of_user(
+                        Task.private_task_ids_of_community(community=community_to_leave), current_user
+                    )
                     publish_space_user_left_event(user=current_user, community=community_to_leave)
                     return community_to_leave
                 case _:
@@ -156,6 +164,9 @@ class Mutation:
                     space.delete_pending_notifications_for_user(user_id)
                     community = current_user.remove_member_from_community(user_id, space.name)
                     user_to_remove = UserModel.objects.get(username=user_id)
+                    UserFavorite.delete_multiple_favorites_of_user(
+                        Task.private_task_ids_of_community(community=community), user_to_remove
+                    )
                     publish_space_user_removed_event(user=user_to_remove, community=community)
                     return community
                 case _:
@@ -351,6 +362,11 @@ class Mutation:
         duration = data.get("duration", TaskModel.Duration.INDETERMINATE)
         interaction_type = data.get("interaction_type", TaskModel.InteractionType.CHAT)
 
+        initial_task_visibility = TaskModel.objects.get(id=task_id).visibility
+        update_makes_task_private = (
+            initial_task_visibility == VisibilityType.PUBLIC and data.get("visibility") != VisibilityType.PUBLIC
+        )
+
         with transaction.atomic():
             task = current_user.update_task(
                 task_id=task_id,
@@ -382,6 +398,10 @@ class Mutation:
             current_user,
             TrackingEvent("taskUpdated", {"spaceId": str(space_id), "taskId": str(task.id)}),
         )
+
+        if update_makes_task_private:
+            task_content_type = ContentTypeModel.objects.filter(model=FavoritableType.TASK).first()
+            UserFavoriteModel.objects.filter(favoritable_id=task_id, favoritable_type=task_content_type.id).delete()
 
         return task
 
