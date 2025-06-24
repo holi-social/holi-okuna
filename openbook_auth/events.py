@@ -27,6 +27,9 @@ class UserUpdatedEvent(Event):
             event_version="1.1.0",
         )
 
+    def log_str(self) -> str:
+        return f"UserUpdated(user_id={self.data['user']['id']})"
+
 
 class UserNameUpdatedEvent(Event):
     def __init__(self, user: User):
@@ -35,6 +38,9 @@ class UserNameUpdatedEvent(Event):
             event_type="UserNameUpdated",
             event_version="1.1.0",
         )
+
+    def log_str(self) -> str:
+        return f"UserNameUpdated(user_id={self.data['user']['id']})"
 
 
 class UserEmailUpdatedEvent(Event):
@@ -45,6 +51,9 @@ class UserEmailUpdatedEvent(Event):
             event_version="1.1.0",
         )
 
+    def log_str(self) -> str:
+        return f"UserEmailUpdated(user_id={self.data['user']['id']})"
+
 
 class UserDeletedEvent(Event):
     def __init__(self, user: User):
@@ -53,6 +62,9 @@ class UserDeletedEvent(Event):
             event_type="UserDeleted",
             event_version="1.1.0",
         )
+
+    def log_str(self) -> str:
+        return f"UserDeleted(user_id={self.data['user']['id']})"
 
 
 def publish_user_deleted_event(user: User):

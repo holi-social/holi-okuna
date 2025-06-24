@@ -1,6 +1,9 @@
 variables:
   PIP_CACHE_DIR: '$CI_PROJECT_DIR/.cache/pip' # Change pip's cache directory to be inside the project directory since we can only cache local items.
   API_DOMAIN_PATH: '$CI_PROJECT_DIR/api_domain'
+  UV_INDEX_URL: "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/"
+  PIP_INDEX_URL: "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/"
+  PIP_TRUSTED_HOST: "europe-north1-python.pkg.dev"
 
 .uv_cache_rw:
   policy: pull-push
@@ -153,7 +156,7 @@ review_smoketest:
 review_destroy:
   stage: destroy
   image:
-    name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/hashicorp/terraform:1.12.1'
+    name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/hashicorp/terraform:1.12.2'
     # default entrypoint is terraform command, but we want to run shell scripts
     entrypoint: ['/bin/sh', '-c']
   variables:

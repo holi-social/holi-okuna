@@ -71,6 +71,9 @@ class FeedPostService:
                     "categories": 0 if category is None else 1,
                     "images": 0 if images is None else len(images),
                     "topics": len(topic_ids or topics_v2 or []),
+                    "categoryId": category.title if category else None,
+                    "selectedTopics": topics_v2,
+                    "account": creator.profile.full_name(),
                 },
             ),
         )

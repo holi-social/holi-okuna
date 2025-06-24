@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime, timedelta
 from typing import List, Optional
 
 import strawberry
@@ -12,10 +11,9 @@ from django.db.models.lookups import IContains
 from openbook_auth.models import User as UserModel, UserBlock as UserBlockModel
 from openbook_auth.schema.helpers import get_ordered_user_connections
 from openbook_auth.schema.types import User, AuthenticatedUser
-from openbook_auth.utils import verify_authorized_user, check_max_limit
+from openbook_auth.utils import verify_authorized_user
 from openbook_common.validators import string_not_empty
 from openbook_common.schema.types import Paged
-from openbook_insights.schema.types import Insight
 
 logger = structlog.get_logger(__name__)
 
@@ -97,21 +95,6 @@ class Query:
         return Paged(by_first_name + by_full_name, total_results)
 
     @strawberry_django.field()
-    def user_suggestions(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
-        current_user = verify_authorized_user(info)
-        limit = check_max_limit(20, offset, limit)
-        query = (
-            UserModel.objects.select_related("profile")
-            .filter(UserModel.is_visible_ignore_blocked_query())
-            .filter(date_joined__lte=datetime.now() - timedelta(hours=1))
-            .order_by("-date_joined", "profile__id")
-        )
-        if current_user.id:
-            query = query.exclude(id=current_user.id)
-
-        return UserBlockModel.paged(current_user, lambda user: user.id, query, offset, limit)
-
-    @strawberry_django.field()
     def connected_users(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
         current_user = verify_authorized_user(info)
 
@@ -127,11 +110,3 @@ class Query:
         verify_authorized_user(info)
         user = UserModel.objects.get(username=user_id)
         return get_ordered_user_connections(circle_id=user.connections_circle_id, offset=offset, limit=limit)
-
-    @strawberry_django.field(
-        deprecation_reason="This query is deprecated. Please switch to using the 'favorites' query instead."
-    )
-    def favorite_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
-        current_user = verify_authorized_user(info)
-
-        return Paged.of(current_user.profile.favorite_insights.all(), offset, limit)

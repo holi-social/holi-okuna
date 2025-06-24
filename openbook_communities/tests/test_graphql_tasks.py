@@ -1,8 +1,6 @@
 import copy
 import json
 import logging
-from datetime import timedelta
-from typing import Callable
 from uuid import uuid4
 from unittest import mock
 
@@ -10,16 +8,13 @@ import pytest
 from asgiref.sync import async_to_sync
 from benedict import benedict
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.gis import geos
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.test import AsyncClient
-from django.utils import timezone
-from faker import Faker
-from strawberry.types import ExecutionResult
 
+import favorites
+from favorites.models import UserFavorite as UserFavoriteModel, FavoritableType
 from openbook.graphql_schema import schema
-from openbook.tests.test_data import geolocation_geometry
 from openbook_common.enums import VisibilityType
 from openbook_common.tests.helpers import (
     assert_is_unauthorized,
@@ -32,6 +27,9 @@ from openbook_common.tests.helpers import (
     assert_is_forbidden,
     assert_is_404,
 )
+from openbook_communities.enums import UpdateConnectionAction
+from openbook_communities.models import SpaceUserConnectionType
+from openbook_communities.tests.helpers import mutate_update_space_user_connection_data
 
 logger = logging.getLogger(__name__)
 
@@ -1332,361 +1330,168 @@ class TestTasks:
         assert str(deleted_task.id) not in [task["id"] for task in response.data["spaceById"]["tasks"]]
         assert len(response.data["spaceById"]["tasks"]) == 1
 
-    class FilterExpiredTasksTestData:
-        via_space_id = (
-            """ 
-                query Space($spaceId: String!) {
-                    spaceById(idOrName: $spaceId) {
-                        id
-                        tasks {
-                            id
-                        }
-                    }
-                }
-            """,
-            lambda resp: [task["id"] for task in resp.data["spaceById"]["tasks"]],
-        )
 
-        tasks_by_space_id = (
-            """
-                query Space($spaceId: UUID!) {
-                    tasksBySpaceId(spaceId: $spaceId) {
-                        data {
-                            id
-                        }
-                    }
-                }
-            """,
-            lambda resp: [task["id"] for task in resp.data["tasksBySpaceId"]["data"]],
-        )
-
-        recommended_tasks = (
-            """
-                query RecommendedTasks {
-                    recommendedTasks {
-                        data {
-                            id
-                        }
-                    }
-                }
-            """,
-            lambda resp: [task["id"] for task in resp.data["recommendedTasks"]["data"]],
-        )
-
-    @pytest.mark.parametrize(
-        "query,task_ids_from_response,request_with,should_contain_expired",
-        [
-            pytest.param(*FilterExpiredTasksTestData.via_space_id, "ANON", False, id="via_space_id_anon_no_expired"),
-            pytest.param(*FilterExpiredTasksTestData.via_space_id, "USER", False, id="via_space_id_user_no_expired"),
-            pytest.param(
-                *FilterExpiredTasksTestData.via_space_id, "ADMIN", True, id="via_space_id_admin_include_expired"
-            ),
-            pytest.param(
-                *FilterExpiredTasksTestData.tasks_by_space_id, "ANON", False, id="tasks_by_space_id_anon_no_expired"
-            ),
-            pytest.param(
-                *FilterExpiredTasksTestData.tasks_by_space_id, "USER", False, id="tasks_by_space_id_user_no_expired"
-            ),
-            pytest.param(
-                *FilterExpiredTasksTestData.tasks_by_space_id,
-                "ADMIN",
-                True,
-                id="tasks_by_space_id_admin_include_expired",
-            ),
-            pytest.param(
-                *FilterExpiredTasksTestData.recommended_tasks,
-                "ANON",
-                False,
-                id="recommended_tasks_anon_no_expired",
-            ),
-            pytest.param(
-                *FilterExpiredTasksTestData.recommended_tasks,
-                "USER",
-                False,
-                id="recommended_tasks_user_no_expired",
-            ),
-            pytest.param(
-                *FilterExpiredTasksTestData.recommended_tasks,
-                "ADMIN",
-                False,
-                id="recommended_tasks_admin_no_expired",
-            ),
-        ],
-    )
-    def test_expired_tasks_are_filtered_correctly_on_lists(
-        self,
-        query: str,
-        request_with: str,
-        task_ids_from_response: Callable[[ExecutionResult], list[str]],
-        should_contain_expired: bool,
-    ):
-        """
-        Given: we have a space with an expired task and a current task
-        When: we run a query fetching tasks
-        Then: we verify that the business rules regarding filtering out expired tasks are kept
-        """
+@pytest.mark.django_db
+class TestTaskFavorites:
+    @mock.patch("openbook_communities.schema.mutations.publish_task_updated_event")
+    def test_updating_a_public_task_leaves_favorites(self, _):
         user = make_user()
-        space = make_community(creator=user)
 
-        timeframe_start_date = timezone.now() - timedelta(days=7)
-        timeframe_end_date_future = timezone.now() + timedelta(days=3)
-        timeframe_end_date_past = timezone.now() - timedelta(days=1)
+        community = make_community(creator=user)
+        task = make_community_task(community, visibility=VisibilityType.PUBLIC)
+        [skill] = make_skills(1)
+        UserFavoriteModel.favorite(user=user, favoritable_id=task.id, favoritable_type=FavoritableType.TASK)
 
-        current_task = make_community_task(
-            space,
-            visibility=VisibilityType.PUBLIC,
-            timeframe_start_date=timeframe_start_date,
-            timeframe_end_date=timeframe_end_date_future,
+        assert favorites.models.UserFavorite.objects.filter(user=user).count() == 1
+
+        update_task_mutation = """
+            mutation test($input: UpdateTaskInput!) {
+                updateTask(input: $input) {
+                    id
+                }
+            }
+            """
+
+        update_input = {
+            "visibility": "PUBLIC",
+            "taskId": str(task.id),
+            "spaceId": str(community.id),
+            "name": task.name,
+            "description": task.description,
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
+        }
+
+        async_to_sync(schema.execute)(
+            update_task_mutation,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"input": update_input},
         )
 
-        expired_task = make_community_task(
-            space,
-            visibility=VisibilityType.PUBLIC,
-            timeframe_start_date=timeframe_start_date,
-            timeframe_end_date=timeframe_end_date_past,
+        assert favorites.models.UserFavorite.objects.filter(user=user).count() == 1
+
+    @mock.patch("openbook_communities.schema.mutations.publish_task_updated_event")
+    def test_updating_a_favorited_task_to_be_private_removes_its_favorites(self, _):
+        user = make_user()
+
+        community = make_community(creator=user)
+        task = make_community_task(community, visibility=VisibilityType.PUBLIC)
+        [skill] = make_skills(1)
+        UserFavoriteModel.favorite(user=user, favoritable_id=task.id, favoritable_type=FavoritableType.TASK)
+
+        assert favorites.models.UserFavorite.objects.filter(user=user).count() == 1
+
+        update_task_mutation = """
+            mutation test($input: UpdateTaskInput!) {
+                updateTask(input: $input) {
+                    id
+                }
+            }
+            """
+
+        update_input = {
+            "visibility": "MEMBERS",
+            "taskId": str(task.id),
+            "spaceId": str(community.id),
+            "name": task.name,
+            "description": task.description,
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "duration": "INDETERMINATE",
+            "interactionType": "CHAT",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
+        }
+
+        async_to_sync(schema.execute)(
+            update_task_mutation,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"input": update_input},
         )
 
-        match request_with:
-            case "ANON":
-                request_user = AnonymousUser
-            case "ADMIN":
-                request_user = user
-            case _:
-                request_user = make_user()
-
-        response = async_to_sync(schema.execute)(
-            query,
-            variable_values={"spaceId": str(space.id)},
-            context_value=benedict({"request": {"user": request_user}}),
-        )
-        response_task_ids = task_ids_from_response(response)
-
-        assert response.errors is None
-        assert str(current_task.id) in response_task_ids
-
-        if should_contain_expired:
-            assert str(expired_task.id) in response_task_ids
-        else:
-            assert str(expired_task.id) not in response_task_ids
+        assert favorites.models.UserFavorite.objects.filter(user=user).count() == 0
 
 
 @pytest.mark.django_db
-class TestTaskRecommendations:
+class TestTaskFavoriteCommunityMembershipChanges:
     @pytest.fixture(autouse=True)
     def setup(self):
-        self.fake = Faker()
         self.user = make_user()
         self.space_owner = make_user()
         self.space = make_community(creator=self.space_owner)
-        self.space_deleted_owner = make_user()
-        self.space_deleted = make_community(creator=self.space_deleted_owner, is_deleted=True)
 
-    def create_task(self, skills, location_type, geolocation=None, visibility=VisibilityType.PUBLIC, space=None):
-        if space is None:
-            space = self.space
-        return space.creator.create_task(
-            geolocation=geolocation,
-            skills=skills,
-            location_type=location_type,
-            visibility=visibility,
-            space_id=space.id,
-            name=self.fake.text(max_nb_chars=20),
-            description=self.fake.text(max_nb_chars=20),
-            slots_available=3,
-            contact_email="some@email.de",
-            regularity="ONE_TIME",
-            duration="INDETERMINATE",
-            interaction_type="CHAT",
+    def test_leaving_a_space_removes_private_task_favorite(self):
+        self.space.add_member(self.user)
+        task = make_community_task(self.space, user=self.user, visibility=VisibilityType.MEMBERS)
+        UserFavoriteModel.favorite(user=self.user, favoritable_id=task.id, favoritable_type=FavoritableType.TASK)
+
+        assert favorites.models.UserFavorite.objects.filter(user=self.user).count() == 1
+
+        mutate_update_space_user_connection_data(
+            auth_user=self.user,
+            space_id=self.space.id,
+            connection_type=SpaceUserConnectionType.MEMBER,
+            connect_action=UpdateConnectionAction.LEAVE_SPACE,
         )
 
-    def assert_filtered_tasks(self, filter_options, expected_spaces, total_results=None):
-        def transform_space(space):
-            return {"id": str(space.id)}
+        assert favorites.models.UserFavorite.objects.filter(user=self.user).count() == 0
 
-        recommended_tasks_query = """
-            query MyQuery($limit: Int, $offset: Int) {
-                recommendedTasks(limit: $limit, offset: $offset) {
-                    data {
-                        id
-                    }
-                    totalResults
-                }
-            }
-        """
+    def test_leaving_a_space_leaves_public_task_favorite(self):
+        self.space.add_member(self.user)
+        task = make_community_task(self.space, user=self.user, visibility=VisibilityType.PUBLIC)
+        UserFavoriteModel.favorite(user=self.user, favoritable_id=task.id, favoritable_type=FavoritableType.TASK)
 
-        filter_response = async_to_sync(schema.execute)(
-            recommended_tasks_query,
-            variable_values=filter_options,
-            context_value=benedict({"request": {"user": self.user}}),
-        )
-        assert filter_response.errors is None
-        expected_data = list(map(transform_space, expected_spaces))
-        assert filter_response.data["recommendedTasks"]["data"] == expected_data
-        if total_results is not None:
-            assert filter_response.data["recommendedTasks"]["totalResults"] == total_results
+        assert favorites.models.UserFavorite.objects.filter(user=self.user).count() == 1
 
-    def test_filters_for_recommended_tasks(self):
-        [skill1, skill2, other_skill] = make_skills(3)
-
-        # locations inside geolocation filter
-        geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
-        # location outside geolocation filter
-        geolocation3 = geos.Point(9.76302, 53.5586627, srid=4326)
-
-        task_remote_2_skills = self.create_task(skills=[skill1.id, skill2.id], location_type="REMOTE")
-        task_onsite_2_skills = self.create_task(
-            skills=[skill1.id, skill2.id], location_type="ONSITE", geolocation=geolocation1
-        )
-        task_onsite_skill_1 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation1)
-        task_remote_skill_2 = self.create_task(skills=[skill2.id], location_type="REMOTE")
-        task_outside_onsite_skill_2 = self.create_task(
-            skills=[skill2.id], location_type="ONSITE", geolocation=geolocation3
-        )
-        task_onsite_other_skill = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation1
-        )
-        task_onsite_skill_1_and_other_skill = self.create_task(
-            skills=[skill1.id, other_skill.id], location_type="ONSITE", geolocation=geolocation1
-        )
-        task_outside_onsite_other_skill = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation3
-        )
-        task_remote_other_skill = self.create_task(skills=[other_skill.id], location_type="REMOTE")
-
-        # tasks from moderated spaces are not shown
-        self.create_task(space=self.space_deleted, skills=[skill2.id], location_type="REMOTE")
-
-        # moderated tasks are not shown
-        moderated_task = self.create_task(skills=[skill2.id], location_type="REMOTE")
-        moderated_task.soft_delete()
-
-        # member only tasks are not visible to non-members
-        self.create_task(skills=[skill1.id], location_type="REMOTE", visibility=VisibilityType.MEMBERS)
-
-        # when the user has no profile information, the last five tasks are returned
-        self.assert_filtered_tasks(
-            {},
-            [
-                task_remote_other_skill,
-                task_outside_onsite_other_skill,
-                task_onsite_skill_1_and_other_skill,
-                task_onsite_other_skill,
-                task_outside_onsite_skill_2,
-            ],
+        mutate_update_space_user_connection_data(
+            auth_user=self.user,
+            space_id=self.space.id,
+            connection_type=SpaceUserConnectionType.MEMBER,
+            connect_action=UpdateConnectionAction.LEAVE_SPACE,
         )
 
-        self.user.profile.skills.add(skill1)
-        self.user.profile.skills.add(skill2)
-        self.user.profile.skills_v2 = [skill1.slug, skill2.slug]
-        self.user.profile.geolocation = geos.GEOSGeometry(json.dumps(geolocation_geometry))
+        assert favorites.models.UserFavorite.objects.filter(user=self.user).count() == 1
 
-        self.assert_filtered_tasks(
-            {"limit": 10},
-            [
-                # skill matches and geo matches or remote
-                task_onsite_skill_1_and_other_skill,
-                task_remote_skill_2,
-                task_onsite_skill_1,
-                task_onsite_2_skills,
-                task_remote_2_skills,
-                # only skill matches
-                task_outside_onsite_skill_2,
-                # only geo matches
-                # NOT task_onsite_skill_1_and_other_skill, since it's already found in skill matches and geo matches and there should be no duplicates
-                task_onsite_other_skill,
-                # everything else
-                task_remote_other_skill,
-                task_outside_onsite_other_skill,
-            ],
+    def test_kicking_a_member_removes_their_private_task_favorites(self):
+        self.space.add_member(self.user)
+        task = make_community_task(self.space, user=self.user, visibility=VisibilityType.MEMBERS)
+        UserFavoriteModel.favorite(user=self.user, favoritable_id=task.id, favoritable_type=FavoritableType.TASK)
+
+        assert favorites.models.UserFavorite.objects.filter(user=self.user).count() == 1
+
+        mutate_update_space_user_connection_data(
+            auth_user=self.space_owner,
+            space_id=self.space.id,
+            user_id=self.user.id,
+            connection_type=SpaceUserConnectionType.ADMINISTRATOR,
+            connect_action=UpdateConnectionAction.REMOVE_MEMBER,
         )
 
-    def test_filters_for_recommended_tasks_paging(self):
-        [skill1, other_skill] = make_skills(2)
-        self.user.profile.skills.add(skill1)
-        self.user.profile.skills_v2 = [skill1.slug]
-        self.user.profile.geolocation = geos.GEOSGeometry(json.dumps(geolocation_geometry))
+        assert favorites.models.UserFavorite.objects.filter(user=self.user).count() == 0
 
-        # locations inside geolocation filter
-        geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
-        # location outside geolocation filter
-        geolocation3 = geos.Point(9.76302, 53.5586627, srid=4326)
-        task_remote_skill1 = self.create_task(skills=[skill1.id], location_type="REMOTE")
-        task_onsite_skill1 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation1)
-        task_remote_skill2 = self.create_task(skills=[skill1.id], location_type="REMOTE")
-        task_onsite_skill2 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation1)
-        task_other_site_skill1 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation3)
-        task_other_site_skill2 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation3)
-        task_other_site_skill3 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation3)
-        task_onsite_other_skill1 = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation1
-        )
-        task_onsite_other_skill2 = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation1
-        )
-        task_onsite_other_skill3 = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation1
-        )
-        task_outside_onsite_other_skill1 = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation3
-        )
-        task_remote_other_skill1 = self.create_task(skills=[other_skill.id], location_type="REMOTE")
-        task_outside_onsite_other_skill2 = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation3
-        )
-        task_remote_other_skill2 = self.create_task(skills=[other_skill.id], location_type="REMOTE")
+    def test_kicking_a_member_leaves_their_public_task_favorites(self):
+        self.space.add_member(self.user)
+        task = make_community_task(self.space, user=self.user, visibility=VisibilityType.PUBLIC)
+        UserFavoriteModel.favorite(user=self.user, favoritable_id=task.id, favoritable_type=FavoritableType.TASK)
 
-        self.assert_filtered_tasks(
-            {"limit": 20},
-            [
-                # skill matches and geo matches or remote
-                task_onsite_skill2,
-                task_remote_skill2,
-                task_onsite_skill1,
-                task_remote_skill1,
-                # only skill matches
-                task_other_site_skill3,
-                task_other_site_skill2,
-                task_other_site_skill1,
-                # only geo matches
-                task_onsite_other_skill3,
-                task_onsite_other_skill2,
-                task_onsite_other_skill1,
-                # everything else
-                task_remote_other_skill2,
-                task_outside_onsite_other_skill2,
-                task_remote_other_skill1,
-                task_outside_onsite_other_skill1,
-            ],
-            14,
+        assert favorites.models.UserFavorite.objects.filter(user=self.user).count() == 1
+
+        mutate_update_space_user_connection_data(
+            auth_user=self.space_owner,
+            space_id=self.space.id,
+            user_id=self.user.id,
+            connection_type=SpaceUserConnectionType.ADMINISTRATOR,
+            connect_action=UpdateConnectionAction.REMOVE_MEMBER,
         )
 
-        self.assert_filtered_tasks(
-            {"limit": 6, "offset": 2},
-            [
-                # skill matches and geo matches or remote
-                task_onsite_skill1,
-                task_remote_skill1,
-                # only skill matches
-                task_other_site_skill3,
-                task_other_site_skill2,
-                task_other_site_skill1,
-                # only geo matches
-                task_onsite_other_skill3,
-            ],
-            14,
-        )
-
-        self.assert_filtered_tasks(
-            {"limit": 6, "offset": 5},
-            [
-                task_other_site_skill2,
-                task_other_site_skill1,
-                # only geo matches
-                task_onsite_other_skill3,
-                task_onsite_other_skill2,
-                task_onsite_other_skill1,
-                # everything else
-                task_remote_other_skill2,
-            ],
-            14,
-        )
+        assert favorites.models.UserFavorite.objects.filter(user=self.user).count() == 1

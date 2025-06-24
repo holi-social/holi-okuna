@@ -37,6 +37,7 @@ def publish_event(topic: str, event: Event) -> None:
 
         try:
             future.result(PUBLISH_TIMEOUT_SECONDS)
+            logger.info("Published event %s", event.log_str())
         except Exception as publish_error:
             logger.error(_publish_error_msg(event, publish_error))
 
@@ -46,4 +47,4 @@ def publish_event(topic: str, event: Event) -> None:
 
 
 def _publish_error_msg(event: Event, e: Exception) -> str:
-    return f"Failed to publish {type(event).__name__} event. Ensure Google Cloud Pub/Sub is enabled and GOOGLE_APPLICATION_CREDENTIALS is set correctly. Exception: {str(e)}"
+    return f"Failed to publish {type(event).__name__} event. Ensure Google Cloud Pub/Sub is enabled and authentication is set up correctly. Exception: {str(e)}"

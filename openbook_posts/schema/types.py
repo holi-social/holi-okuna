@@ -7,7 +7,7 @@ import strawberry_django
 from django.db.models import Q
 from strawberry.file_uploads import Upload
 
-from comments.models import Comment as CommentModel
+from comments.models import Comment as CommentModel, CommentReaction
 from comments.models import CommentReaction as CommentReactionModel
 from openbook_auth.models import User as UserModel
 from openbook_auth.models import UserBlock as UserBlockModel
@@ -166,6 +166,11 @@ class Post:
             reactions = current_user.get_reaction_counts_for_post_with_id(self.pk)
         return ReactionCounts(**reactions)
 
+    @strawberry_django.field()
+    def reactors(self, offset: int = 0, limit: int = 10) -> Paged[User]:
+        reactors = UserModel.objects.select_related("profile").filter(post_reactions__post=self)
+        return Paged.of(reactors, offset, limit)
+
     @strawberry_django.field(description="Only present, when the current user reacted to this post")
     def my_reaction(self, info) -> ReactionCounts:
         current_user = info.context.request.user
@@ -197,6 +202,14 @@ class PostComment:
     @strawberry_django.field()
     def reactions(self, info) -> ReactionCounts:
         return ReactionCounts(**self.reaction_counts_by_type())
+
+    @strawberry_django.field()
+    def reactors(self, offset: int = 0, limit: int = 10) -> Paged[User]:
+        reactor_ids = (
+            CommentReaction.objects.filter(post_comment_id=self.pk).values_list("reactor", flat=True).distinct()
+        )
+        reactors = UserModel.objects.select_related("profile").filter(id__in=reactor_ids)
+        return Paged.of(reactors, offset, limit)
 
     @strawberry_django.field(description="Only present, when the current user reacted to this post comment")
     def my_reaction(self, info) -> ReactionCounts:

@@ -143,6 +143,12 @@ def update_feed_post_reaction(
                 reactions {
                     HEART
                 }
+                reactors {
+                    totalResults
+                    data {
+                        id
+                    }
+                }
                 location
                 geolocation {
                     latitude

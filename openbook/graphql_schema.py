@@ -6,6 +6,7 @@ from graphql import GraphQLError
 from strawberry.tools import merge_types
 from strawberry.types import ExecutionContext
 from strawberry_django.optimizer import DjangoOptimizerExtension
+from strawberry.extensions.query_depth_limiter import QueryDepthLimiter
 from openbook import settings
 
 from comments.schema import mutations as comments_mutations
@@ -140,5 +141,6 @@ schema = HoliSchema(
         DjangoOptimizerExtension,
         GraphQLErrorExtension,
         HoliSentryTracingExtension,
+        QueryDepthLimiter(max_depth=6),
     ],
 )

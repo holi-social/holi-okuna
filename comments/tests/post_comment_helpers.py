@@ -27,6 +27,12 @@ def get_post_with_id_raw(post_id, user=None):
                     reactions {{
                         HEART
                     }}
+                    reactors {{
+                        totalResults
+                        data {{
+                            id
+                        }}
+                    }}
                 }}
                 mentions {{
                     fullName
@@ -77,6 +83,12 @@ def react_to_post_comment(post_comment, action, posting_user):
                 }
                 reactions {
                     HEART
+                }
+                reactors {
+                    totalResults
+                    data {
+                        id
+                    }
                 }
             }
         }

@@ -1,6 +1,13 @@
+from typing import cast
 from django.contrib import admin
 from rangefilter.filters import DateRangeQuickSelectListFilterBuilder
-
+from openbook_auth.models import User
+from openbook_communities.events import (
+    publish_task_created_event,
+    publish_task_updated_event,
+    publish_task_deleted_event,
+    publish_space_deleted_event,
+)
 from openbook_communities.events import (
     publish_space_created_event,
     publish_space_updated_event,
@@ -67,6 +74,26 @@ class CommunityAdmin(admin.ModelAdmin):
             CommunityMembership.create_membership(
                 user=obj.creator, is_administrator=True, is_moderator=False, community=obj
             )
+        try:
+            if not change:
+                # This is a new instance
+                publish_space_created_event(obj)
+            else:
+                # This is an existing instance being updated
+                publish_space_updated_event(obj)
+        except Exception as e:
+            # Log the error but don't break the delete operation
+            logger.error(f"Failed to publish space event: {e}")
+            logger.error(traceback.format_exc())
+
+    def delete_model(self, request, obj):
+        super().delete_model(request, obj)
+        try:
+            publish_space_deleted_event(obj)
+        except Exception as e:
+            # Log the error but don't break the delete operation
+            logger.error(f"Failed to publish space deleted event: {e}")
+            logger.error(traceback.format_exc())
 
     @admin.action(description="Resend SpaceCreatedEvent")
     def resend_space_created_event(self, request, queryset):
@@ -130,6 +157,30 @@ class CommunityTaskAdmin(admin.ModelAdmin):
         "slots_available",
     )
     exclude = ["geolocation_geojson"]
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        try:
+            if not change:
+                # This is a new instance
+                publish_task_created_event(cast(User, request.user), obj)
+            else:
+                # This is an existing instance being updated
+                publish_task_updated_event(cast(User, request.user), obj)
+
+        except Exception as e:
+            # Log the error but don't break the save operation
+            logger.error(f"Failed to publish task event: {e}")
+            logger.error(traceback.format_exc())
+
+    def delete_model(self, request, obj):
+        super().delete_model(request, obj)
+        try:
+            publish_task_deleted_event(cast(User, request.user), obj)
+        except Exception as e:
+            # Log the error but don't break the delete operation
+            logger.error(f"Failed to publish task deleted event: {e}")
+            logger.error(traceback.format_exc())
 
 
 @admin.register(OnboardingStep)
