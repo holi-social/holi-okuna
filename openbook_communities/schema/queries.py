@@ -6,7 +6,7 @@ import strawberry_django
 from asgiref.sync import async_to_sync
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
-from django.db.models import Prefetch, Q
+from django.db.models import Count, Prefetch, Q, Case, When, Value, IntegerField
 from django.utils.translation import gettext_lazy as _
 from strawberry.django.context import StrawberryDjangoContext
 from strawberry.types import Info as StrawberryInfo
@@ -21,6 +21,7 @@ from openbook_communities.models import SpaceUserConnectionType
 from openbook_communities.models import Task as TaskModel
 from openbook_communities.schema.helpers import (
     filtered_spaces,
+    create_filtered_spaces_query,
     DISCOVER_DEFAULT_SPACES_V2,
 )
 from openbook_communities.schema.types import (
@@ -100,6 +101,48 @@ class Query:
         )
 
         return Paged.of(spaces, offset, limit)
+
+    @strawberry_django.field()
+    def recommended_spaces(
+        self,
+        info,
+        offset: int = 0,
+        limit: int = 5,
+    ) -> Paged[Space]:
+        current_user = info.context.request.user
+
+        whens = []
+
+        if current_user and not current_user.is_anonymous:
+            topics_v2 = list(current_user.profile.interests_v2)
+            geolocation = current_user.geolocation
+
+            if topics_v2:
+                whens.append(
+                    When(create_filtered_spaces_query(topics_v2=topics_v2, geolocation=geolocation), then=Value(10))
+                )
+
+            if geolocation:
+                whens.append(When(create_filtered_spaces_query(geolocation=geolocation), then=Value(20)))
+
+        whens.append(When(create_filtered_spaces_query(topics_v2=DISCOVER_DEFAULT_SPACES_V2), then=Value(30)))
+
+        return Paged.of(
+            CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
+            .annotate(member_count=Count("memberships"))
+            .annotate(
+                custom_order=Case(
+                    *whens,
+                    output_field=IntegerField(),
+                )
+            )
+            .filter(custom_order__isnull=False, is_deleted=False)
+            .distinct()
+            .order_by("custom_order", "-created")
+            .cache(ops=["fetch", "count"], timeout=300),
+            offset,
+            limit,
+        )
 
     @strawberry_django.field()
     def discover_spaces(
@@ -316,6 +359,47 @@ class Query:
             return task
 
         raise PermissionDenied()
+
+    @strawberry_django.field()
+    def recommended_tasks(self, info, offset: int = 0, limit: int = 5) -> Paged[Task]:
+        current_user = info.context.request.user
+        if not current_user or current_user.is_anonymous:
+            return Paged.of(
+                TaskModel.objects.filter(TaskModel.is_visible_query(current_user) & TaskModel.is_not_expired_query())
+                .distinct()
+                .order_by("-created"),
+                offset,
+                limit,
+            )
+
+        skills_v2 = list(current_user.profile.skills_v2)
+        whens = []
+
+        locations_match = Q(geolocation__within=current_user.profile.geolocation)
+
+        if skills_v2 and current_user.profile.geolocation:
+            whens.append(
+                When(Q(skills_v2__overlap=skills_v2) & (locations_match | Q(location_type="REMOTE")), then=Value(10))
+            )
+        if skills_v2:
+            whens.append(When(skills_v2__overlap=skills_v2, then=Value(20)))
+        if current_user.profile.geolocation:
+            whens.append(When(locations_match, then=Value(30)))
+
+        return Paged.of(
+            TaskModel.objects.annotate(
+                custom_order=Case(
+                    *whens,
+                    default=Value(100),
+                    output_field=IntegerField(),
+                )
+            )
+            .filter(TaskModel.is_visible_query(current_user) & TaskModel.is_not_expired_query())
+            .distinct()
+            .order_by("custom_order", "-created"),
+            offset,
+            limit,
+        )
 
     @strawberry_django.field()
     def collaboration_tools(

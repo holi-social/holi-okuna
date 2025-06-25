@@ -1223,6 +1223,90 @@ class TestUsers:
         response._content = str.encode(json.dumps(json_body))
         return response
 
+    def test_block_user(self):
+        blocking_user = make_user(name="BlockingUser")
+        two_hours_ago = datetime.now() - timedelta(hours=2)
+        blocked_user = make_user(name="BlockedUser", date_joined=two_hours_ago)
+        other_user = make_user(name="OtherUser", date_joined=two_hours_ago)
+        other_user.save()
+
+        other_post = other_user.create_post(
+            text=(make_fake_post_text()), title=(make_fake_post_title()), is_public=True
+        )
+        other_post.comment(text="comment text 1", commenter=blocked_user)
+
+        blocked_post = blocked_user.create_post(
+            text=(make_fake_post_text()), title=(make_fake_post_title()), is_public=True
+        )
+        blocked_post.comment(text="comment text 1", commenter=other_user)
+
+        response = async_to_sync(schema.execute)(
+            """
+            query {
+                userSuggestions(limit:100) {
+                    totalResults
+                    data {
+                        fullName
+                    }
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": blocking_user}}),
+        )
+        assert response.data["userSuggestions"]["totalResults"] == 2
+
+        response = async_to_sync(schema.execute)(
+            """
+            mutation ($userId: UUID!) {
+                blockUser(userId: $userId) {
+                    success
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": blocking_user}}),
+            variable_values=benedict(
+                {
+                    "userId": blocked_user.username,
+                }
+            ),
+        )
+
+        blocked_post_raw = get_post_with_id_raw(blocked_post.id, blocking_user)
+        assert blocked_post_raw.data["postById"] is None
+        other_post_data = get_post_with_id_data(other_post, blocking_user)
+        assert other_post_data["involvedUsers"]["totalResults"] == 2  # does include blocked users
+        assert len(other_post_data["involvedUsers"]["data"]) == 1  # does not include blocked users
+        assert other_post_data["numberOfComments"] == 1  # does include blocked users
+        assert len(other_post_data["comments"]) == 0  # does not include blocked users
+        assert other_post_data["commenters"]["totalResults"] == 1  # does include blocked users
+        assert len(other_post_data["commenters"]["data"]) == 0  # does not include blocked users
+
+        assert response.errors is None
+        assert response.data["blockUser"]["success"] is True
+
+        response_after_blocking = get_user_with_id_raw(blocked_user, blocking_user)
+        assert response_after_blocking.data["userById"] is None
+
+        response_after_blocking = get_user_with_id_raw(blocking_user, blocked_user)
+        assert response_after_blocking.data["userById"] is None
+
+        response = async_to_sync(schema.execute)(
+            """
+            query {
+                userSuggestions(limit:20) {
+                    totalResults
+                    data {
+                        fullName
+                    }
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": blocking_user}}),
+        )
+        assert response.data["userSuggestions"]["totalResults"] == 2  # does include blocked users
+        assert len(response.data["userSuggestions"]["data"]) == 1  # does not include blocked users
+        assert response.data["userSuggestions"]["data"][0]["fullName"] == "OtherUser"
+
     def test_user_connection_status_to_space(self):
         user = make_user()
         creator = make_user()
@@ -1481,6 +1565,82 @@ class TestUsers:
     def test_cannot_retrieve_connected_users_if_not_logged_in(self):
         response = get_connected_users_raw()
         assert_is_unauthorized(response)
+
+    def test_user_suggestions_only_accessible_when_logged_in(self):
+        response = async_to_sync(schema.execute)(
+            """
+            query {
+                userSuggestions {
+                    totalResults
+                    data {
+                        id
+                        fullName
+                    }
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": AnonymousUser}}),
+        )
+        assert_is_unauthorized(response)
+
+    def test_user_suggestions_limited(self):
+        user = make_user()
+        response = async_to_sync(schema.execute)(
+            """
+            query {
+                userSuggestions(offset: 20) {
+                    totalResults
+                    data {
+                        id
+                        fullName
+                    }
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": user}}),
+        )
+        assert_is_forbidden(response)
+
+    def test_user_suggestions(self):
+        user = make_user()
+        for x in range(0, 25):
+            make_user(name="A", last_name="B" + str(x), date_joined=datetime.now() - timedelta(hours=2))
+        response = async_to_sync(schema.execute)(
+            """
+            query {
+                userSuggestions {
+                    totalResults
+                    data {
+                        id
+                        fullName
+                    }
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": user}}),
+        )
+        assert response.errors is None
+        assert response.data["userSuggestions"]["totalResults"] == 25
+        assert len(response.data["userSuggestions"]["data"]) == 10
+
+        # A maximum of 20 user suggestions may be requested
+        response = async_to_sync(schema.execute)(
+            """
+            query {
+                userSuggestions(offset:15, limit: 25) {
+                    totalResults
+                    data {
+                        id
+                        fullName
+                    }
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": user}}),
+        )
+        assert response.errors is None
+        assert response.data["userSuggestions"]["totalResults"] == 25
+        assert len(response.data["userSuggestions"]["data"]) == 5
 
     def test_my_connections(self):
         user1 = make_user(name="First", last_name="User")
