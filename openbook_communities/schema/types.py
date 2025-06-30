@@ -11,6 +11,7 @@ from strawberry.django.context import StrawberryDjangoContext
 from strawberry.file_uploads import Upload
 from strawberry.types import Info as StrawberryInfo
 
+from favorites.models import UserFavorite as UserFavoriteModel
 from openbook_appointments.schema.types import Appointment
 from openbook_auth.models import User as UserModel
 from openbook_auth.schema.types import User
@@ -248,6 +249,14 @@ class Task:
     @strawberry_django.field()
     def geolocation(self) -> Optional[GeolocationPoint]:
         return GeolocationPoint.from_point(self.geolocation)
+
+    @strawberry_django.field()
+    def is_favorite(self, info) -> bool:
+        current_user = info.context.request.user
+        if current_user.is_anonymous:
+            return False
+
+        return UserFavoriteModel.objects.filter(user=current_user, favoritable_id=self.id).exists()
 
 
 @strawberry_django.type(CommunityMembershipModel)
