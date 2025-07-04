@@ -21,6 +21,7 @@ from openbook_common.utils.model_loaders import (
     get_user_model,
     get_task_model,
     get_appointment_model,
+    get_feed_post_model,
 )
 
 if typing.TYPE_CHECKING:
@@ -285,6 +286,7 @@ class ModeratedObject(ModelWithUUID):
         ModerationPenalty = get_moderation_penalty_model()
         Task = get_task_model()
         Appointment = get_appointment_model()
+        FeedPost = get_feed_post_model()
 
         content_object = self.content_object
         moderation_severity = self.category.severity
