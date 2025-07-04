@@ -12,6 +12,7 @@ resource "google_project_iam_member" "okuna" {
   for_each = toset([
     "roles/secretmanager.secretAccessor",
     "roles/pubsub.publisher",
+    "roles/pubsub.subscriber",
   ])
   project = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
   member  = "serviceAccount:${google_service_account.okuna.email}"
@@ -20,4 +21,11 @@ resource "google_project_iam_member" "okuna" {
 
 output "cloud_run_service_account_email" {
   value = google_service_account.okuna.email
+}
+
+
+resource "google_service_account" "pubsub_typesense_updater" {
+  project      = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
+  account_id   = "pubsub-typesense-updater-sa"
+  display_name = "pubsub-typesense-updater Service Account"
 }

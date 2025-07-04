@@ -1,8 +1,11 @@
+import base64
 import json
 import structlog
 
 from django.http import JsonResponse
 from django.views import View
+from google.oauth2 import id_token
+from google.auth.transport import requests
 from requests.exceptions import HTTPError
 from rest_framework.authentication import TokenAuthentication
 from django.core.exceptions import ValidationError
@@ -100,3 +103,40 @@ class OryWebhook(View):
                 raise http_err
 
         return JsonResponse({}, status=200)
+
+
+class PubSubPushEndpoint(View):
+    def post(self, request):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header:
+            logger.error("Missing Authorization header")
+            return JsonResponse({"message": "Authentication failed"}, status=401)
+
+        try:
+            _, token = auth_header.split()
+            id_token.verify_oauth2_token(
+                token,
+                requests.Request(),
+                audience="okuna-pubsub-push",
+            )
+
+        except Exception as e:
+            logger.error(f"Invalid token: {str(e)}")
+            return JsonResponse({"message": "Authentication failed"}, status=401)
+
+        try:
+            envelope = json.loads(request.body)
+            pubsub_message = envelope.get("message", {})
+            message_data = pubsub_message.get("data")
+            if message_data:
+                decoded_data = json.loads(base64.b64decode(message_data).decode("utf-8"))
+
+                print(decoded_data)
+                # todo gregor: continuue implementing actual controller
+
+        except Exception as e:
+            logger.error(f"Error processing message: {e}")
+            return JsonResponse({"message": "Error processing message"}, status=500)
+
+        logger.info("Successfully processed message")
+        return JsonResponse({"status": "OK"}, status=200)

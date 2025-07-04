@@ -10,7 +10,7 @@ from strawberry.django.views import AsyncGraphQLView
 from proxy.views import proxy_view
 
 from openbook.graphql_schema import schema
-from openbook.webhooks import NotificationWebhook, OryWebhook
+from openbook.webhooks import NotificationWebhook, OryWebhook, PubSubPushEndpoint
 
 
 class AuthenticatedStrawberryGraphQLView(AsyncGraphQLView):
@@ -33,6 +33,7 @@ urlpatterns = [
     ),
     path("notification-webhook", csrf_exempt(NotificationWebhook.as_view()), name="notification-webhook-endpoint"),
     path("ory-webhook", csrf_exempt(OryWebhook.as_view()), name="ory-webhook-endpoint"),
+    path("pubsub/push/", csrf_exempt(PubSubPushEndpoint.as_view()), name="pubsub_push"),
 ]
 
 # The static helper works only in debug mode
