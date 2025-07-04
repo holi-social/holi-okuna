@@ -293,7 +293,7 @@ class ModeratedObject(ModelWithUUID):
         if self.is_approved():
             if isinstance(content_object, User):
                 penalty_targets = [content_object]
-            elif isinstance(content_object, (Post, Task, Appointment)):
+            elif isinstance(content_object, (Post, Task, Appointment, FeedPost)):
                 penalty_targets = [content_object.creator]
             elif isinstance(content_object, Comment):
                 penalty_targets = [content_object.commenter]
