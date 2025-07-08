@@ -1,8 +1,9 @@
 import base64
 import json
+
 import structlog
 
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpRequest
 from django.views import View
 from google.oauth2 import id_token
 from google.auth.transport import requests
@@ -10,6 +11,7 @@ from requests.exceptions import HTTPError
 from rest_framework.authentication import TokenAuthentication
 from django.core.exceptions import ValidationError
 
+from openbook.settings import environment_checker
 from openbook_auth.models import User
 from openbook_notifications.payloads import NotificationType
 from openbook_notifications.api import NotificationApi
@@ -106,23 +108,24 @@ class OryWebhook(View):
 
 
 class PubSubPushEndpoint(View):
-    def post(self, request):
-        auth_header = request.headers.get("Authorization")
-        if not auth_header:
-            logger.error("Missing Authorization header")
-            return JsonResponse({"message": "Authentication failed"}, status=401)
+    def post(self, request: HttpRequest):
+        if not self.running_in_local_setup():
+            auth_header = request.headers.get("Authorization")
+            if not auth_header:
+                logger.error("Missing Authorization header")
+                return JsonResponse({"message": "Authentication failed"}, status=401)
 
-        try:
-            _, token = auth_header.split()
-            id_token.verify_oauth2_token(
-                token,
-                requests.Request(),
-                audience="okuna-pubsub-push",
-            )
+            try:
+                _, token = auth_header.split()
+                id_token.verify_oauth2_token(
+                    token,
+                    requests.Request(),
+                    audience="okuna-pubsub-push",
+                )
 
-        except Exception as e:
-            logger.error(f"Invalid token: {str(e)}")
-            return JsonResponse({"message": "Authentication failed"}, status=401)
+            except Exception as e:
+                logger.error(f"Invalid token: {str(e)}")
+                return JsonResponse({"message": "Authentication failed"}, status=401)
 
         try:
             envelope = json.loads(request.body)
@@ -140,3 +143,7 @@ class PubSubPushEndpoint(View):
 
         logger.info("Successfully processed message")
         return JsonResponse({"status": "OK"}, status=200)
+
+    @staticmethod
+    def running_in_local_setup():
+        return environment_checker.is_development()
