@@ -17,6 +17,7 @@ from django.core.management import call_command
 from django.test import AsyncClient
 from requests.models import Response
 
+from favorites.models import FavoritableType, UserFavorite
 from openbook.graphql_schema import schema
 from openbook.settings import COMMUNITY_TITLE_MAX_LENGTH, COMMUNITY_DESCRIPTION_MAX_LENGTH
 from openbook.tests.test_data import geolocation, geolocation_geometry
@@ -3660,3 +3661,22 @@ class TestCommunities(TestCase):
 
         mock_publish_user_deleted_event.assert_called_once_with(user=user)
         mock_publish_space_deleted_event.assert_not_called()
+
+    def test_favorited_task_responds_is_favorite_for_authenticated_user(self):
+        user = make_user()
+        space = make_community()
+        task = make_community_task(space, visibility=VisibilityType.PUBLIC)
+        UserFavorite.favorite(user, FavoritableType.TASK, task.id)
+
+        query = f"""
+            query {{
+                taskById(id: "{task.id}") {{
+                    isFavorite
+                }}
+            }}
+        """
+
+        response = async_to_sync(schema.execute)(query, context_value=benedict({"request": {"user": user}}))
+
+        assert response.errors is None
+        assert response.data["taskById"]["isFavorite"] is True
