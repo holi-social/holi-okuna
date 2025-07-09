@@ -229,14 +229,6 @@ resource "google_cloud_run_service" "okuna" {
           value = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
         }
         env {
-          name  = "GOOGLE_CLOUD_PUBSUB_EXTERNAL_DATA_TOPIC_ID"
-          value = local.environment_name == "production" ? data.terraform_remote_state.holi_data_pipeline_common_state.outputs.google_pubsub_topic_external_data_production : data.terraform_remote_state.holi_data_pipeline_common_state.outputs.google_pubsub_topic_external_data_staging
-        }
-        env {
-          name  = "GOOGLE_CLOUD_PUBSUB_EXTERNAL_DATA_SUBSCRIPTION_ID"
-          value = google_pubsub_subscription.external_data_subscription.id
-        }
-        env {
           name  = "ENVIRONMENT"
           value = local.environment
         }
