@@ -1,7 +1,7 @@
 resource "google_pubsub_subscription" "external_data_subscription" {
   project = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
   name    = random_id.main.hex
-  topic   = local.environment_name == "production" ? data.terraform_remote_state.holi_data_pipeline_common_state.outputs.partner_data_production : data.terraform_remote_state.holi_data_pipeline_common_state.outputs.google_pubsub_topic_partner_data_staging
+  topic   = local.environment_name == "production" ? data.terraform_remote_state.holi_data_pipeline_common_state.outputs.google_pubsub_topic_external_data_production : data.terraform_remote_state.holi_data_pipeline_common_state.outputs.google_pubsub_topic_external_data_staging
 
   enable_message_ordering = true
 
