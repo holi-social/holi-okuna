@@ -11,6 +11,7 @@ from requests.exceptions import HTTPError
 from rest_framework.authentication import TokenAuthentication
 from django.core.exceptions import ValidationError
 
+from favorites.events import ExternalDataEventHandler
 from openbook.settings import environment_checker
 from openbook_auth.models import User
 from openbook_notifications.payloads import NotificationType
@@ -134,8 +135,11 @@ class PubSubPushEndpoint(View):
             if message_data:
                 decoded_data = json.loads(base64.b64decode(message_data).decode("utf-8"))
 
-                print(decoded_data)
-                # todo gregor: continuue implementing actual controller
+                logger.info(f"Received PubSub message: {decoded_data}")
+
+                if not ExternalDataEventHandler.handle_event(decoded_data):
+                    logger.warning("Event was not handled successfully")
+                    return JsonResponse({"message": "Event not handled"}, status=500)
 
         except Exception as e:
             logger.error(f"Error processing message: {e}")
