@@ -45,7 +45,8 @@ class ExternalDataEventHandler:
                 else:
                     logger.error("Missing record_id in VolunteeringDeleted event")
             else:
-                logger.info(f"Unhandled event type: {event_type}")
+                logger.info(f"Ignoring unhandled event type: {event_type}")
+                return True
 
             return False
         except Exception as e:
