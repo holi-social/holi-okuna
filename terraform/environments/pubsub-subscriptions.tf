@@ -1,8 +1,12 @@
+locals {
+  external_data_topic_name = local.environment_name == "production" ? data.terraform_remote_state.holi_data_pipeline_common_state.outputs.google_pubsub_topic_external_data_production_name : data.terraform_remote_state.holi_data_pipeline_common_state.outputs.google_pubsub_topic_external_data_staging_name
+  external_data_topic_id = local.environment_name == "production" ? data.terraform_remote_state.holi_data_pipeline_common_state.outputs.google_pubsub_topic_external_data_production : data.terraform_remote_state.holi_data_pipeline_common_state.outputs.google_pubsub_topic_external_data_staging
+}
+
 resource "google_pubsub_subscription" "external_data_subscription" {
   project = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
   name    = random_id.main.hex
-  topic   = local.environment_name == "production" ? data.terraform_remote_state.holi_data_pipeline_common_state.outputs.google_pubsub_topic_external_data_production : data.terraform_remote_state.holi_data_pipeline_common_state.outputs.google_pubsub_topic_external_data_staging
-
+  topic   = local.external_data_topic_id
   enable_message_ordering = true
 
   expiration_policy {
@@ -10,7 +14,7 @@ resource "google_pubsub_subscription" "external_data_subscription" {
   }
 
   push_config {
-    push_endpoint = "https://${local.dns_name}/pubsub/push/"
+    push_endpoint = "https://${local.dns_name}/pubsub/subscription/${local.external_data_topic_name}/"
 
     oidc_token {
       audience = "okuna-pubsub-push"
