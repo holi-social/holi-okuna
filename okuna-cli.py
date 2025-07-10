@@ -37,6 +37,9 @@ LOCAL_API_ENV_FILE_TEMPLATE = os.path.join(current_dir, "templates/.env")
 DOCKER_COMPOSE_ENV_FILE = os.path.join(current_dir, ".docker-compose.env")
 DOCKER_COMPOSE_ENV_FILE_TEMPLATE = os.path.join(current_dir, "templates/.docker-compose.env")
 
+DOCKER_COMPOSE_ENV_LOCAL_FILE = os.path.join(current_dir, ".docker-compose.env.local")
+DOCKER_COMPOSE_ENV_LOCAL_FILE_TEMPLATE = os.path.join(current_dir, "templates/.docker-compose.env.local")
+
 UV_LOCK_FILE = os.path.join(current_dir, "uv.lock")
 PYPROJECT_FILE = os.path.join(current_dir, "pyproject.toml")
 DOCKER_API_IMAGE_UV_LOCK_FILE = os.path.join(current_dir, ".docker", "api", "uv.lock")
@@ -208,6 +211,24 @@ def _ensure_has_docker_compose_api_environment_file(okuna_cli_config):
     )
 
 
+def _ensure_has_docker_compose_local_environment_file(okuna_cli_config):
+    if _file_exists(DOCKER_COMPOSE_ENV_LOCAL_FILE):
+        return
+    logger.info(f"Docker compose env file does not exist. Creating {DOCKER_COMPOSE_ENV_LOCAL_FILE}")
+
+    if not _file_exists(DOCKER_COMPOSE_ENV_LOCAL_FILE_TEMPLATE):
+        raise Exception("Docker compose env file template did not exist")
+
+    copyfile(DOCKER_COMPOSE_ENV_LOCAL_FILE_TEMPLATE, DOCKER_COMPOSE_ENV_LOCAL_FILE)
+
+    _replace_in_file(
+        DOCKER_COMPOSE_ENV_LOCAL_FILE,
+        {
+            "{{DJANGO_SECRET_KEY}}": okuna_cli_config["djangoSecretKey"],
+        },
+    )
+
+
 def _ensure_has_okuna_config_file():
     if _file_exists(OKUNA_CLI_CONFIG_FILE):
         return
@@ -261,6 +282,7 @@ def _ensure_has_required_cli_config_files():
     with open(OKUNA_CLI_CONFIG_FILE, "r+") as okuna_cli_config_file:
         okuna_cli_config = json.load(okuna_cli_config_file)
         _ensure_has_docker_compose_api_environment_file(okuna_cli_config=okuna_cli_config)
+        _ensure_has_docker_compose_local_environment_file(okuna_cli_config=okuna_cli_config)
         _ensure_has_local_api_environment_file(okuna_cli_config=okuna_cli_config)
 
 
