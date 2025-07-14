@@ -65,7 +65,6 @@ resource "google_cloud_run_v2_job" "okuna_migration" {
           name  = "GOOGLE_CLOUD_PROJECT_ID"
           value = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
         }
-        # todo gregor: add the same envs as below? would the container fail without pubsub details?
         env {
           name  = "ENVIRONMENT"
           value = local.environment
