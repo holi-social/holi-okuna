@@ -1,5 +1,5 @@
 import logging
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 import pytest
 import pytz
@@ -10,6 +10,7 @@ from faker import Faker
 
 from feed_posts.enums import VisibilityLevel, AspectRatio
 from feed_posts.repositories import FeedPostRepository
+from feed_posts.signals import FeedPostCreatedEvent
 from feed_posts.tests.helpers import (
     create_feed_post,
     my_posts,
@@ -224,6 +225,16 @@ class TestFeedPosts(TestCase):
         assert data["geolocation"]["latitude"] == self.public_feed_post_input_data["geolocation"]["latitude"]
         assert data["geolocation"]["longitude"] == self.public_feed_post_input_data["geolocation"]["longitude"]
         assert sorted(data["topicsV2"]) == sorted(self.topics_v2)
+
+    @patch("feed_posts.signals.publish_to_okuna_topic")
+    def test_event_gets_emitted_when_creating_feed_post(self, publish: Mock):
+        create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        publish.assert_called_once()
+
+        event_arg: FeedPostCreatedEvent = publish.call_args[0][0]
+        assert isinstance(event_arg, FeedPostCreatedEvent)
+        assert event_arg.event_type == "FeedPostCreated"
+        assert event_arg.to_dict()["userId"] == self.user.username
 
     def test_can_query_my_posts_if_anonymous_user(self):
         first_mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
