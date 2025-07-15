@@ -51,3 +51,33 @@ resource "google_monitoring_alert_policy" "external_data_sub_unacked_messages_al
 output "google_pubsub_external_data_subscription_id" {
   value = google_pubsub_subscription.external_data_subscription.id
 }
+
+resource "google_eventarc_trigger" "external_data_push" {
+  name     = random_id.main.hex
+  location = local.default_region
+
+  matching_criteria {
+    attribute = "type"
+    value     = "google.cloud.pubsub.topic.v1.messagePublished"
+  }
+
+  destination {
+    cloud_run_service {
+      service = google_cloud_run_service.okuna.name
+      region  = google_cloud_run_service.okuna.location
+    }
+
+    network_config {
+      network_attachment = data.terraform_remote_state.holi_infra_state.outputs.vpc_access_connector_name
+    }
+  }
+
+  transport {
+    pubsub {
+      topic = local.external_data_topic_id
+    }
+  }
+
+  service_account = data.terraform_remote_state.holi_okuna_common_state.outputs.cloud_run_service_account_email
+  depends_on      = [google_pubsub_subscription.external_data_subscription]
+}
