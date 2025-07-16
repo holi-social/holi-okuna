@@ -26,7 +26,7 @@ until docker ps|grep okuna-redis; do
   sleep 1
   echo -n .
 done
-../wait-for-port.sh 8085
+../wait-for-port.sh 8085 pubsub-emulator
 eval "$(gcloud beta emulators pubsub env-init)"
 python3 manage.py migrate
 python3 manage.py collectstatic --no-input
