@@ -60,6 +60,7 @@ output "google_pubsub_external_data_subscription_id" {
 resource "google_eventarc_trigger" "external_data_push" {
   name     = random_id.main.hex
   location = local.default_region
+  project = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
 
   matching_criteria {
     attribute = "type"
