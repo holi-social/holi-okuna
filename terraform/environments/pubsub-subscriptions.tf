@@ -23,6 +23,11 @@ resource "google_pubsub_subscription" "external_data_subscription" {
   }
 }
 
+resource "google_kms_crypto_key_iam_member" "external_data_pubsub_decrypter" {
+  crypto_key_id = data.terraform_remote_state.holi_data_pipeline_common_state.outputs.data_pipeline_key
+  role          = "roles/cloudkms.cryptoKeyDecrypter"
+  member        = "serviceAccount:${data.terraform_remote_state.holi_okuna_common_state.outputs.cloud_run_service_account_email}"
+}
 
 resource "google_monitoring_alert_policy" "external_data_sub_unacked_messages_alert" {
   project      = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
