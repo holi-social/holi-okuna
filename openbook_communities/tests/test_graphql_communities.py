@@ -2474,6 +2474,9 @@ class TestCommunities(TestCase):
         task1 = make_community_task(community)
         make_community_task(community, is_deleted=True)
         task3 = make_community_task(community)
+        # Creating task in other space to ensure no other tasks are deleted
+        community2 = make_community(creator=user)
+        make_community_task(community2)
 
         delete_space_mutation = """
             mutation test($id: UUID!) {
