@@ -158,7 +158,6 @@ class PubSubPushEndpoint(View):
             token = id_token.verify_oauth2_token(
                 token,
                 requests.Request(),
-                audience="okuna-pubsub-push",
             )
 
             # todo gregor: for debugging, remove later
