@@ -110,7 +110,7 @@ class OryWebhook(View):
 
 class PubSubPushEndpoint(View):
     def post(self, request: HttpRequest, topic_name: str = None):
-        if not self.running_in_local_setup():
+        if not self.running_in_local_setup:
             auth_header = request.headers.get("Authorization")
             if not auth_header:
                 logger.error("Missing Authorization header")
@@ -155,6 +155,6 @@ class PubSubPushEndpoint(View):
         logger.info(f"Successfully processed message for topic {topic_name}")
         return JsonResponse({"status": "OK"}, status=200)
 
-    @staticmethod
-    def running_in_local_setup():
+    @property
+    def running_in_local_setup(self):
         return environment_checker.is_development()
