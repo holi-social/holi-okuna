@@ -155,11 +155,15 @@ class PubSubPushEndpoint(View):
 
         try:
             _, token = auth_header.split()
-            id_token.verify_oauth2_token(
+            token = id_token.verify_oauth2_token(
                 token,
                 requests.Request(),
                 audience="okuna-pubsub-push",
             )
+
+            # todo gregor: for debugging, remove later
+            logger.info(f"Token: {token}")
+
             return True
 
         except Exception as e:
