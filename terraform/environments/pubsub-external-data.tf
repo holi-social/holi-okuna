@@ -47,12 +47,12 @@ resource "google_monitoring_alert_policy" "external_data_sub_unacked_messages_al
   # count   = local.create_subscription ? 1 : 0
 
   project      = local.project_id
-  display_name = "External Data: Unacked Messages Alert / subscription_name='${google_eventarc_trigger.external_data_push.transport[0].pubsub[0].subscription}'"
+  display_name = "External Data: Unacked Messages Alert / subscription_id='${google_eventarc_trigger.external_data_push.transport[0].pubsub[0].subscription}'"
   combiner     = "OR"
   conditions {
     display_name = "Unacked messages condition"
     condition_prometheus_query_language {
-      query    = "rate(pubsub_googleapis_com:subscription_oldest_unacked_message_age{subscription_name='${google_eventarc_trigger.external_data_push.transport[0].pubsub[0].subscription}'}[5m]) >= 1"
+      query    = "rate(pubsub_googleapis_com:subscription_oldest_unacked_message_age{subscription_id='${google_eventarc_trigger.external_data_push.transport[0].pubsub[0].subscription}'}[5m]) >= 1"
       duration = "300s"
     }
   }
