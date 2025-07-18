@@ -42,31 +42,3 @@ resource "google_eventarc_trigger" "external_data_push" {
 
   service_account = data.terraform_remote_state.holi_okuna_common_state.outputs.cloud_run_service_account_email
 }
-
-resource "google_monitoring_alert_policy" "external_data_sub_unacked_messages_alert" {
-  # count   = local.create_subscription ? 1 : 0
-
-  project      = local.project_id
-  display_name = "External Data: Unacked Messages Alert / subscription_id='${google_eventarc_trigger.external_data_push.transport[0].pubsub[0].subscription}'"
-  combiner     = "OR"
-  conditions {
-    display_name = "Unacked messages condition"
-    condition_prometheus_query_language {
-      query    = "rate(pubsub_googleapis_com:subscription_oldest_unacked_message_age{subscription_id='${google_eventarc_trigger.external_data_push.transport[0].pubsub[0].subscription}'}[5m]) >= 1"
-      duration = "300s"
-    }
-  }
-
-  alert_strategy {
-    auto_close = "300s"
-  }
-
-  notification_channels = [
-      local.environment_name == "production" ?  local.google_monitoring_slack_notification_production_id : local.google_monitoring_slack_notification_staging_id
-  ]
-
-  documentation {
-    content   = "Alert triggered when Pub/Sub subscription ('${google_eventarc_trigger.external_data_push.transport[0].pubsub[0].subscription}') has unacknowledged messages for more than 5 minutes. Please check the cloud function deployment and logs to see if the subscriber works correctly."
-    mime_type = "text/markdown"
-  }
-}

@@ -146,7 +146,7 @@ class PubSubPushEndpoint(View):
 
     def is_authorized(self, request: HttpRequest) -> bool:
         if self.running_in_local_setup:
-            return True
+            logger.info("granting auth, running locally")
 
         auth_header = request.headers.get("Authorization")
         if not auth_header:
