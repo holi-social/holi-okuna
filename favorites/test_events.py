@@ -14,7 +14,7 @@ from openbook_common.tests.helpers import make_user
 
 
 @pytest.mark.django_db
-class PubSubPushEndpointTestCase(TransactionTestCase):
+class PubSubPushEndpointFavoritesSyncingTestCase(TransactionTestCase):
     # authentication logic is skipped when is_development, which simplifies the testing here
     @mock.patch("openbook.webhooks.environment_checker.is_development", return_value=True)
     @mock.patch("favorites.models.UserFavorite.delete_all_favorites_for_external_volunteering_opportunity")

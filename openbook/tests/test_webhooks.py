@@ -295,7 +295,7 @@ class NotificationWebhookTestCase(TransactionTestCase):
 
 
 @pytest.mark.django_db
-class PubSubPushEndpointTestCase(TransactionTestCase):
+class PubSubPushEndpointEventHandlingTestCase(TransactionTestCase):
     @mock.patch("openbook.webhooks.environment_checker.is_development", return_value=True)
     @mock.patch("favorites.events.ExternalDataEventHandler.handle_event")
     def test_handles_events_for_external_data_topic(self, mock_handle_event, mock_is_dev):
