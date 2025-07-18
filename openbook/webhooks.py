@@ -109,52 +109,59 @@ class OryWebhook(View):
 
 
 class PubSubPushEndpoint(View):
-    def post(self, request: HttpRequest, topic_name: str = None):
-        if not self.running_in_local_setup:
-            auth_header = request.headers.get("Authorization")
-            if not auth_header:
-                logger.error("Missing Authorization header")
-                return JsonResponse({"message": "Authentication failed"}, status=401)
-
-            try:
-                _, token = auth_header.split()
-                id_token.verify_oauth2_token(
-                    token,
-                    requests.Request(),
-                    audience="okuna-pubsub-push",
-                )
-
-            except Exception as e:
-                logger.error(f"Invalid token: {str(e)}")
-                return JsonResponse({"message": "Authentication failed"}, status=401)
-
-        try:
-            envelope = json.loads(request.body)
-            pubsub_message = envelope.get("message", {})
-            message_data = pubsub_message.get("data")
-            if message_data:
-                decoded_data = json.loads(base64.b64decode(message_data).decode("utf-8"))
-
-                logger.info(f"Received PubSub message for topic {topic_name}: {decoded_data}")
-
-                if "external-data" in topic_name:
-                    # external-data-local
-                    # external-data-staging
-                    # external-data-production
-                    if not ExternalDataEventHandler.handle_event(decoded_data):
-                        logger.warning(f"Event for topic {topic_name} was not handled successfully")
-                        return JsonResponse({"message": "Event not handled"}, status=500)
-                else:
-                    logger.warning(f"Unhandled topic: {topic_name}")
-                    return JsonResponse({"message": f"Unhandled topic: {topic_name}"}, status=400)
-
-        except Exception as e:
-            logger.error(f"Error processing message: {e}")
-            return JsonResponse({"message": "Error processing message"}, status=500)
-
-        logger.info(f"Successfully processed message for topic {topic_name}")
-        return JsonResponse({"status": "OK"}, status=200)
-
     @property
     def running_in_local_setup(self):
         return environment_checker.is_development()
+
+    def post(self, request: HttpRequest, topic_name: str = None):
+        if self.is_authorized(request):
+            try:
+                envelope = json.loads(request.body)
+                pubsub_message = envelope.get("message", {})
+                message_data = pubsub_message.get("data")
+                if message_data:
+                    decoded_data = json.loads(base64.b64decode(message_data).decode("utf-8"))
+
+                    logger.info(f"Received PubSub message for topic {topic_name}: {decoded_data}")
+
+                    if "external-data" in topic_name:
+                        # external-data-local
+                        # external-data-staging
+                        # external-data-production
+                        if not ExternalDataEventHandler.handle_event(decoded_data):
+                            logger.warning(f"Event for topic {topic_name} was not handled successfully")
+                            return JsonResponse({"message": "Event not handled"}, status=500)
+                    else:
+                        logger.warning(f"Unhandled topic: {topic_name}")
+                        return JsonResponse({"message": f"Unhandled topic: {topic_name}"}, status=400)
+
+            except Exception as e:
+                logger.error(f"Error processing message: {e}")
+                return JsonResponse({"message": "Error processing message"}, status=500)
+
+            logger.info(f"Successfully processed message for topic {topic_name}")
+            return JsonResponse({"status": "OK"}, status=200)
+        else:
+            return JsonResponse({"message": "Authentication failed"}, status=401)
+
+    def is_authorized(self, request: HttpRequest) -> bool:
+        if self.running_in_local_setup:
+            return True
+
+        auth_header = request.headers.get("Authorization")
+        if not auth_header:
+            logger.error("Missing Authorization header")
+            return False
+
+        try:
+            _, token = auth_header.split()
+            id_token.verify_oauth2_token(
+                token,
+                requests.Request(),
+                audience="okuna-pubsub-push",
+            )
+            return True
+
+        except Exception as e:
+            logger.error(f"Invalid token: {str(e)}")
+            return False
