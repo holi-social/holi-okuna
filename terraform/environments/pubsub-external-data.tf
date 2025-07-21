@@ -1,8 +1,3 @@
-locals {
-  # todo gregor: uncomment after infra works on review okuna
-  # create_subscription = contains(["staging", "production"], local.environment_type)
-}
-
 resource "google_kms_crypto_key_iam_member" "external_data_pubsub_decrypter" {
   crypto_key_id = data.terraform_remote_state.holi_data_pipeline_common_state.outputs.data_pipeline_key
   role          = "roles/cloudkms.cryptoKeyDecrypter"
@@ -11,7 +6,6 @@ resource "google_kms_crypto_key_iam_member" "external_data_pubsub_decrypter" {
 
 
 resource "google_eventarc_trigger" "external_data_push" {
-  # count   = local.create_subscription ? 1 : 0
 
   name     = random_id.main.hex
   location = local.default_region
