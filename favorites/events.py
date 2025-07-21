@@ -33,22 +33,27 @@ class VolunteeringDeletedEvent(ExternalDataEvent):
 class ExternalDataEventHandler:
     @staticmethod
     def handle_event(event_data: Dict[str, Any]) -> bool:
-        try:
-            event_type = event_data.get("eventType")
+        event_type = event_data.get("eventType")
 
-            if event_type == "VolunteeringDeleted":
-                record_id = event_data.get("data", {}).get("id")
-                if record_id:
-                    logger.info(f"Processing VolunteeringDeleted event for record_id: {record_id}")
-                    UserFavorite.delete_all_favorites_for_external_volunteering_opportunity(record_id)
-                    return True
-                else:
-                    logger.error("Missing record_id in VolunteeringDeleted event")
-            else:
-                logger.info(f"Ignoring unhandled event type: {event_type}")
+        if "VolunteeringDeleted" == event_type:
+            return ExternalDataEventHandler.handle_VolunteeringDeleted(event_data)
+        else:
+            logger.info(f"Ignoring unhandled event type: {event_type}")
+            return True
+
+    # ruff: noqa: N802 - lets have method names that relate
+    @staticmethod
+    def handle_VolunteeringDeleted(event_data: Dict[str, Any]) -> bool:
+        record_id = event_data.get("data", {}).get("id")
+
+        if record_id:
+            logger.info(f"Processing VolunteeringDeleted event for record_id: {record_id}")
+            try:
+                UserFavorite.delete_all_favorites_for_external_volunteering_opportunity(record_id)
                 return True
-
+            except Exception as e:
+                logger.error(f"Error processing VolunteeringDeleted: {e}, event_data: {event_data}")
             return False
-        except Exception as e:
-            logger.error(f"Error handling external data event: {e}")
+        else:
+            logger.error("Missing record_id in VolunteeringDeleted event")
             return False
