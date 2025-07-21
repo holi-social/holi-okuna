@@ -11,7 +11,7 @@ from novu.dto.subscriber import SubscriberDto
 from rest_framework.authtoken.models import Token
 from semver import Version
 
-from favorites.events import IncomingEvent
+from openbook_common.pubsub.incoming_event import IncomingEvent
 from openbook_auth.models import User
 from openbook_notifications.payloads import NotificationType
 
@@ -298,7 +298,7 @@ class NotificationWebhookTestCase(TransactionTestCase):
 
 @pytest.mark.django_db
 class PubSubPushEndpointEventHandlingTestCase(TransactionTestCase):
-    @mock.patch("favorites.events.ExternalDataEventHandler.handle")
+    @mock.patch("openbook_common.pubsub.handler.ExternalDataEventHandler.handle")
     def test_handles_events_for_external_data_topic(self, mock_handle):
         client = AsyncClient()
         event_data = {"eventType": "VolunteeringDeleted", "eventVersion": "1.0.0", "data": {"id": "volunteering_123"}}
