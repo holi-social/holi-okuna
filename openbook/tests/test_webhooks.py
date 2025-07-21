@@ -296,9 +296,8 @@ class NotificationWebhookTestCase(TransactionTestCase):
 
 @pytest.mark.django_db
 class PubSubPushEndpointEventHandlingTestCase(TransactionTestCase):
-    @mock.patch("openbook.webhooks.environment_checker.is_development", return_value=True)
     @mock.patch("favorites.events.ExternalDataEventHandler.handle_event")
-    def test_handles_events_for_external_data_topic(self, mock_handle_event, mock_is_dev):
+    def test_handles_events_for_external_data_topic(self, mock_handle_event):
         client = AsyncClient()
         event_data = {"eventType": "VolunteeringDeleted", "eventVersion": "1.0.0", "data": {"id": "volunteering_123"}}
         encoded_data = base64.b64encode(json.dumps(event_data).encode("utf-8")).decode("utf-8")
@@ -323,8 +322,7 @@ class PubSubPushEndpointEventHandlingTestCase(TransactionTestCase):
         assert content["status"] == "OK"
         mock_handle_event.assert_called_with(event_data)
 
-    @mock.patch("openbook.webhooks.environment_checker.is_development", return_value=True)
-    def test_responds_400_for_unknown_topics(self, mock_is_dev):
+    def test_responds_400_for_unknown_topics(self):
         client = AsyncClient()
         event_data = {"eventType": "VolunteeringDeleted", "eventVersion": "1.0.0", "data": {"id": "volunteering_456"}}
         encoded_data = base64.b64encode(json.dumps(event_data).encode("utf-8")).decode("utf-8")

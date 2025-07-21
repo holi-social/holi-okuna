@@ -109,10 +109,6 @@ class OryWebhook(View):
 
 
 class PubSubPushEndpoint(View):
-    @property
-    def running_in_local_setup(self):
-        return environment_checker.is_development()
-
     def post(self, request: HttpRequest, topic_name: str = None):
         if self.is_authorized(request):
             try:
@@ -145,7 +141,7 @@ class PubSubPushEndpoint(View):
             return JsonResponse({"message": "Authentication failed"}, status=401)
 
     def is_authorized(self, request: HttpRequest) -> bool:
-        if self.running_in_local_setup:
+        if environment_checker.is_local() or environment_checker.is_test():
             logger.info("granting auth, running locally")
             return True
 

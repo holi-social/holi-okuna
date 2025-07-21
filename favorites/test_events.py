@@ -15,10 +15,8 @@ from openbook_common.tests.helpers import make_user
 
 @pytest.mark.django_db
 class PubSubPushEndpointFavoritesSyncingTestCase(TransactionTestCase):
-    # authentication logic is skipped when is_development, which simplifies the testing here
-    @mock.patch("openbook.webhooks.environment_checker.is_development", return_value=True)
     @mock.patch("favorites.models.UserFavorite.delete_all_favorites_for_external_volunteering_opportunity")
-    def test_handles_volunteering_deleted_event_for_external_data_topic(self, mock_delete_favorites, mock_is_dev):
+    def test_handles_volunteering_deleted_event_for_external_data_topic(self, mock_delete_favorites):
         client = AsyncClient()
         record_id = "test-record-id"
         event_data = {"eventType": "VolunteeringDeleted", "eventVersion": "1.0.0", "data": {"id": record_id}}
@@ -35,8 +33,7 @@ class PubSubPushEndpointFavoritesSyncingTestCase(TransactionTestCase):
         # and delete_all_favorites_for_external_volunteering_opportunity method was called
         mock_delete_favorites.assert_called_once_with(record_id)
 
-    @mock.patch("openbook.webhooks.environment_checker.is_development", return_value=True)
-    def test_handles_unknown_topic(self, mock_is_dev):
+    def test_handles_unknown_topic(self):
         client = AsyncClient()
         record_id = "test-record-id"
         event_data = {"eventType": "VolunteeringDeleted", "eventVersion": "1.0.0", "data": {"id": record_id}}
@@ -48,8 +45,7 @@ class PubSubPushEndpointFavoritesSyncingTestCase(TransactionTestCase):
 
         assert response.status_code == 400
 
-    @mock.patch("openbook.webhooks.environment_checker.is_development", return_value=True)
-    def test_ignores_unknown_event_types_gracefully(self, mock_is_dev):
+    def test_ignores_unknown_event_types_gracefully(self):
         client = AsyncClient()
         event_data = {"eventType": "UnknownEventType", "eventVersion": "1.0.0", "data": {}}
         encoded_data = base64.b64encode(json.dumps(event_data).encode("utf-8")).decode("utf-8")
@@ -60,8 +56,7 @@ class PubSubPushEndpointFavoritesSyncingTestCase(TransactionTestCase):
 
         assert response.status_code == 200
 
-    @mock.patch("openbook.webhooks.environment_checker.is_development", return_value=True)
-    def test_handles_missing_record_id(self, mock_is_dev):
+    def test_handles_missing_record_id(self):
         client = AsyncClient()
         event_data = {"eventType": "VolunteeringDeleted", "eventVersion": "1.0.0", "data": {}}
         encoded_data = base64.b64encode(json.dumps(event_data).encode("utf-8")).decode("utf-8")
@@ -74,8 +69,7 @@ class PubSubPushEndpointFavoritesSyncingTestCase(TransactionTestCase):
         content = json.loads(response.content)
         assert "Event not handled" in content["message"]
 
-    @mock.patch("openbook.webhooks.environment_checker.is_development", return_value=True)
-    def test_integration_with_user_favorite_model(self, mock_is_dev):
+    def test_integration_with_user_favorite_model(self):
         # given a favorite for the external volunteering opportunity
         client = AsyncClient()
         user = make_user()
