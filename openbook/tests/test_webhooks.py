@@ -9,7 +9,9 @@ from asgiref.sync import async_to_sync
 from requests.exceptions import HTTPError
 from novu.dto.subscriber import SubscriberDto
 from rest_framework.authtoken.models import Token
+from semver import Version
 
+from favorites.events import IncomingEvent
 from openbook_auth.models import User
 from openbook_notifications.payloads import NotificationType
 
@@ -296,8 +298,8 @@ class NotificationWebhookTestCase(TransactionTestCase):
 
 @pytest.mark.django_db
 class PubSubPushEndpointEventHandlingTestCase(TransactionTestCase):
-    @mock.patch("favorites.events.ExternalDataEventHandler.handle_event")
-    def test_handles_events_for_external_data_topic(self, mock_handle_event):
+    @mock.patch("favorites.events.ExternalDataEventHandler.handle")
+    def test_handles_events_for_external_data_topic(self, mock_handle):
         client = AsyncClient()
         event_data = {"eventType": "VolunteeringDeleted", "eventVersion": "1.0.0", "data": {"id": "volunteering_123"}}
         encoded_data = base64.b64encode(json.dumps(event_data).encode("utf-8")).decode("utf-8")
@@ -310,8 +312,12 @@ class PubSubPushEndpointEventHandlingTestCase(TransactionTestCase):
         assert response.status_code == 200
         content = json.loads(response.content)
         assert content["status"] == "OK"
-        mock_handle_event.assert_called_with(event_data)
-        mock_handle_event.reset_mock()
+        mock_handle.assert_called_with(
+            IncomingEvent(
+                event_type="VolunteeringDeleted", event_version=Version.parse("1.0.0"), data={"id": "volunteering_123"}
+            )
+        )
+        mock_handle.reset_mock()
 
         # works with external-data-production topic
         production_endpoint = reverse("pubsub_push", kwargs={"topic_name": "external-data-production"})
@@ -320,7 +326,11 @@ class PubSubPushEndpointEventHandlingTestCase(TransactionTestCase):
         assert response.status_code == 200
         content = json.loads(response.content)
         assert content["status"] == "OK"
-        mock_handle_event.assert_called_with(event_data)
+        mock_handle.assert_called_with(
+            IncomingEvent(
+                event_type="VolunteeringDeleted", event_version=Version.parse("1.0.0"), data={"id": "volunteering_123"}
+            )
+        )
 
     def test_responds_400_for_unknown_topics(self):
         client = AsyncClient()
@@ -334,3 +344,14 @@ class PubSubPushEndpointEventHandlingTestCase(TransactionTestCase):
         assert response.status_code == 400
         content = json.loads(response.content)
         assert "Unhandled topic: unknown-topic" in content["message"]
+
+    def test_ignores_unknown_event_types_gracefully(self):
+        client = AsyncClient()
+        event_data = {"eventType": "UnknownEventType", "eventVersion": "1.0.0", "data": {"id": "someRecord"}}
+        encoded_data = base64.b64encode(json.dumps(event_data).encode("utf-8")).decode("utf-8")
+        payload = {"message": {"data": encoded_data}}
+        endpoint = reverse("pubsub_push", kwargs={"topic_name": "external-data"})
+
+        response = async_to_sync(client.post)(endpoint, payload, content_type="application/json")
+
+        assert response.status_code == 200

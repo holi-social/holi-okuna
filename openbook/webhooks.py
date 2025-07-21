@@ -9,9 +9,9 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from requests.exceptions import HTTPError
 from rest_framework.authentication import TokenAuthentication
-from django.core.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError
 
-from favorites.events import ExternalDataEventHandler
+from favorites.events import ExternalDataEventHandler, IncomingEvent
 from openbook.settings import environment_checker
 from openbook_auth.models import User
 from openbook_notifications.payloads import NotificationType
@@ -110,6 +110,8 @@ class OryWebhook(View):
 
 class PubSubPushEndpoint(View):
     def post(self, request: HttpRequest, topic_name: str = None):
+        logger.info(f"Received PubSub message for topic {topic_name}")
+        # todo gregor: early return
         if self.is_authorized(request):
             try:
                 envelope = json.loads(request.body)
@@ -117,19 +119,22 @@ class PubSubPushEndpoint(View):
                 message_data = pubsub_message.get("data")
                 if message_data:
                     decoded_data = json.loads(base64.b64decode(message_data).decode("utf-8"))
-
-                    logger.info(f"Received PubSub message for topic {topic_name}: {decoded_data}")
+                    event = IncomingEvent.of(decoded_data)
 
                     if "external-data" in topic_name:
                         # external-data-local
                         # external-data-staging
                         # external-data-production
-                        if not ExternalDataEventHandler.handle_event(decoded_data):
+                        if not ExternalDataEventHandler.handle(event):
                             logger.warning(f"Event for topic {topic_name} was not handled successfully")
                             return JsonResponse({"message": "Event not handled"}, status=500)
                     else:
                         logger.warning(f"Unhandled topic: {topic_name}")
                         return JsonResponse({"message": f"Unhandled topic: {topic_name}"}, status=400)
+
+            except ValueError as ve:
+                logger.warning(f"Validation error while processing message: {ve}")
+                return JsonResponse({"message": str(ve)}, status=400)
 
             except Exception as e:
                 logger.error(f"Error processing message: {e}")

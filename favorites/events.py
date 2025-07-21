@@ -1,59 +1,57 @@
+from dataclasses import dataclass
 from typing import Dict, Any
 
 import structlog
+
+from semver import Version
 
 from favorites.models import UserFavorite
 
 logger = structlog.get_logger(__name__)
 
 
-class ExternalDataEvent:
-    def __init__(self, event_type: str, event_version: str, data: Dict[str, Any]):
-        self.event_type = event_type
-        self.event_version = event_version
-        self.data = data
+@dataclass
+class IncomingEvent:
+    event_type: str
+    event_version: Version
+    data: Dict[str, Any]
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "eventType": self.event_type,
-            "eventVersion": self.event_version,
-            "data": self.data,
-        }
+    @staticmethod
+    def of(data: Dict[str, Any]):
+        event_type = data.get("eventType")
+        event_version = Version.parse(data.get("eventVersion"))
+        data = data.get("data")
+        if not (event_type and event_version and data):
+            raise ValueError(f"Missing essentials of events in data: {data}")
+        return IncomingEvent(event_type, event_version, data)
+
+    def __str__(self) -> str:
+        return f"IncomingEvent(event_type={self.event_type}, event_version={self.event_version})"
 
 
-class VolunteeringDeletedEvent(ExternalDataEvent):
-    def __init__(self, record_id: str):
-        super().__init__(
-            event_type="VolunteeringDeleted",
-            event_version="1.0.0",
-            data={"id": record_id},
-        )
+@dataclass
+class VolunteeringDeletedEvent(IncomingEvent):
+    record_id: str
+
+    @staticmethod
+    def of(incoming_event: IncomingEvent):
+        record_id = incoming_event.data.get("id")
+        if record_id:
+            return VolunteeringDeletedEvent(
+                incoming_event.event_type, incoming_event.event_version, incoming_event.data, record_id
+            )
+        else:
+            raise ValueError(f"Missing record_id in event data: {incoming_event.data}")
 
 
 class ExternalDataEventHandler:
     @staticmethod
-    def handle_event(event_data: Dict[str, Any]) -> bool:
-        event_type = event_data.get("eventType")
-
-        if "VolunteeringDeleted" == event_type:
-            return ExternalDataEventHandler.handle_VolunteeringDeleted(event_data)
-        else:
-            logger.info(f"Ignoring unhandled event type: {event_type}")
+    def handle(incoming_event: IncomingEvent):
+        if "VolunteeringDeleted" == incoming_event.event_type:
+            logger.info("Processing VolunteeringDeleted event")
+            event = VolunteeringDeletedEvent.of(incoming_event)
+            UserFavorite.delete_all_favorites_for_external_volunteering_opportunity(event.record_id)
             return True
 
-    # ruff: noqa: N802 - lets have method names that relate
-    @staticmethod
-    def handle_VolunteeringDeleted(event_data: Dict[str, Any]) -> bool:
-        record_id = event_data.get("data", {}).get("id")
-
-        if record_id:
-            logger.info(f"Processing VolunteeringDeleted event for record_id: {record_id}")
-            try:
-                UserFavorite.delete_all_favorites_for_external_volunteering_opportunity(record_id)
-                return True
-            except Exception as e:
-                logger.error(f"Error processing VolunteeringDeleted: {e}, event_data: {event_data}")
-            return False
-        else:
-            logger.error("Missing record_id in VolunteeringDeleted event")
-            return False
+        logger.warning(f"Ignoring unhandled event type: {incoming_event.event_type}")
+        return True

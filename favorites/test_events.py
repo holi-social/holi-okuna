@@ -33,41 +33,18 @@ class PubSubPushEndpointFavoritesSyncingTestCase(TransactionTestCase):
         # and delete_all_favorites_for_external_volunteering_opportunity method was called
         mock_delete_favorites.assert_called_once_with(record_id)
 
-    def test_handles_unknown_topic(self):
+    def test_handles_missing_record_id(self):
         client = AsyncClient()
-        record_id = "test-record-id"
-        event_data = {"eventType": "VolunteeringDeleted", "eventVersion": "1.0.0", "data": {"id": record_id}}
+        event_data = {"eventType": "VolunteeringDeleted", "eventVersion": "1.0.0", "data": {"id": None}}
         encoded_data = base64.b64encode(json.dumps(event_data).encode("utf-8")).decode("utf-8")
         payload = {"message": {"data": encoded_data}}
-        endpoint = reverse("pubsub_push", kwargs={"topic_name": "unknown-topic"})
+        endpoint = reverse("pubsub_push", kwargs={"topic_name": "external-data"})
 
         response = async_to_sync(client.post)(endpoint, payload, content_type="application/json")
 
         assert response.status_code == 400
-
-    def test_ignores_unknown_event_types_gracefully(self):
-        client = AsyncClient()
-        event_data = {"eventType": "UnknownEventType", "eventVersion": "1.0.0", "data": {}}
-        encoded_data = base64.b64encode(json.dumps(event_data).encode("utf-8")).decode("utf-8")
-        payload = {"message": {"data": encoded_data}}
-        endpoint = reverse("pubsub_push", kwargs={"topic_name": "external-data"})
-
-        response = async_to_sync(client.post)(endpoint, payload, content_type="application/json")
-
-        assert response.status_code == 200
-
-    def test_handles_missing_record_id(self):
-        client = AsyncClient()
-        event_data = {"eventType": "VolunteeringDeleted", "eventVersion": "1.0.0", "data": {}}
-        encoded_data = base64.b64encode(json.dumps(event_data).encode("utf-8")).decode("utf-8")
-        payload = {"message": {"data": encoded_data}}
-        endpoint = reverse("pubsub_push", kwargs={"topic_name": "external-data"})
-
-        response = async_to_sync(client.post)(endpoint, payload, content_type="application/json")
-
-        assert response.status_code == 500
         content = json.loads(response.content)
-        assert "Event not handled" in content["message"]
+        assert "Missing record_id in event data" in content["message"]
 
     def test_integration_with_user_favorite_model(self):
         # given a favorite for the external volunteering opportunity
