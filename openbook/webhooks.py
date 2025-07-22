@@ -111,8 +111,6 @@ class OryWebhook(View):
 
 class PubSubPushEndpoint(View):
     def post(self, request: HttpRequest, topic_name: str = None):
-        logger.info(f"Received PubSub message for topic {topic_name}")
-
         if not self.is_authorized:
             return JsonResponse({"message": "Authentication failed"}, status=401)
 
@@ -159,14 +157,10 @@ class PubSubPushEndpoint(View):
 
         try:
             _, token = auth_header.split()
-            token = id_token.verify_oauth2_token(
+            id_token.verify_oauth2_token(
                 token,
                 requests.Request(),
             )
-
-            # todo gregor: for debugging, remove later
-            logger.info(f"Token: {token}")
-
             return True
 
         except Exception as e:
