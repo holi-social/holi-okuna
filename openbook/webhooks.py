@@ -1,12 +1,19 @@
+import base64
 import json
+
 import structlog
 
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpRequest
 from django.views import View
+from google.oauth2 import id_token
+from google.auth.transport import requests
 from requests.exceptions import HTTPError
 from rest_framework.authentication import TokenAuthentication
-from django.core.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError
 
+from openbook_common.pubsub.incoming_event import IncomingEvent
+from openbook_common.pubsub.handler import ExternalDataEventHandler
+from openbook.settings import environment_checker
 from openbook_auth.models import User
 from openbook_notifications.payloads import NotificationType
 from openbook_notifications.api import NotificationApi
@@ -100,3 +107,68 @@ class OryWebhook(View):
                 raise http_err
 
         return JsonResponse({}, status=200)
+
+
+class PubSubPushEndpoint(View):
+    def post(self, request: HttpRequest, topic_name: str = None):
+        logger.info(f"Received PubSub message for topic {topic_name}")
+
+        if not self.is_authorized:
+            return JsonResponse({"message": "Authentication failed"}, status=401)
+
+        try:
+            envelope = json.loads(request.body)
+            pubsub_message = envelope.get("message", {})
+            message_data = pubsub_message.get("data")
+            if message_data:
+                decoded_data = json.loads(base64.b64decode(message_data).decode("utf-8"))
+                event = IncomingEvent.of(decoded_data)
+
+                if "external-data" in topic_name:
+                    # external-data-local
+                    # external-data-staging
+                    # external-data-production
+                    if not ExternalDataEventHandler.handle(event):
+                        logger.warning(f"Event for topic {topic_name} was not handled successfully")
+                        return JsonResponse({"message": "Event not handled"}, status=500)
+                else:
+                    logger.warning(f"Unhandled topic: {topic_name}")
+                    return JsonResponse({"message": f"Unhandled topic: {topic_name}"}, status=400)
+
+        except ValueError as ve:
+            logger.warning(f"Validation error while processing message: {ve}")
+            return JsonResponse({"message": str(ve)}, status=400)
+
+        except Exception as e:
+            logger.error(f"Error processing message: {e}")
+            return JsonResponse({"message": "Error processing message"}, status=500)
+
+        logger.info(f"Successfully processed message for topic {topic_name}")
+        return JsonResponse({"status": "OK"}, status=200)
+
+    @staticmethod
+    def is_authorized(request: HttpRequest) -> bool:
+        if environment_checker.is_local() or environment_checker.is_test():
+            logger.info("Authorizing as local or test execution")
+            return True
+
+        auth_header = request.headers.get("Authorization")
+        if not auth_header:
+            logger.error("Missing Authorization header")
+            return False
+
+        try:
+            _, token = auth_header.split()
+            token = id_token.verify_oauth2_token(
+                token,
+                requests.Request(),
+            )
+
+            # todo gregor: for debugging, remove later
+            logger.info(f"Token: {token}")
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Invalid token: {str(e)}")
+            return False

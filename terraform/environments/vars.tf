@@ -10,4 +10,14 @@ locals {
   default_region = data.terraform_remote_state.holi_infra_state.outputs.default_region
 
   posthog_host = "https://eu.posthog.com"
+
+  project_id = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
+
+  external_data_topic_name = local.environment_name == "production" ? data.terraform_remote_state.holi_data_pipeline_common_state.outputs.google_pubsub_topic_external_data_production_name : data.terraform_remote_state.holi_data_pipeline_common_state.outputs.google_pubsub_topic_external_data_staging_name
+
+  external_data_topic_id = local.environment_name == "production" ? data.terraform_remote_state.holi_data_pipeline_common_state.outputs.google_pubsub_topic_external_data_production : data.terraform_remote_state.holi_data_pipeline_common_state.outputs.google_pubsub_topic_external_data_staging
+
+  google_monitoring_slack_notification_production_id = data.terraform_remote_state.holi_infra_monitoring_state.outputs.monitoring_notification_channel_slack_production_id
+  google_monitoring_slack_notification_staging_id    = data.terraform_remote_state.holi_infra_monitoring_state.outputs.monitoring_notification_channel_slack_staging_id
+
 }
