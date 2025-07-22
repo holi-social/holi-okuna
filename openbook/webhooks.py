@@ -146,9 +146,10 @@ class PubSubPushEndpoint(View):
         logger.info(f"Successfully processed message for topic {topic_name}")
         return JsonResponse({"status": "OK"}, status=200)
 
-    def is_authorized(self, request: HttpRequest) -> bool:
+    @staticmethod
+    def is_authorized(request: HttpRequest) -> bool:
         if environment_checker.is_local() or environment_checker.is_test():
-            logger.info("granting auth, running locally")
+            logger.info("Authorizing as local or test execution")
             return True
 
         auth_header = request.headers.get("Authorization")

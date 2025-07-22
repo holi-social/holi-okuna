@@ -20,7 +20,7 @@ resource "google_eventarc_trigger" "external_data_push" {
     cloud_run_service {
       service = google_cloud_run_service.okuna.name
       region  = google_cloud_run_service.okuna.location
-      path    = "/pubsub/subscription/${local.external_data_topic_name}/"
+      path    = "/pubsub/${local.external_data_topic_name}/"
     }
 
     network_config {
