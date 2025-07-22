@@ -31,7 +31,7 @@ class Insight:
     id: strawberry.auto
     title: strawberry.auto
     description: strawberry.auto
-    creator: Optional[User] = strawberry_django.field(select_related=["creator__profile"])
+    creator: User = strawberry_django.field(select_related=["creator__profile"])
     date_published: strawberry.auto
     header_image: Optional[str]
     header_image_blurhash: Optional[str]
