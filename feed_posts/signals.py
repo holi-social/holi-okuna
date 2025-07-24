@@ -14,8 +14,10 @@ publish_to_okuna_topic = partial(publish_event, Topic.OKUNA.value)
 class FeedPostCreatedEvent(Event):
     def __init__(self, feed_post: "FeedPost"):
         self.feed_post = feed_post
+        category = self.feed_post.category.slug if self.feed_post.category else None
+
         super().__init__(
-            data={"category": self.feed_post.category.slug},
+            data={"category": category},
             event_type="FeedPostCreated",
             event_version="1.0.0",
         )
