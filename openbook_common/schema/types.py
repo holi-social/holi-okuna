@@ -4,7 +4,6 @@ from typing import Generic, List, Optional, TypeVar
 import strawberry
 import strawberry_django
 import structlog
-from asgiref.sync import sync_to_async
 from django.contrib.gis import geos
 from django.db.models import QuerySet
 
@@ -92,7 +91,8 @@ class Paged(Generic[T]):
     @staticmethod
     async def aof(query: QuerySet, offset: int, limit: int):
         total_results = await query.acount()
-        return sync_to_async(Paged)(data=query[offset : offset + limit], total_results=total_results)
+        data = [item async for item in query[offset : offset + limit]]
+        return Paged(data=data, total_results=total_results)
 
     @staticmethod
     def empty():
