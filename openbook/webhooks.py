@@ -3,7 +3,7 @@ import json
 
 import structlog
 import requests
-from typing import Dict, Optional, List
+from typing import Dict, Optional
 from django.conf import settings
 
 from django.http import JsonResponse, HttpRequest
