@@ -717,3 +717,9 @@ FEED_POST_TOPICS_MAX_AMOUNT = 6
 
 POSTHOG_API_KEY = os.environ.get("POSTHOG_API_KEY")
 POSTHOG_HOST = os.environ.get("POSTHOG_HOST")
+
+# Appcues API Configuration
+APPCUES_API_KEY = os.environ.get("APPCUES_API_KEY")
+APPCUES_API_SECRET = os.environ.get("APPCUES_API_SECRET")
+APPCUES_ACCOUNT_ID = os.environ.get("APPCUES_ACCOUNT_ID")
+APPCUES_BASE_URL = "https://api.appcues.com"

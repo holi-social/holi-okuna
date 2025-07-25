@@ -70,3 +70,14 @@ class UserFavorite(ModelWithUUID):
     @classmethod
     def delete_multiple_favorites_of_user(cls, favoritable_ids: list[str], user: User):
         cls.objects.filter(favoritable_id__in=favoritable_ids, user=user).delete()
+
+    @classmethod
+    def delete_all_favorites_for_external_volunteering_opportunity(cls, external_id: str):
+        external_volunteering_opportunity_content_type = ContentType.objects.get(
+            model=FavoritableType.EXTERNAL_VOLUNTEERING_OPPORTUNITY.value
+        )
+        cls.objects.filter(
+            favoritable_id=external_id, favoritable_type=external_volunteering_opportunity_content_type
+        ).delete()
+
+        ExternalVolunteeringOpportunity.cleanup_unreferenced(external_id)
