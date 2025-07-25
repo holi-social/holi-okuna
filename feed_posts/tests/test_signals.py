@@ -18,6 +18,15 @@ def test_publish_feed_post_created_publishes_on_create(publish: Mock):
 
 
 @patch("feed_posts.signals.publish_to_okuna_topic")
+def test_publish_feed_post_created_without_category_publishes_correctly(publish: Mock):
+    feed_post = create_autospec(FeedPost)
+    feed_post.category = None
+
+    publish_feed_post_created(sender="feed_posts.FeedPost", instance=feed_post, created=True)
+    publish.assert_called_once()
+
+
+@patch("feed_posts.signals.publish_to_okuna_topic")
 def test_publish_feed_post_created_raises_on_wrong_instance(publish: Mock):
     with pytest.raises(ValueError):
         publish_feed_post_created(sender="feed_posts.FeedPost", instance=None, created=True)
