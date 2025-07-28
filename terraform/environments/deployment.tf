@@ -275,7 +275,9 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "ALLOWED_HOSTS"
-          value = "${local.dns_name},127.0.0.1,localhost" # localhost for healthcheck (startup and liveness probes)
+          # localhost for healthcheck (startup and liveness probes)
+          # .run.awebpp to allow its own cloudrun host to deliver pubsub message to the http pubsub reciever
+          value = "${local.dns_name},.run.app,127.0.0.1,localhost"
         }
         env {
           name  = "RDS_DB_NAME"
