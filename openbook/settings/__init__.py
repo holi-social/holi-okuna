@@ -57,13 +57,14 @@ if IS_PRODUCTION:
     APP_URL = "https://app.holi.social"
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS")
-if IS_PRODUCTION:
+if IS_PRODUCTION or IS_STAGING:
     if not ALLOWED_HOSTS:
-        raise NameError("ALLOWED_HOSTS environment variable is required when running on a production environment")
+        raise NameError("ALLOWED_HOSTS environment variable is required")
     ALLOWED_HOSTS = [allowed_host.strip() for allowed_host in ALLOWED_HOSTS.split(",")]
 else:
+    # local
     if ALLOWED_HOSTS:
-        logger.info("ALLOWED_HOSTS environment variable ignored.")
+        logger.info("ALLOWED_HOSTS environment variable ignored. Allowing all.")
     ALLOWED_HOSTS = ["*"]
 
 # Application definition
