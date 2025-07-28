@@ -17,7 +17,4 @@ locals {
 
   external_data_topic_id = local.environment_name == "production" ? data.terraform_remote_state.holi_data_pipeline_common_state.outputs.google_pubsub_topic_external_data_production : data.terraform_remote_state.holi_data_pipeline_common_state.outputs.google_pubsub_topic_external_data_staging
 
-  google_monitoring_slack_notification_production_id = data.terraform_remote_state.holi_infra_monitoring_state.outputs.monitoring_notification_channel_slack_production_id
-  google_monitoring_slack_notification_staging_id    = data.terraform_remote_state.holi_infra_monitoring_state.outputs.monitoring_notification_channel_slack_staging_id
-
 }
