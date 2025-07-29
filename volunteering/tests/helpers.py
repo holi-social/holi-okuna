@@ -1,4 +1,3 @@
-import uuid
 from typing import Optional
 
 from asgiref.sync import async_to_sync
@@ -26,10 +25,10 @@ def list_committed_volunteering_opportunities(user, offset: int = 0, limit: int 
     )
 
 
-def get_volunteering_opportunity_status(user, volunteering_opportunity_id: uuid.UUID):
+def get_volunteering_opportunity_status(user, volunteering_opportunity_id: str):
     return async_to_sync(schema.execute)(
         """
-            query($volunteeringOpportunityId: UUID!) {
+            query($volunteeringOpportunityId: String!) {
                 volunteeringOpportunityStatus(volunteeringOpportunityId: $volunteeringOpportunityId) {
                     status
                     externalVolunteeringOpportunityId
@@ -44,12 +43,12 @@ def get_volunteering_opportunity_status(user, volunteering_opportunity_id: uuid.
 
 
 def update_volunteering_opportunity_status(
-    user, volunteering_opportunity_id: uuid.UUID, new_status: Optional[Status] = None
+    user, volunteering_opportunity_id: str, new_status: Optional[Status] = None
 ):
     if new_status is None:
         return async_to_sync(schema.execute)(
             """
-                mutation($volunteeringOpportunityId: UUID!) {
+                mutation($volunteeringOpportunityId: String!) {
                     updateVolunteeringOpportunityStatus(volunteeringOpportunityId: $volunteeringOpportunityId) {
                         status
                         externalVolunteeringOpportunityId
@@ -64,7 +63,7 @@ def update_volunteering_opportunity_status(
 
     return async_to_sync(schema.execute)(
         """
-            mutation($volunteeringOpportunityId: UUID!, $newStatus: VolunteeringOpportunityStatusValue) {
+            mutation($volunteeringOpportunityId: String!, $newStatus: VolunteeringOpportunityStatusValue) {
                 updateVolunteeringOpportunityStatus(volunteeringOpportunityId: $volunteeringOpportunityId, newStatus: $newStatus) {
                     status
                     externalVolunteeringOpportunityId

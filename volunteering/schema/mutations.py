@@ -1,5 +1,4 @@
 import typing
-import uuid
 
 import strawberry
 from graphql import GraphQLError
@@ -19,7 +18,7 @@ class Mutation:
     async def update_volunteering_opportunity_status(
         self,
         info: Info,
-        volunteering_opportunity_id: uuid.UUID,
+        volunteering_opportunity_id: str,
         new_status: VolunteeringOpportunityStatusValue = VolunteeringOpportunityStatusValue.TO_DO,
     ) -> VolunteeringOpportunityStatus:
         user: "User" = verify_authorized_user(info)

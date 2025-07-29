@@ -1,4 +1,3 @@
-import uuid
 from typing import Optional, TYPE_CHECKING
 
 import strawberry
@@ -16,7 +15,7 @@ if TYPE_CHECKING:
 class Query:
     @strawberry.field()
     async def volunteering_opportunity_status(
-        self, info: Info, volunteering_opportunity_id: uuid.UUID
+        self, info: Info, volunteering_opportunity_id: str
     ) -> Optional[VolunteeringOpportunityStatus]:
         current_user: "User" = verify_authorized_user(info)
 

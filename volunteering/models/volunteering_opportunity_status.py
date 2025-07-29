@@ -1,7 +1,7 @@
 from enum import StrEnum
 from typing import Self
 
-from django.db.models import UUIDField, TextField, DateTimeField, ForeignKey, CASCADE
+from django.db.models import TextField, DateTimeField, ForeignKey, CASCADE, Index
 from django.utils.functional import classproperty
 
 from openbook_auth.models import User
@@ -33,8 +33,14 @@ class Status(StrEnum):
 
 
 class VolunteeringOpportunityStatus(ModelWithUUID):
-    external_volunteering_opportunity_id = UUIDField()
+    external_volunteering_opportunity_id = TextField()
     user = ForeignKey(User, on_delete=CASCADE, null=False)
     status = TextField(choices=Status.choices)
     created_at = DateTimeField(auto_now_add=True, editable=False)
     updated_at = DateTimeField(auto_now=True, editable=False)
+
+    class Meta:
+        indexes = [
+            Index(fields=["user"]),
+            Index(fields=["external_volunteering_opportunity_id"]),
+        ]
