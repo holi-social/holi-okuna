@@ -18,7 +18,7 @@ class TestVolunteeringGraphQL(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = make_user()
-        cls.external_volunteering_opportunity_id = uuid.uuid4()
+        cls.external_volunteering_opportunity_id = str(uuid.uuid4())
 
     def test_can_not_list_volunteering_opportunity_statuses_when_not_logged_in(self):
         """
