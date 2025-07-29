@@ -7,7 +7,7 @@ resource "google_kms_crypto_key_iam_member" "external_data_pubsub_decrypter" {
 
 resource "google_eventarc_trigger" "external_data_push" {
 
-  name     = random_id.main.hex
+  name     = "${random_id.main.hex}_external_data"
   location = local.default_region
   project  = local.project_id
 
