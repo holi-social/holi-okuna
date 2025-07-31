@@ -8,7 +8,7 @@ import strawberry_django
 from strawberry.file_uploads import Upload
 
 from openbook_auth.models import User as UserModel, UserRole
-from openbook_auth.models import UserConnectionStatus
+from openbook_auth.models import AccountType, UserConnectionStatus
 from openbook_common.schema.types import GeoJSONInput
 from openbook_communities.enums import UpdateConnectionAction
 from openbook_communities.models import Community as CommunityModel
@@ -65,7 +65,6 @@ class User:
     avatar_default_color: str
     avatar_label: str
     role: Optional[UserRole]
-    is_oidc: bool
 
     @strawberry_django.field(description="Can be an empty string", select_related=["profile"])
     def full_name(self) -> str:
@@ -153,6 +152,8 @@ class AuthenticatedUser(User):
     is_employee: bool
     is_verified: bool
     role: Optional[UserRole]
+    is_oidc: bool
+    account_type: AccountType
 
 
 @strawberry.input
