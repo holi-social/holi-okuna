@@ -16,7 +16,7 @@ class ExternalVolunteeringOpportunityStartedEvent(Event):
         self.volunteering_opportunity_status = volunteering_opportunity_status
 
         super().__init__(
-            data={"category": ""},
+            data={},
             event_type="ExternalVolunteeringOpportunityStarted",
             event_version="1.0.0",
         )
