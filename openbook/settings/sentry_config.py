@@ -29,22 +29,6 @@ def sentry_event_processor(event, hint):
     return event
 
 
-class HoliSentryTracesSampler:
-    def __init__(self, default_sample_rate: float):
-        self.default_sample_rate = default_sample_rate
-
-    def traces_sampler(self, sampling_context):
-        for key, value in sampling_context["asgi_scope"]["headers"]:
-            if key == b"x-disable-sentry" and value == b"true":
-                return 0
-
-        # always inherit
-        if sampling_context["parent_sampled"] is not None:
-            return sampling_context["parent_sampled"]
-
-        return self.default_sample_rate
-
-
 class HoliSentryTracingExtension(SentryTracingExtension):
     def on_operation(self) -> Generator[None, None, None]:
         yield from super().on_operation()
@@ -73,12 +57,11 @@ def init(sentry_dsn: str, sample_rate: float, environment: str) -> None:
     if not sentry_dsn:
         raise NameError(f"Sentry DSN is required for {environment}")
 
-    sampler = HoliSentryTracesSampler(sample_rate)
     sentry_sdk.init(
         dsn=sentry_dsn,
         event_scrubber=EventScrubber(),  # Remove PII
         integrations=[DjangoIntegration()],
         before_send=sentry_event_processor,
-        traces_sampler=sampler.traces_sampler,
+        sample_rate=sample_rate,
         environment=environment,
     )
