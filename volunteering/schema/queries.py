@@ -29,4 +29,6 @@ class Query:
     ) -> Paged[VolunteeringOpportunityStatus]:
         current_user: "User" = verify_authorized_user(info)
 
-        return await Paged.aof(VolunteeringOpportunityStatusModel.objects.filter(user=current_user), offset, limit)
+        return await Paged.aof(
+            VolunteeringOpportunityStatusModel.objects.filter(user=current_user).order_by("-updated_at"), offset, limit
+        )
