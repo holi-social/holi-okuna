@@ -24,7 +24,6 @@ from openbook_auth.events import (
 )
 from openbook.utils import invalidate_discover_spaces_query_cache
 from openbook_auth.models import User as UserModel
-from favorites.models import UserFavorite
 from openbook_auth.schema.types import UpdateAuthenticatedUserInput, User, AuthenticatedUser, RegisterDeviceInput
 from openbook_auth.serializers.authenticated_user_serializers import (
     UpdateAuthenticatedUserSerializer,

@@ -303,10 +303,7 @@ class PubSubPushEndpoint(View):
 
         try:
             _, token = auth_header.split()
-            id_token.verify_oauth2_token(
-                token,
-                google_requests.Request(),
-            )
+            id_token.verify_oauth2_token(token, google_requests.Request(), "okuna-pubsub-endpoint")
             return True
 
         except Exception as e:
