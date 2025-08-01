@@ -21,6 +21,11 @@ resource "google_pubsub_subscription" "external_data_subscription" {
       service_account_email = data.terraform_remote_state.holi_okuna_common_state.outputs.cloud_run_service_account_email
     }
   }
+
+  retry_policy {
+    minimum_backoff = "1s"
+    maximum_backoff = "60s"
+  }
 }
 
 
