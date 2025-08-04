@@ -115,8 +115,6 @@ def get_account_type(user_id: str):
                 return AccountType.GOOGLE
             if any(v.startswith("apple") for v in oidc.get("identifiers", [])):
                 return AccountType.APPLE
-            if any(v.startswith("facebook") for v in oidc.get("identifiers", [])):
-                return AccountType.FACEBOOK
             return AccountType.UNKNOWN
 
         return AccountType.EMAIL
