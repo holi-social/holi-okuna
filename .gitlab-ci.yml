@@ -52,10 +52,10 @@ validate:
     POSTGRES_HOST_AUTH_METHOD: trust
     UV_CACHE_DIR: .uv-cache
   before_script:
+    - uv --version
     - uv sync --locked --link-mode=copy
   script: |
     /etc/init.d/redis-server start
-    uv --version
     uv run ruff check --output-format=gitlab | tee .gl-lint-report.json
     uv run ruff format --diff
     uv run pytest --cov
