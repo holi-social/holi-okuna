@@ -38,7 +38,7 @@ default:
     - 1cpu-4gb # build on smaller machine
 
 validate:
-  image: 'europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/holi-okuna-builder:latest'
+  image: 'europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/holi-okuna-builder@sha256:ec4f03e644e10c0d578a490b4f9ed5c4bd47944bfff2acc42d687071d1d4b7af'
   cache: !reference [ .uv_cache_rw ]
   services:
     - name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/postgis/postgis:17-3.4'
