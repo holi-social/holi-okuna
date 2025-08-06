@@ -114,6 +114,7 @@ INSTALLED_APPS = [
     "favorites",
     "comments",
     "feed_posts",
+    "volunteering",
 ]
 
 MODELTRANSLATION_FALLBACK_LANGUAGES = ("en",)
@@ -437,10 +438,9 @@ REST_FRAMEWORK = {
 
 UNICODE_JSON = True
 
-# The sentry DSN for error reporting
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
-if IS_PRODUCTION or IS_STAGING:  # trace 1% of requests, not marked by the frontend
-    sentry_config.init(sentry_dsn=SENTRY_DSN, sample_rate=0.01, environment=ENVIRONMENT)
+if IS_PRODUCTION or IS_STAGING:
+    sentry_config.init(sentry_dsn=SENTRY_DSN, sample_rate=0.3, environment=ENVIRONMENT)
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/

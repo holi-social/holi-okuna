@@ -148,33 +148,6 @@ resource "google_cloud_run_v2_job" "okuna_migration" {
           }
         }
         env {
-          name = "APPCUES_API_KEY"
-          value_source {
-            secret_key_ref {
-              secret  = local.environment_name == "production" ? "APPCUES_API_KEY_PRODUCTION" : "APPCUES_API_KEY_DEVELOPMENT"
-              version = "latest"
-            }
-          }
-        }
-        env {
-          name = "APPCUES_API_SECRET"
-          value_source {
-            secret_key_ref {
-              secret  = local.environment_name == "production" ? "APPCUES_API_SECRET_PRODUCTION" : "APPCUES_API_SECRET_DEVELOPMENT"
-              version = "latest"
-            }
-          }
-        }
-        env {
-          name = "APPCUES_ACCOUNT_ID"
-          value_source {
-            secret_key_ref {
-              secret  = local.environment_name == "production" ? "APPCUES_ACCOUNT_ID_PRODUCTION" : "APPCUES_ACCOUNT_ID_DEVELOPMENT"
-              version = "latest"
-            }
-          }
-        }
-        env {
           name  = "SENTRY_DSN"
           value = "https://41084c0584d04b38a27d49fab9591b42@o949544.ingest.sentry.io/6421964"
         }
@@ -446,6 +419,33 @@ resource "google_cloud_run_service" "okuna" {
             secret_key_ref {
               key  = "latest"
               name = local.environment_name == "production" ? "CHAT_ADMIN_ACCESS_TOKEN_PRODUCTION" : "CHAT_ADMIN_ACCESS_TOKEN_DEVELOPMENT"
+            }
+          }
+        }
+        env {
+          name = "APPCUES_API_KEY"
+          value_from {
+            secret_key_ref {
+              name = local.environment_name == "production" ? "APPCUES_API_KEY_PRODUCTION" : "APPCUES_API_KEY_DEVELOPMENT"
+              key  = "latest"
+            }
+          }
+        }
+        env {
+          name = "APPCUES_API_SECRET"
+          value_from {
+            secret_key_ref {
+              name = local.environment_name == "production" ? "APPCUES_API_SECRET_PRODUCTION" : "APPCUES_API_SECRET_DEVELOPMENT"
+              key  = "latest"
+            }
+          }
+        }
+        env {
+          name = "APPCUES_ACCOUNT_ID"
+          value_from {
+            secret_key_ref {
+              name = local.environment_name == "production" ? "APPCUES_ACCOUNT_ID_PRODUCTION" : "APPCUES_ACCOUNT_ID_DEVELOPMENT"
+              key  = "latest"
             }
           }
         }
