@@ -240,6 +240,14 @@ class TestUpdateOryUser(TestCase):
         self.assertEqual(result, AccountType.APPLE)
 
     @mock.patch("requests.get")
+    def test_get_account_type_should_return_provider_for_facebook_account(self, mock_get):
+        mock_get.return_value = MockJsonResponse({"credentials": {"oidc": {"identifiers": ["facebook-123"]}}})
+
+        result = get_account_type("some_id")
+
+        self.assertEqual(result, AccountType.FACEBOOK)
+
+    @mock.patch("requests.get")
     def test_get_account_type_should_return_unknown_for_unknown_provider(self, mock_get):
         mock_get.return_value = MockJsonResponse({"credentials": {"oidc": {"identifiers": ["123"]}}})
 
