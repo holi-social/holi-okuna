@@ -1,4 +1,4 @@
-FROM europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/python:3.13.3-slim AS builder
+FROM europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/python:3.13.5-slim AS builder
 COPY --from=europe-north1-docker.pkg.dev/holi-shared/ghcr-io-remote/astral-sh/uv:latest /uv /uvx /bin/
 
 RUN apt-get -y update && \
