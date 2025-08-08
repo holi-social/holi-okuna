@@ -69,7 +69,7 @@ class FacebookAuthService:
         Find Ory user by Facebook ID using direct identifier search
         """
         try:
-            params = {"credentials_identifier": f"{provider}-{facebook_id}", "include_credential": "oidc"}
+            params = {"credentials_identifier": f"{provider}:{facebook_id}", "include_credential": "oidc"}
             response = requests.get(
                 f"{settings.ORY_BASE_URL}/admin/identities/", params=params, headers=ORY_HEADERS, timeout=30
             )
@@ -109,7 +109,7 @@ class FacebookAuthService:
                 "schema_id": "default",
                 "traits": {"email": email, "given_name": first_name, "family_name": last_name, "name": name},
                 "credentials": {
-                    "oidc": {"identifiers": [f"{provider}-{facebook_id}"], "config": {"providers": [provider]}}
+                    "oidc": {"identifiers": [f"{provider}:{facebook_id}"], "config": {"providers": [provider]}}
                 },
                 "verifiable_addresses": [{"value": email, "verified": True, "status": "completed"}],
             }
