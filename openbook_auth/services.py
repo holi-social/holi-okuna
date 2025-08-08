@@ -3,7 +3,6 @@ import logging
 import requests
 from typing import Optional, Dict, Any
 from django.conf import settings
-from openbook_auth.models import AccountType
 
 logger = logging.getLogger(__name__)
 
@@ -21,9 +20,9 @@ class FacebookAuthService:
         Verify Facebook access token using Ory Kratos admin API
         """
         try:
-            # First, verify the token with Facebook to get user info
+            # Verify the token with Facebook to get user info
             fb_response = requests.get(
-                f"https://graph.facebook.com/me",
+                "https://graph.facebook.com/me",
                 params={"access_token": access_token, "fields": "id,name,email"},
                 timeout=10,
             )
@@ -41,7 +40,7 @@ class FacebookAuthService:
                 logger.error("No Facebook user ID in response")
                 return None
 
-            # Now check if user exists in Ory with this Facebook ID
+            # Check if user exists in Ory with this Facebook ID
             ory_user = FacebookAuthService._find_ory_user_by_facebook_id(facebook_user_id)
 
             if ory_user:
@@ -67,11 +66,10 @@ class FacebookAuthService:
     @staticmethod
     def _find_ory_user_by_facebook_id(facebook_id: str) -> Optional[Dict[str, Any]]:
         """
-        Find Ory user by Facebook ID
+        Find Ory user by Facebook ID using direct identifier search
         """
         try:
-            # Search for users with Facebook credentials
-            params = {"per_page": 1000, "include_credential": "oidc"}
+            params = {"credentials_identifier": f"facebook-{facebook_id}", "include_credential": "oidc"}
             response = requests.get(
                 f"{settings.ORY_BASE_URL}/admin/identities/", params=params, headers=ORY_HEADERS, timeout=30
             )
@@ -82,15 +80,8 @@ class FacebookAuthService:
 
             users = response.json()
 
-            # Look for user with Facebook identifier
-            for user in users:
-                oidc_credentials = user.get("credentials", {}).get("oidc", {})
-                identifiers = oidc_credentials.get("identifiers", [])
-
-                # Check if any identifier matches the Facebook ID
-                for identifier in identifiers:
-                    if identifier.startswith(f"facebook-{facebook_id}"):
-                        return user
+            if users and len(users) > 0:
+                return users[0]
 
             return None
 
@@ -107,7 +98,6 @@ class FacebookAuthService:
         Create a new Ory user from Facebook data
         """
         try:
-            # Parse name into first and last name
             name_parts = name.split(" ", 1)
             first_name = name_parts[0] if name_parts else ""
             last_name = name_parts[1] if len(name_parts) > 1 else ""
