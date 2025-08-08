@@ -171,7 +171,7 @@ class FacebookAuthInput:
 @strawberry.type
 class FacebookAuthResult:
     success: bool
-    id_token: Optional[str] = None
+    session_token: Optional[str] = None
     user_id: Optional[str] = None
     email: Optional[str] = None
     error_message: Optional[str] = None

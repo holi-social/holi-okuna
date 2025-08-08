@@ -4,7 +4,14 @@ This document explains how to implement Facebook Sign In for your mobile app usi
 
 ## Overview
 
-The implementation allows mobile apps to authenticate users using Facebook access tokens. The backend verifies the token with Facebook, checks if the user exists in Ory Kratos, creates new users if needed, and returns a JWT ID token for the mobile app.
+The implementation allows mobile apps to authenticate users using Facebook access tokens. The backend verifies the token with Facebook, finds or creates a user in Ory Kratos, creates a Kratos session, and returns the session token for the mobile app.
+
+## Authentication Flow
+
+1. **Verify Facebook Access Token**: Call Facebook Graph API to validate the access token and get user information
+2. **Find or Create Kratos Identity**: Search for existing user in Ory Kratos with the Facebook ID, or create a new identity
+3. **Create Kratos Session**: Create an admin session for the identity using Ory Kratos Admin API
+4. **Return Session Token**: Send back the Kratos session token to the mobile client
 
 ## GraphQL Mutation
 
@@ -14,6 +21,7 @@ The implementation allows mobile apps to authenticate users using Facebook acces
 ```graphql
 input FacebookAuthInput {
   accessToken: String!
+  provider: String!
 }
 ```
 
@@ -21,7 +29,7 @@ input FacebookAuthInput {
 ```graphql
 type FacebookAuthResult {
   success: Boolean!
-  idToken: String
+  sessionToken: String
   userId: String
   email: String
   errorMessage: String
@@ -33,13 +41,13 @@ type FacebookAuthResult {
 ### 1. Mobile App Flow
 
 1. **Get Facebook Access Token**: Use Facebook SDK to get an access token from the user
-2. **Call GraphQL Mutation**: Send the access token to the backend
+2. **Call GraphQL Mutation**: Send the access token and provider to the backend
 
 ```graphql
 mutation AuthenticateWithFacebook($input: FacebookAuthInput!) {
   authenticateWithFacebook(input: $input) {
     success
-    idToken
+    sessionToken
     userId
     email
     errorMessage
@@ -51,7 +59,8 @@ mutation AuthenticateWithFacebook($input: FacebookAuthInput!) {
 ```json
 {
   "input": {
-    "accessToken": "facebook_access_token_here"
+    "accessToken": "facebook_access_token_here",
+    "provider": "facebook-123"
   }
 }
 ```
@@ -61,10 +70,9 @@ mutation AuthenticateWithFacebook($input: FacebookAuthInput!) {
 The backend will:
 
 1. **Verify Facebook Token**: Call Facebook Graph API to validate the access token and get user information
-2. **Check Ory User**: Search for existing user in Ory Kratos with the Facebook ID
-3. **Create User (if needed)**: If user doesn't exist, create a new user in Ory Kratos
-4. **Generate ID Token**: Create a JWT token for the mobile app
-5. **Return Response**: Send back the authentication result
+2. **Find or Create Kratos Identity**: Search for existing user in Ory Kratos with the Facebook ID, or create a new identity
+3. **Create Kratos Session**: Create an admin session for the identity using Ory Kratos Admin API
+4. **Return Session Token**: Send back the Kratos session token
 
 ### 3. Response Examples
 
@@ -74,7 +82,7 @@ The backend will:
   "data": {
     "authenticateWithFacebook": {
       "success": true,
-      "idToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+      "sessionToken": "ory-session-token-here",
       "userId": "ory-user-id",
       "email": "user@example.com",
       "errorMessage": null
@@ -89,7 +97,7 @@ The backend will:
   "data": {
     "authenticateWithFacebook": {
       "success": true,
-      "idToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+      "sessionToken": "ory-session-token-here",
       "userId": "existing-ory-user-id",
       "email": "user@example.com",
       "errorMessage": null
@@ -104,10 +112,10 @@ The backend will:
   "data": {
     "authenticateWithFacebook": {
       "success": false,
-      "idToken": null,
+      "sessionToken": null,
       "userId": null,
       "email": null,
-      "errorMessage": "Invalid Facebook access token"
+      "errorMessage": "Authentication failed"
     }
   }
 }
@@ -121,8 +129,6 @@ Make sure these environment variables are set:
 
 - `ORY_BASE_URL`: URL of your Ory Kratos instance
 - `ORY_ACCESS_TOKEN`: Admin access token for Ory Kratos
-- `JWT_ALGORITHM`: JWT signing algorithm (default: HS256)
-- `SECRET_KEY`: Django secret key for JWT signing
 
 ### Ory Kratos Setup
 
@@ -135,7 +141,7 @@ Ensure your Ory Kratos instance is configured to support Facebook OAuth:
 ## Security Considerations
 
 1. **Token Validation**: The backend validates Facebook access tokens with Facebook's Graph API
-2. **JWT Tokens**: ID tokens are signed with your application's secret key
+2. **Kratos Sessions**: Session tokens are managed by Ory Kratos and provide secure authentication
 3. **User Creation**: New users are created with verified email addresses
 4. **Error Handling**: Proper error messages are returned for debugging
 
@@ -158,11 +164,11 @@ python manage.py test openbook_auth.tests.test_facebook_auth
 
 ## Mobile App Integration
 
-After receiving the ID token:
+After receiving the session token:
 
-1. **Store the token**: Securely store the JWT token on the device
+1. **Store the token**: Securely store the Kratos session token on the device
 2. **Include in requests**: Send the token in the Authorization header for subsequent API calls
-3. **Token refresh**: Implement token refresh logic when tokens expire (24 hours)
+3. **Session management**: The session is managed by Ory Kratos and will expire according to Kratos configuration
 
 ## Example Mobile App Code (React Native)
 
@@ -174,7 +180,7 @@ const AUTHENTICATE_WITH_FACEBOOK = gql`
   mutation AuthenticateWithFacebook($input: FacebookAuthInput!) {
     authenticateWithFacebook(input: $input) {
       success
-      idToken
+      sessionToken
       userId
       email
       errorMessage
@@ -182,13 +188,14 @@ const AUTHENTICATE_WITH_FACEBOOK = gql`
   }
 `;
 
-const authenticateWithFacebook = async (accessToken) => {
+const authenticateWithFacebook = async (accessToken, provider) => {
   try {
     const { data } = await client.mutate({
       mutation: AUTHENTICATE_WITH_FACEBOOK,
       variables: {
         input: {
-          accessToken: accessToken
+          accessToken: accessToken,
+          provider: provider
         }
       }
     });
@@ -196,8 +203,8 @@ const authenticateWithFacebook = async (accessToken) => {
     const result = data.authenticateWithFacebook;
     
     if (result.success) {
-      // Store the token securely
-      await SecureStore.setItemAsync('idToken', result.idToken);
+      // Store the session token securely
+      await SecureStore.setItemAsync('sessionToken', result.sessionToken);
       return result;
     } else {
       throw new Error(result.errorMessage);
