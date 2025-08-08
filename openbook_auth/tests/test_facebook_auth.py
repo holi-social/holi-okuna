@@ -1,5 +1,5 @@
 from unittest.mock import patch, Mock
-from django.test import TestCase
+from django.test import TestCase, SimpleTestCase
 from openbook_auth.services import FacebookAuthService
 
 
@@ -65,6 +65,10 @@ class TestFacebookAuthService(TestCase):
         self.assertEqual(result["email"], "john@example.com")
         self.assertTrue(result["exists"])
 
+
+class TestFacebookAuthServiceNoDB(SimpleTestCase):
+    """Test class for FacebookAuthService methods that don't require database access"""
+
     def test_generate_id_token(self):
         user_id = "test-user-id"
         email = "test@example.com"
@@ -72,5 +76,14 @@ class TestFacebookAuthService(TestCase):
         token = FacebookAuthService.generate_id_token(user_id, email)
 
         self.assertIsInstance(token, str)
-        self.assertIn(user_id, token)
-        self.assertIn(email, token)
+
+        # Decode the JWT token to verify its contents
+        import jwt
+        from django.conf import settings
+
+        decoded_payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+
+        self.assertEqual(decoded_payload["sub"], user_id)
+        self.assertEqual(decoded_payload["email"], email)
+        self.assertEqual(decoded_payload["iss"], "okuna-auth")
+        self.assertEqual(decoded_payload["aud"], "okuna-mobile")
