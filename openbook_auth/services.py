@@ -17,7 +17,7 @@ class FacebookAuthService:
     @staticmethod
     def verify_facebook_token(access_token: str, provider: str) -> Optional[Dict[str, Any]]:
         """
-        Verify Facebook access token using Ory Kratos admin API
+        Verify Facebook access token and get user information
         """
         try:
             # Verify the token with Facebook to get user info
@@ -40,27 +40,40 @@ class FacebookAuthService:
                 logger.error("No Facebook user ID in response")
                 return None
 
-            # Check if user exists in Ory with this Facebook ID
-            ory_user = FacebookAuthService._find_ory_user_by_facebook_id(facebook_user_id, provider)
-
-            if ory_user:
-                # User exists, return their info
-                return {
-                    "user_id": ory_user["id"],
-                    "email": email or ory_user.get("traits", {}).get("email"),
-                    "name": name,
-                    "facebook_id": facebook_user_id,
-                    "exists": True,
-                }
-            else:
-                # User doesn't exist, we'll need to create them
-                return {"email": email, "name": name, "facebook_id": facebook_user_id, "exists": False}
+            return {
+                "email": email,
+                "name": name,
+                "facebook_id": facebook_user_id,
+            }
 
         except requests.RequestException as e:
             logger.error(f"Request error during Facebook token verification: {e}")
             return None
         except Exception as e:
             logger.error(f"Unexpected error during Facebook token verification: {e}")
+            return None
+
+    @staticmethod
+    def find_or_create_ory_identity(
+        facebook_id: str, email: str, name: str, provider: str
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Find existing Ory identity by Facebook ID or create a new one
+        """
+        try:
+            # Find existing identity by Facebook ID
+            ory_user = FacebookAuthService._find_ory_user_by_facebook_id(facebook_id, provider)
+
+            if ory_user:
+                logger.info(f"Found existing Ory user with Facebook ID: {facebook_id}")
+                return ory_user
+
+            # If not found, create new identity
+            logger.info(f"Creating new Ory user for Facebook ID: {facebook_id}")
+            return FacebookAuthService._create_ory_identity(facebook_id, email, name, provider)
+
+        except Exception as e:
+            logger.error(f"Error finding or creating Ory identity: {e}")
             return None
 
     @staticmethod
@@ -93,11 +106,9 @@ class FacebookAuthService:
             return None
 
     @staticmethod
-    def create_ory_user_from_facebook(
-        facebook_id: str, email: str, name: str, provider: str
-    ) -> Optional[Dict[str, Any]]:
+    def _create_ory_identity(facebook_id: str, email: str, name: str, provider: str) -> Optional[Dict[str, Any]]:
         """
-        Create a new Ory user from Facebook data
+        Create a new Ory identity from Facebook data
         """
         try:
             name_parts = name.split(" ", 1)
@@ -133,20 +144,76 @@ class FacebookAuthService:
             return None
 
     @staticmethod
-    def generate_id_token(user_id: str, email: str) -> str:
+    def create_ory_session(identity_id: str) -> Optional[Dict[str, Any]]:
         """
-        Generate a JWT ID token for the mobile app
+        Create a Kratos session for the given identity using Admin API
         """
-        import jwt
-        from datetime import datetime, timedelta
+        try:
+            session_data = {
+                "identity_id": identity_id,
+                "active": True,
+            }
 
-        payload = {
-            "sub": user_id,
-            "email": email,
-            "iat": datetime.utcnow(),
-            "exp": datetime.utcnow() + timedelta(hours=24),  # 24 hour expiry
-            "iss": "okuna-auth",
-            "aud": "okuna-mobile",
-        }
+            response = requests.post(
+                f"{settings.ORY_BASE_URL}/admin/sessions/", headers=ORY_HEADERS, json=session_data, timeout=30
+            )
 
-        return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+            if response.status_code != http.HTTPStatus.CREATED:
+                logger.error(f"Failed to create Ory session: {response.status_code} - {response.text}")
+                return None
+
+            return response.json()
+
+        except requests.RequestException as e:
+            logger.error(f"Request error creating Ory session: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Unexpected error creating Ory session: {e}")
+            return None
+
+    @staticmethod
+    def authenticate_with_facebook(access_token: str, provider: str) -> Optional[Dict[str, Any]]:
+        """
+        Complete Facebook authentication flow:
+        1. Verify Facebook access token
+        2. Find or create Kratos identity
+        3. Create Kratos session
+        4. Return session token
+        """
+        try:
+            # Verify Facebook access token
+            fb_user_data = FacebookAuthService.verify_facebook_token(access_token, provider)
+            if not fb_user_data:
+                logger.error("Failed to verify Facebook access token")
+                return None
+
+            facebook_id = fb_user_data["facebook_id"]
+            email = fb_user_data["email"]
+            name = fb_user_data["name"]
+
+            if not email:
+                logger.error("Facebook user does not have an email address")
+                return None
+
+            # Find or create Kratos identity
+            ory_identity = FacebookAuthService.find_or_create_ory_identity(facebook_id, email, name, provider)
+            if not ory_identity:
+                logger.error("Failed to find or create Ory identity")
+                return None
+
+            # Create Kratos session
+            ory_session = FacebookAuthService.create_ory_session(ory_identity["id"])
+            if not ory_session:
+                logger.error("Failed to create Ory session")
+                return None
+
+            return {
+                "session_token": ory_session["token"],
+                "user_id": ory_identity["id"],
+                "email": email,
+                "name": name,
+            }
+
+        except Exception as e:
+            logger.error(f"Unexpected error in Facebook authentication flow: {e}")
+            return None

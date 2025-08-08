@@ -314,36 +314,18 @@ class Mutation:
         Authenticate user with Facebook access token
         """
         try:
-            # Verify the Facebook access token
-            fb_user_data = FacebookAuthService.verify_facebook_token(input.access_token, input.provider)
+            # Use the complete Facebook authentication flow
+            auth_result = FacebookAuthService.authenticate_with_facebook(input.access_token, input.provider)
 
-            if not fb_user_data:
-                return FacebookAuthResult(success=False, error_message="Invalid Facebook access token")
+            if not auth_result:
+                return FacebookAuthResult(success=False, error_message="Authentication failed")
 
-            user_id = fb_user_data.get("user_id")
-            email = fb_user_data.get("email")
-            facebook_id = fb_user_data.get("facebook_id")
-
-            if not fb_user_data.get("exists"):
-                # User doesn't exist, create them in Ory
-                if not email:
-                    return FacebookAuthResult(
-                        success=False, error_message="Email is required for new user registration"
-                    )
-
-                ory_user = FacebookAuthService.create_ory_user_from_facebook(
-                    facebook_id=facebook_id, email=email, name=fb_user_data.get("name", ""), provider=input.provider
-                )
-
-                if not ory_user:
-                    return FacebookAuthResult(success=False, error_message="Failed to create user account")
-
-                user_id = ory_user["id"]
-
-            # Generate ID token for the mobile app
-            id_token = FacebookAuthService.generate_id_token(user_id, email)
-
-            return FacebookAuthResult(success=True, id_token=id_token, user_id=user_id, email=email)
+            return FacebookAuthResult(
+                success=True,
+                session_token=auth_result["session_token"],
+                user_id=auth_result["user_id"],
+                email=auth_result["email"],
+            )
 
         except Exception as e:
             logger.error(f"Facebook authentication error: {e}")
