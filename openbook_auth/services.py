@@ -120,7 +120,11 @@ class FacebookAuthService:
                 "schema_id": "default",
                 "traits": {"email": email, "given_name": first_name, "family_name": last_name, "name": name},
                 "credentials": {
-                    "oidc": {"identifiers": [f"{provider}:{facebook_id}"], "config": {"providers": [provider]}}
+                    "oidc": {
+                        "config": {
+                            "providers": [{"provider": provider, "subject": facebook_id, "use_auto_link": True}]
+                        }
+                    }
                 },
                 "verifiable_addresses": [{"value": email, "verified": True, "status": "completed"}],
             }
@@ -149,13 +153,8 @@ class FacebookAuthService:
         Create a Kratos session for the given identity using Admin API
         """
         try:
-            session_data = {
-                "identity_id": identity_id,
-                "active": True,
-            }
-
             response = requests.post(
-                f"{settings.ORY_BASE_URL}/admin/sessions/", headers=ORY_HEADERS, json=session_data, timeout=30
+                f"{settings.ORY_BASE_URL}/admin/identities/{identity_id}/sessions", headers=ORY_HEADERS, timeout=30
             )
 
             if response.status_code != http.HTTPStatus.CREATED:
