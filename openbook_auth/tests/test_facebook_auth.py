@@ -81,7 +81,9 @@ class TestFacebookAuthServiceNoDB(SimpleTestCase):
         import jwt
         from django.conf import settings
 
-        decoded_payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        decoded_payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM], audience="okuna-mobile"
+        )
 
         self.assertEqual(decoded_payload["sub"], user_id)
         self.assertEqual(decoded_payload["email"], email)
