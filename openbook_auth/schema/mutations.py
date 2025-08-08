@@ -24,7 +24,14 @@ from openbook_auth.events import (
 )
 from openbook.utils import invalidate_discover_spaces_query_cache
 from openbook_auth.models import User as UserModel
-from openbook_auth.schema.types import UpdateAuthenticatedUserInput, User, AuthenticatedUser, RegisterDeviceInput
+from openbook_auth.schema.types import (
+    UpdateAuthenticatedUserInput,
+    User,
+    AuthenticatedUser,
+    RegisterDeviceInput,
+    FacebookAuthInput,
+    FacebookAuthResult,
+)
 from openbook_auth.serializers.authenticated_user_serializers import (
     UpdateAuthenticatedUserSerializer,
 )
@@ -39,6 +46,7 @@ from openbook_notifications.api import NotificationApi
 from openbook_notifications.enums import NotificationProvider
 from openbook_devices.serializers import RegisterDeviceSerializer
 from openbook_notifications.services import NotificationsService
+from openbook_auth.services import FacebookAuthService
 
 logger = structlog.get_logger(__name__)
 
@@ -298,3 +306,45 @@ class Mutation:
     def unsubscribe_from_newsletter(self, info, token: str) -> Result:
         NotificationApi.cancel_workflow(transaction_id=token)
         return Result(success=True)
+
+    @strawberry.mutation
+    @sync_to_async
+    def authenticate_with_facebook(self, info, input: FacebookAuthInput) -> FacebookAuthResult:
+        """
+        Authenticate user with Facebook access token
+        """
+        try:
+            # Verify the Facebook access token
+            fb_user_data = FacebookAuthService.verify_facebook_token(input.access_token)
+
+            if not fb_user_data:
+                return FacebookAuthResult(success=False, error_message="Invalid Facebook access token")
+
+            user_id = fb_user_data.get("user_id")
+            email = fb_user_data.get("email")
+            facebook_id = fb_user_data.get("facebook_id")
+
+            if not fb_user_data.get("exists"):
+                # User doesn't exist, create them in Ory
+                if not email:
+                    return FacebookAuthResult(
+                        success=False, error_message="Email is required for new user registration"
+                    )
+
+                ory_user = FacebookAuthService.create_ory_user_from_facebook(
+                    facebook_id=facebook_id, email=email, name=fb_user_data.get("name", "")
+                )
+
+                if not ory_user:
+                    return FacebookAuthResult(success=False, error_message="Failed to create user account")
+
+                user_id = ory_user["id"]
+
+            # Generate ID token for the mobile app
+            id_token = FacebookAuthService.generate_id_token(user_id, email)
+
+            return FacebookAuthResult(success=True, id_token=id_token, user_id=user_id, email=email)
+
+        except Exception as e:
+            logger.error(f"Facebook authentication error: {e}")
+            return FacebookAuthResult(success=False, error_message="Authentication failed")
