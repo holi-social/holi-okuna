@@ -160,3 +160,17 @@ class AuthenticatedUser(User):
 class RegisterDeviceInput:
     token: str
     device_type: Device.DeviceType
+
+
+@strawberry.input
+class FacebookAuthInput:
+    access_token: str
+
+
+@strawberry.type
+class FacebookAuthResult:
+    success: bool
+    id_token: Optional[str] = None
+    user_id: Optional[str] = None
+    email: Optional[str] = None
+    error_message: Optional[str] = None

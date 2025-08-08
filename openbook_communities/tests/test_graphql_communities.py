@@ -2684,13 +2684,13 @@ class TestCommunities(TestCase):
             if "expected_code" in testCase:
                 field_errors = json.loads(response.errors[0].extensions["errors"])
                 actual_code = field_errors[testCase["field"]][0]["code"]
-                assert testCase["expected_code"] == actual_code, (
-                    f"Expected error code {testCase['expected_code']} but got {actual_code} for input {testCase}"
-                )
+                assert (
+                    testCase["expected_code"] == actual_code
+                ), f"Expected error code {testCase['expected_code']} but got {actual_code} for input {testCase}"
             else:
-                assert testCase["expected_error"] in str(response.errors[0].message), (
-                    f"Expected error {testCase['expected_error']} but got {str(response.errors[0].message)} for input {testCase}"
-                )
+                assert (
+                    testCase["expected_error"] in str(response.errors[0].message)
+                ), f"Expected error {testCase['expected_error']} but got {str(response.errors[0].message)} for input {testCase}"
             assert response.data is None
 
     def test_valid_partial_spaces_pass_validation(self):
