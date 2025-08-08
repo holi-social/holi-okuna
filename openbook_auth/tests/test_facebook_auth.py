@@ -18,7 +18,7 @@ class TestFacebookAuthService(TestCase):
 
         mock_get.side_effect = [mock_fb_response, mock_ory_response]
 
-        result = FacebookAuthService.verify_facebook_token("fake_access_token")
+        result = FacebookAuthService.verify_facebook_token("fake_access_token", "facebook")
 
         self.assertIsNotNone(result)
         self.assertEqual(result["facebook_id"], "123456789")
@@ -34,7 +34,7 @@ class TestFacebookAuthService(TestCase):
         mock_response.text = "Invalid token"
         mock_get.return_value = mock_response
 
-        result = FacebookAuthService.verify_facebook_token("invalid_token")
+        result = FacebookAuthService.verify_facebook_token("invalid_token", "facebook")
 
         self.assertIsNone(result)
 
@@ -58,7 +58,7 @@ class TestFacebookAuthService(TestCase):
 
         mock_get.side_effect = [mock_fb_response, mock_ory_response]
 
-        result = FacebookAuthService.verify_facebook_token("fake_access_token")
+        result = FacebookAuthService.verify_facebook_token("fake_access_token", "facebook")
 
         self.assertIsNotNone(result)
         self.assertEqual(result["user_id"], "ory-user-id")

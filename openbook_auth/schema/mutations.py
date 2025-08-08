@@ -315,7 +315,7 @@ class Mutation:
         """
         try:
             # Verify the Facebook access token
-            fb_user_data = FacebookAuthService.verify_facebook_token(input.access_token)
+            fb_user_data = FacebookAuthService.verify_facebook_token(input.access_token, input.provider)
 
             if not fb_user_data:
                 return FacebookAuthResult(success=False, error_message="Invalid Facebook access token")
@@ -332,7 +332,7 @@ class Mutation:
                     )
 
                 ory_user = FacebookAuthService.create_ory_user_from_facebook(
-                    facebook_id=facebook_id, email=email, name=fb_user_data.get("name", "")
+                    facebook_id=facebook_id, email=email, name=fb_user_data.get("name", ""), provider=input.provider
                 )
 
                 if not ory_user:

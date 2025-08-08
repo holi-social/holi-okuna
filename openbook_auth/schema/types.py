@@ -165,6 +165,7 @@ class RegisterDeviceInput:
 @strawberry.input
 class FacebookAuthInput:
     access_token: str
+    provider: str
 
 
 @strawberry.type
