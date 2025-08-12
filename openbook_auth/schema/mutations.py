@@ -24,14 +24,7 @@ from openbook_auth.events import (
 )
 from openbook.utils import invalidate_discover_spaces_query_cache
 from openbook_auth.models import User as UserModel
-from openbook_auth.schema.types import (
-    UpdateAuthenticatedUserInput,
-    User,
-    AuthenticatedUser,
-    RegisterDeviceInput,
-    FacebookAuthInput,
-    FacebookAuthResult,
-)
+from openbook_auth.schema.types import UpdateAuthenticatedUserInput, User, AuthenticatedUser, RegisterDeviceInput
 from openbook_auth.serializers.authenticated_user_serializers import (
     UpdateAuthenticatedUserSerializer,
 )
@@ -46,7 +39,6 @@ from openbook_notifications.api import NotificationApi
 from openbook_notifications.enums import NotificationProvider
 from openbook_devices.serializers import RegisterDeviceSerializer
 from openbook_notifications.services import NotificationsService
-from openbook_auth.services import FacebookAuthService
 
 logger = structlog.get_logger(__name__)
 
@@ -306,27 +298,3 @@ class Mutation:
     def unsubscribe_from_newsletter(self, info, token: str) -> Result:
         NotificationApi.cancel_workflow(transaction_id=token)
         return Result(success=True)
-
-    @strawberry.mutation
-    @sync_to_async
-    def authenticate_with_facebook(self, info, input: FacebookAuthInput) -> FacebookAuthResult:
-        """
-        Authenticate user with Facebook access token
-        """
-        try:
-            # Use the complete Facebook authentication flow
-            auth_result = FacebookAuthService.authenticate_with_facebook(input.access_token, input.provider)
-
-            if not auth_result:
-                return FacebookAuthResult(success=False, error_message="Authentication failed")
-
-            return FacebookAuthResult(
-                success=True,
-                session_token=auth_result["session_token"],
-                user_id=auth_result["user_id"],
-                email=auth_result["email"],
-            )
-
-        except Exception as e:
-            logger.error(f"Facebook authentication error: {e}")
-            return FacebookAuthResult(success=False, error_message="Authentication failed")
