@@ -21,6 +21,7 @@ from openbook_appointments.schema import queries as appointments_queries
 from anon_stats.schema import mutations as anon_stats
 from openbook_auth.schema import mutations as auth_mutations
 from openbook_auth.schema import queries as auth_queries
+from openbook_auth.utils import verify_authorized_user
 from openbook_common.schema import queries as commons_queries
 from openbook_communities.schema import mutations as communities_mutations
 from openbook_communities.schema import queries as communities_queries
@@ -105,7 +106,8 @@ class ImageKitAuthParams:
 @strawberry.type
 class ImageKitMutations:
     @strawberry.mutation
-    def get_imagekit_auth_params(self) -> ImageKitAuthParams:
+    def get_imagekit_auth_params(self, info) -> ImageKitAuthParams:
+        verify_authorized_user(info)
         storage = ImagekitIoStorage()
         auth_params = storage.get_imagekit_auth_params()
 
