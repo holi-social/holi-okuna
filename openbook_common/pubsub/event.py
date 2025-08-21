@@ -19,5 +19,5 @@ class Event(ABC):
         return {
             "data": json.dumps(self.data).encode("utf-8"),
             "eventType": self.event_type,
-            "eventVersion": self.event_version,
+            "eventVersion": self.cevent_version,
         }
