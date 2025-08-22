@@ -317,10 +317,12 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "IMAGEKIT_URL"
+          # staging and prod use the same payed imagekit account, /holidev is a free account for local use
           value = "https://ik.imagekit.io/holi"
         }
         env {
           name  = "IMAGEKIT_PREFIX"
+          # staging writes images into a subfolder
           value = local.environment_name == "production" ? "" : "_DEV_/"
         }
         env {
