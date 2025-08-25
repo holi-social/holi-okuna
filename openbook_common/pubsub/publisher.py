@@ -31,13 +31,15 @@ def publish_event(topic: str, event: Event) -> None:
             else pubsub_v1.PublisherClient(publisher_options=publisher_options)
         )
         topic_path = publisher.topic_path(GOOGLE_CLOUD_PROJECT_ID, topic)
-        event_dict = event.to_dict()
+
         future = publisher.publish(
             topic=topic_path,
-            data=event_dict["data"],  # serialized to JSON in path .message.data, needs to be base64-encoded
+            data=event.encoded_data,
             ordering_key=ORDERING_KEY,
-            eventVersion=event.event_version,  # serialized to JSON in path .message.attributes.eventVersion
-            eventType=event.event_type,  # serialized to JSON in path .message.attributes.eventType
+            # message.attributes:
+            eventVersion=event.event_version,
+            eventType=event.event_type,
+            **event.additional_attributes,
         )
 
         try:

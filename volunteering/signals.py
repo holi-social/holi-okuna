@@ -1,5 +1,5 @@
 from functools import partial
-from typing import override, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from openbook_common.pubsub.event import Event
 from openbook_common.pubsub.publisher import publish_event
 from openbook_common.pubsub.topic import Topic
@@ -19,16 +19,13 @@ class ExternalVolunteeringOpportunityStartedEvent(Event):
             data={},
             event_type="ExternalVolunteeringOpportunityStarted",
             event_version="1.0.0",
+            additional_attributes={
+                "userId": self.volunteering_opportunity_status.user.username,
+            },
         )
 
     def log_str(self) -> str:
         return f"ExternalVolunteeringOpportunityStarted(external_volunteering_opportunity_id={self.volunteering_opportunity_status.external_volunteering_opportunity_id})"
-
-    @override
-    def to_dict(self) -> dict:
-        return super().to_dict() | {
-            "userId": self.volunteering_opportunity_status.user.username,
-        }
 
 
 def publish_external_volunteering_opportunity_started(instance, created: bool, **kwargs):

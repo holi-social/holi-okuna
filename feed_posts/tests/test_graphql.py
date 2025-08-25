@@ -234,7 +234,7 @@ class TestFeedPosts(TestCase):
         event_arg: FeedPostCreatedEvent = publish.call_args[0][0]
         assert isinstance(event_arg, FeedPostCreatedEvent)
         assert event_arg.event_type == "FeedPostCreated"
-        assert event_arg.to_dict()["userId"] == self.user.username
+        assert event_arg.additional_attributes["userId"] == self.user.username
 
     def test_can_query_my_posts_if_anonymous_user(self):
         first_mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
