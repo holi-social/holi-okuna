@@ -1,5 +1,5 @@
 from functools import partial
-from typing import override, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from openbook_common.pubsub.event import Event
 from openbook_common.pubsub.publisher import publish_event
 from openbook_common.pubsub.topic import Topic
@@ -20,16 +20,13 @@ class FeedPostCreatedEvent(Event):
             data={"category": category},
             event_type="FeedPostCreated",
             event_version="1.0.0",
+            additional_attributes={
+                "userId": self.feed_post.creator.username,
+            },
         )
 
     def log_str(self) -> str:
         return f"FeedPostCreated(post_id={self.feed_post.id})"
-
-    @override
-    def to_dict(self) -> dict:
-        return super().to_dict() | {
-            "userId": self.feed_post.creator.username,
-        }
 
 
 def publish_feed_post_created(instance, created: bool, **kwargs):
