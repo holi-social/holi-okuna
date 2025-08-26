@@ -84,7 +84,8 @@ resource "google_cloud_run_v2_job" "okuna_migration" {
         }
         env {
           name  = "ALLOWED_HOSTS"
-          value = "${local.dns_name},127.0.0.1,localhost" # localhost for healthcheck (startup and liveness probes)
+          # there won't be any connections to the migration service hopefully
+          value = "127.0.0.1,localhost"
         }
         env {
           name  = "RDS_DB_NAME"
@@ -246,7 +247,9 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "ALLOWED_HOSTS"
-          value = "${local.dns_name},127.0.0.1,localhost" # localhost for healthcheck (startup and liveness probes)
+          # localhost for healthcheck (startup and liveness probes)
+          # .run.app to allow its own cloudrun host to deliver pubsub message to the http pubsub reciever
+          value = "${local.dns_name},.run.app,127.0.0.1,localhost"
         }
         env {
           name  = "RDS_DB_NAME"
@@ -314,10 +317,12 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "IMAGEKIT_URL"
+          # staging and prod use the same payed imagekit account, /holidev is a free account for local use
           value = "https://ik.imagekit.io/holi"
         }
         env {
           name  = "IMAGEKIT_PREFIX"
+          # staging writes images into a subfolder
           value = local.environment_name == "production" ? "" : "_DEV_/"
         }
         env {
@@ -416,6 +421,33 @@ resource "google_cloud_run_service" "okuna" {
             secret_key_ref {
               key  = "latest"
               name = local.environment_name == "production" ? "CHAT_ADMIN_ACCESS_TOKEN_PRODUCTION" : "CHAT_ADMIN_ACCESS_TOKEN_DEVELOPMENT"
+            }
+          }
+        }
+        env {
+          name = "APPCUES_API_KEY"
+          value_from {
+            secret_key_ref {
+              name = local.environment_name == "production" ? "APPCUES_API_KEY_PRODUCTION" : "APPCUES_API_KEY_DEVELOPMENT"
+              key  = "latest"
+            }
+          }
+        }
+        env {
+          name = "APPCUES_API_SECRET"
+          value_from {
+            secret_key_ref {
+              name = local.environment_name == "production" ? "APPCUES_API_SECRET_PRODUCTION" : "APPCUES_API_SECRET_DEVELOPMENT"
+              key  = "latest"
+            }
+          }
+        }
+        env {
+          name = "APPCUES_ACCOUNT_ID"
+          value_from {
+            secret_key_ref {
+              name = local.environment_name == "production" ? "APPCUES_ACCOUNT_ID_PRODUCTION" : "APPCUES_ACCOUNT_ID_DEVELOPMENT"
+              key  = "latest"
             }
           }
         }

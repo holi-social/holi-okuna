@@ -114,6 +114,7 @@ dependencies = [
     "ruamel.yaml==0.18.14",
     "ruamel.yaml.clib==0.2.12",
     "ruff==0.11.13",
+    "semver>=3.0.4",
     "sentry-sdk==2.30.0",
     "setuptools==80.9.0",
     "six==1.17.0",

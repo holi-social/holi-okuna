@@ -267,7 +267,7 @@ class Mutation:
         current_user = verify_authorized_user(info)
         try:
             space = CommunityModel.objects.get(id=id)
-            tasks = list(TaskModel.objects.filter(deleted_at=None).all())
+            tasks = list(TaskModel.objects.filter(deleted_at=None, community_id=id).all())
 
             with transaction.atomic():
                 space.delete_pending_notifications()

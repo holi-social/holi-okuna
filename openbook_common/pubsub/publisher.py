@@ -6,7 +6,6 @@ import structlog
 from google.cloud.pubsub_v1.types import PublisherOptions
 
 from openbook_common.pubsub.event import Event
-from openbook_common.pubsub.wrappers import skip_test_events
 
 logger = structlog.getLogger(__name__)
 
@@ -19,7 +18,6 @@ PUBLISH_TIMEOUT_SECONDS = 15
 ORDERING_KEY = "okuna"
 
 
-@skip_test_events
 def publish_event(topic: str, event: Event) -> None:
     """
     Publishes an event to Google Cloud Pub/Sub. Guaranteed to not throw.
@@ -33,7 +31,16 @@ def publish_event(topic: str, event: Event) -> None:
             else pubsub_v1.PublisherClient(publisher_options=publisher_options)
         )
         topic_path = publisher.topic_path(GOOGLE_CLOUD_PROJECT_ID, topic)
-        future = publisher.publish(topic_path, ordering_key=ORDERING_KEY, **event.to_dict())
+
+        future = publisher.publish(
+            topic=topic_path,
+            data=event.encoded_data,
+            ordering_key=ORDERING_KEY,
+            # message.attributes:
+            eventVersion=event.event_version,
+            eventType=event.event_type,
+            **event.additional_attributes,
+        )
 
         try:
             future.result(PUBLISH_TIMEOUT_SECONDS)

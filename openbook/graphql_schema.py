@@ -21,6 +21,7 @@ from openbook_appointments.schema import queries as appointments_queries
 from anon_stats.schema import mutations as anon_stats
 from openbook_auth.schema import mutations as auth_mutations
 from openbook_auth.schema import queries as auth_queries
+from openbook_auth.utils import verify_authorized_user
 from openbook_common.schema import queries as commons_queries
 from openbook_communities.schema import mutations as communities_mutations
 from openbook_communities.schema import queries as communities_queries
@@ -39,6 +40,8 @@ from feed_posts.schema import mutations as feed_posts_mutations
 from feed_posts.schema import queries as feed_posts_queries
 from openbook.storage_imagekit_io import ImagekitIoStorage
 from feed_posts.schema import feed_queries
+from volunteering.schema import queries as volunteering_queries
+from volunteering.schema import mutations as volunteering_mutations
 
 logger = structlog.get_logger(__name__)
 
@@ -87,6 +90,7 @@ Query = merge_types(
         comments_queries.Query,
         feed_posts_queries.Query,
         feed_queries.Query,
+        volunteering_queries.Query,
     ),
 )
 
@@ -102,7 +106,8 @@ class ImageKitAuthParams:
 @strawberry.type
 class ImageKitMutations:
     @strawberry.mutation
-    def get_imagekit_auth_params(self) -> ImageKitAuthParams:
+    def get_imagekit_auth_params(self, info) -> ImageKitAuthParams:
+        verify_authorized_user(info)
         storage = ImagekitIoStorage()
         auth_params = storage.get_imagekit_auth_params()
 
@@ -130,6 +135,7 @@ Mutation = merge_types(
         favorites_mutations.Mutation,
         comments_mutations.Mutation,
         feed_posts_mutations.Mutation,
+        volunteering_mutations.Mutation,
         ImageKitMutations,
     ),
 )

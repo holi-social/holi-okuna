@@ -57,13 +57,14 @@ if IS_PRODUCTION:
     APP_URL = "https://app.holi.social"
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS")
-if IS_PRODUCTION:
+if IS_PRODUCTION or IS_STAGING:
     if not ALLOWED_HOSTS:
-        raise NameError("ALLOWED_HOSTS environment variable is required when running on a production environment")
+        raise NameError("ALLOWED_HOSTS environment variable is required")
     ALLOWED_HOSTS = [allowed_host.strip() for allowed_host in ALLOWED_HOSTS.split(",")]
 else:
+    # local
     if ALLOWED_HOSTS:
-        logger.info("ALLOWED_HOSTS environment variable ignored.")
+        logger.info("ALLOWED_HOSTS environment variable ignored. Allowing all.")
     ALLOWED_HOSTS = ["*"]
 
 # Application definition
@@ -113,6 +114,7 @@ INSTALLED_APPS = [
     "favorites",
     "comments",
     "feed_posts",
+    "volunteering",
 ]
 
 MODELTRANSLATION_FALLBACK_LANGUAGES = ("en",)
@@ -436,10 +438,9 @@ REST_FRAMEWORK = {
 
 UNICODE_JSON = True
 
-# The sentry DSN for error reporting
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
-if IS_PRODUCTION or IS_STAGING:  # trace 1% of requests, not marked by the frontend
-    sentry_config.init(sentry_dsn=SENTRY_DSN, sample_rate=0.01, environment=ENVIRONMENT)
+if IS_PRODUCTION or IS_STAGING:
+    sentry_config.init(sentry_dsn=SENTRY_DSN, sample_rate=0.3, environment=ENVIRONMENT)
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
@@ -717,3 +718,9 @@ FEED_POST_TOPICS_MAX_AMOUNT = 6
 
 POSTHOG_API_KEY = os.environ.get("POSTHOG_API_KEY")
 POSTHOG_HOST = os.environ.get("POSTHOG_HOST")
+
+# Appcues API Configuration
+APPCUES_API_KEY = os.environ.get("APPCUES_API_KEY")
+APPCUES_API_SECRET = os.environ.get("APPCUES_API_SECRET")
+APPCUES_ACCOUNT_ID = os.environ.get("APPCUES_ACCOUNT_ID")
+APPCUES_BASE_URL = "https://api.appcues.com"

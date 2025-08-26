@@ -936,6 +936,7 @@ dependencies = [
     { name = "ruamel-yaml" },
     { name = "ruamel-yaml-clib" },
     { name = "ruff" },
+    { name = "semver" },
     { name = "sentry-sdk" },
     { name = "setuptools" },
     { name = "six" },
@@ -1081,6 +1082,7 @@ requires-dist = [
     { name = "ruamel-yaml", specifier = "==0.18.14" },
     { name = "ruamel-yaml-clib", specifier = "==0.2.12" },
     { name = "ruff", specifier = "==0.11.13" },
+    { name = "semver", specifier = ">=3.0.4" },
     { name = "sentry-sdk", specifier = "==2.30.0" },
     { name = "setuptools", specifier = "==80.9.0" },
     { name = "six", specifier = "==1.17.0" },
@@ -1880,6 +1882,15 @@ wheels = [
     { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/ruff/ruff-0.11.13-py3-none-win32.whl", hash = "sha256:96c27935418e4e8e77a26bb05962817f28b8ef3843a6c6cc49d8783b5507f250" },
     { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/ruff/ruff-0.11.13-py3-none-win_amd64.whl", hash = "sha256:29c3189895a8a6a657b7af4e97d330c8a3afd2c9c8f46c81e2fc5a31866517e3" },
     { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/ruff/ruff-0.11.13-py3-none-win_arm64.whl", hash = "sha256:b4385285e9179d608ff1d2fb9922062663c658605819a6876d8beef0c30b7f3b" },
+]
+
+[[package]]
+name = "semver"
+version = "3.0.4"
+source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/semver/semver-3.0.4.tar.gz", hash = "sha256:afc7d8c584a5ed0a11033af086e8af226a9c0b206f313e0301f8dd7b6b589602" }
+wheels = [
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/semver/semver-3.0.4-py3-none-any.whl", hash = "sha256:9c824d87ba7f7ab4a1890799cec8596f15c1241cb473404ea1cb0c55e4b04746" },
 ]
 
 [[package]]

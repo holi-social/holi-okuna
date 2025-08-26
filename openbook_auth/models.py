@@ -152,6 +152,8 @@ class UserRole(models.TextChoices):
 class AccountType(models.TextChoices):
     EMAIL = ("EMAIL",)
     GOOGLE = ("GOOGLE",)
+    APPLE = ("APPLE",)
+    FACEBOOK = ("FACEBOOK",)
     UNKNOWN = ("UNKNOWN",)
 
 

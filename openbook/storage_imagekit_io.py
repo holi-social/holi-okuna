@@ -119,8 +119,8 @@ class ImagekitIoStorage(Storage):
         # Generate a random 32-character hex token
         token = secrets.token_hex(16)
 
-        # Calculate expire time (current time + 2400 seconds)
-        expire = time.time() + 2400
+        # Calculate expire time (current time + 30 seconds)
+        expire = time.time() + 30
 
         # Use the private key from settings
         private_api_key = settings.IMAGEKIT_PRIVATE_KEY

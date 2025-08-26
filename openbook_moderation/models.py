@@ -292,6 +292,11 @@ class ModeratedObject(ModelWithUUID):
         moderation_severity = self.category.severity
         penalty_targets = None
 
+        if not content_object:
+            # moderated object was deleted already, just verify its report
+            self.save()
+            return
+
         if self.is_approved():
             if isinstance(content_object, User):
                 penalty_targets = [content_object]

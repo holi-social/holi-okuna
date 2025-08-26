@@ -1,5 +1,5 @@
 import logging
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 import pytest
 import pytz
@@ -10,6 +10,7 @@ from faker import Faker
 
 from feed_posts.enums import VisibilityLevel, AspectRatio
 from feed_posts.repositories import FeedPostRepository
+from feed_posts.signals import FeedPostCreatedEvent
 from feed_posts.tests.helpers import (
     create_feed_post,
     my_posts,
@@ -224,6 +225,16 @@ class TestFeedPosts(TestCase):
         assert data["geolocation"]["latitude"] == self.public_feed_post_input_data["geolocation"]["latitude"]
         assert data["geolocation"]["longitude"] == self.public_feed_post_input_data["geolocation"]["longitude"]
         assert sorted(data["topicsV2"]) == sorted(self.topics_v2)
+
+    @patch("feed_posts.signals.publish_to_okuna_topic")
+    def test_event_gets_emitted_when_creating_feed_post(self, publish: Mock):
+        create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        publish.assert_called_once()
+
+        event_arg: FeedPostCreatedEvent = publish.call_args[0][0]
+        assert isinstance(event_arg, FeedPostCreatedEvent)
+        assert event_arg.event_type == "FeedPostCreated"
+        assert event_arg.additional_attributes["userId"] == self.user.username
 
     def test_can_query_my_posts_if_anonymous_user(self):
         first_mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
@@ -465,6 +476,32 @@ class TestFeedPosts(TestCase):
             data["geolocation"]["longitude"]
             == self.registered_users_only_feed_post_update_input_data["geolocation"]["longitude"]
         )
+
+    @patch("feed_posts.signals.publish_to_okuna_topic")
+    def test_events_do_not_get_emitted_on_update_of_feed_post(self, publish: Mock):
+        mutation_response = create_feed_post(user=self.user, input=self.another_public_feed_post_update_input_data)
+        assert mutation_response.errors is None
+
+        publish.reset_mock()
+
+        post_id = mutation_response.data["createFeedPost"]["id"]
+        images = mutation_response.data["createFeedPost"]["images"]
+        existing_images = [
+            {
+                "id": images[0]["id"],
+                "order": 9,
+                "altText": "new image description",
+                "aspectRatio": AspectRatio.SIXTEEN_NINE,
+            }
+        ]
+        input_data = update_input_data(
+            post_id=post_id,
+            input_data=self.registered_users_only_feed_post_update_input_data,
+            existing_images=existing_images,
+        )
+
+        update_feed_post(user=self.user, input=input_data)
+        publish.assert_not_called()
 
     def test_can_query_only_public_feed_posts_if_anonymous_user(self):
         # user creates 2 public feed posts and 2 registered users only feed post
