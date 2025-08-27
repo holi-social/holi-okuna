@@ -15,7 +15,7 @@ core
 /supervisord.log
 /.docker-cache
 /.okuna-cli.json
-/.docker-compose.env
+/.docker-compose.env*
 .venv
 
 # don't accidentally commit the .envrc.local file
