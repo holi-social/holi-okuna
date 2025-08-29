@@ -31,13 +31,13 @@ from openbook_communities.models import (
     Task as TaskModel,
     VisibilityType,
 )
+from openbook_communities.models.completed_task import CompletedTask
 from openbook_communities.models.network_relationship import (
     SpacesRelationship as SpacesRelationshipModel,
     SpacesRelationshipType,
 )
 from openbook_posts.enums import VisibilityFilter
 from openbook_posts.models import Post as PostModel
-from openbook_posts.schema.types import Post
 from openbook_terms.schema.types import SDG, Skill, Topic
 
 logger = logging.getLogger(__name__)
@@ -527,3 +527,11 @@ class MySpaces:
         if hasattr(self, "query"):
             return Paged.of(self.query, offset, limit)
         return Paged()
+
+
+@strawberry_django.type(CompletedTask)
+class CompletedTask:
+    id: strawberry.auto
+    task: Task
+    user: User
+    completed_at: strawberry.auto
