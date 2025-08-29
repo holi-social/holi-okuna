@@ -46,6 +46,7 @@ from openbook_communities.helpers import (
     upload_to_community_task_thumbnail_directory,
     upload_to_community_tool_thumbnail_directory,
 )
+from openbook_communities.models.completed_task import CompletedTask
 from openbook_communities.queries import (
     make_search_communities_query_for_user,
     make_search_joined_communities_query_for_user,
