@@ -8,8 +8,11 @@ class OpenbookCommunitiesConfig(AppConfig):
     name = "openbook_communities"
 
     def ready(self):
+        # Use lazy signal connection to avoid import issues
+        from openbook_communities.models.completed_task import CompletedTask
+
         post_save.connect(
             publish_task_completed,
-            sender="openbook_communities.models.completed_task.CompletedTask",
+            sender=CompletedTask,
             dispatch_uid="publish_task_completed",
         )
