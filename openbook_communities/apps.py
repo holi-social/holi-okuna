@@ -10,6 +10,6 @@ class OpenbookCommunitiesConfig(AppConfig):
     def ready(self):
         post_save.connect(
             publish_task_completed,
-            sender="openbook_communities.completed_task.CompletedTask",
+            sender="openbook_communities.models.completed_task.CompletedTask",
             dispatch_uid="publish_task_completed",
         )
