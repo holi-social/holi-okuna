@@ -38,6 +38,7 @@ from openbook_communities.models.network_relationship import (
 )
 from openbook_posts.enums import VisibilityFilter
 from openbook_posts.models import Post as PostModel
+from openbook_posts.schema.types import Post
 from openbook_terms.schema.types import SDG, Skill, Topic
 
 logger = logging.getLogger(__name__)
