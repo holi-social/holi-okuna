@@ -259,6 +259,10 @@ class Task:
 
         return UserFavoriteModel.objects.filter(user=current_user, favoritable_id=self.id).exists()
 
+    @strawberry_django.field()
+    def total_completions(self) -> int:
+        return self.completions.count()  # type: ignore
+
 
 @strawberry_django.type(CommunityMembershipModel)
 class SpaceMember:
