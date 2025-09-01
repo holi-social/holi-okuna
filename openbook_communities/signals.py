@@ -15,13 +15,11 @@ class TaskCompletedEvent(Event):
         self.completed_task = completed_task
 
         super().__init__(
-            data={},
+            data={"category": self.completed_task.task.interaction_type},
             event_type="TaskCompleted",
             event_version="1.0.0",
             additional_attributes={
                 "userId": self.completed_task.user.username,
-                "taskId": self.completed_task.task.id,
-                "taskType": self.completed_task.task.interaction_type,
             },
         )
 
