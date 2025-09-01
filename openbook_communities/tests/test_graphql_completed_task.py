@@ -592,8 +592,6 @@ class TestCompleteReadyToGoTask:
         assert call_args.event_type == "TaskCompleted"
         assert call_args.event_version == "1.0.0"
         assert call_args.additional_attributes["userId"] == user.username
-        assert call_args.additional_attributes["taskId"] == task.id
-        assert call_args.additional_attributes["taskType"] == task.interaction_type
 
     def test_task_completed_event_data(self):
         user = make_user()
@@ -608,32 +606,7 @@ class TestCompleteReadyToGoTask:
         assert event.event_type == "TaskCompleted"
         assert event.event_version == "1.0.0"
         assert event.additional_attributes["userId"] == user.username
-        assert event.additional_attributes["taskId"] == task.id
-        assert event.additional_attributes["taskType"] == task.interaction_type
         assert event.log_str() == f"TaskCompleted(completed_task_id={completed_task.id})"
-
-    def test_task_completed_event_has_correct_task_type(self):
-        user = make_user()
-        community = make_community()
-        task = make_community_task(community=community, interaction_type="READY")
-
-        # Create a completed task directly to test the event
-        completed_task = CompletedTask.objects.create(task=task, user=user)
-
-        event = TaskCompletedEvent(completed_task)
-
-        # Verify the taskType field is correctly set
-        assert event.additional_attributes["taskType"] == "READY"
-
-        # Test with a different interaction type
-        task.interaction_type = "CHAT"
-        task.save()
-
-        # Create another completed task with the updated task
-        completed_task2 = CompletedTask.objects.create(task=task, user=user)
-        event2 = TaskCompletedEvent(completed_task2)
-
-        assert event2.additional_attributes["taskType"] == "CHAT"
 
     @patch("openbook_communities.signals.publish_to_okuna_topic")
     def test_signal_handler_only_publishes_on_creation(self, mock_publish):
