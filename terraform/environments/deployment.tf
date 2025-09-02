@@ -452,6 +452,11 @@ resource "google_cloud_run_service" "okuna" {
           }
         }
 
+        env {
+          name = "REWARDS_API_BASE_URL"
+          value = "https://${data.terraform_remote_state.rewards.outputs.backend_domain}"
+        }
+
         startup_probe {
           initial_delay_seconds = 10
           period_seconds        = 5

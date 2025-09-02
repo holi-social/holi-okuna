@@ -1,34 +1,35 @@
-from functools import partial
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
-from openbook_common.pubsub.event import Event
-from openbook_common.pubsub.publisher import publish_event
-from openbook_common.pubsub.topic import Topic
+from uuid import UUID
+
+from openbook_common.rewards_api import RewardsClient, Event
 
 if TYPE_CHECKING:
     from openbook_communities.models.completed_task import CompletedTask
 
-publish_to_okuna_topic = partial(publish_event, Topic.OKUNA.value)
+
+@dataclass(frozen=True)
+class TaskCompletedPayload:
+    category: str
+
+    def as_dict(self) -> dict:
+        return {
+            "category": self.category,
+        }
 
 
-class TaskCompletedEvent(Event):
-    def __init__(self, completed_task: "CompletedTask"):
-        self.completed_task = completed_task
-
-        super().__init__(
-            data={"category": self.completed_task.task.interaction_type},
-            event_type="TaskCompleted",
-            event_version="1.0.0",
-            additional_attributes={
-                "userId": self.completed_task.user.username,
-            },
-        )
-
-    def log_str(self) -> str:
-        return f"TaskCompleted(completed_task_id={self.completed_task.id})"
+class TaskCompletedEvent(Event[TaskCompletedPayload]):
+    pass
 
 
-def publish_task_completed(instance, created: bool, **kwargs):
+def publish_task_completed(instance: "CompletedTask", created: bool, **kwargs):
     if not created:
         return
 
-    publish_to_okuna_topic(TaskCompletedEvent(completed_task=instance))
+    event = TaskCompletedEvent(
+        user_id=UUID(instance.user.username),
+        event_type="TaskCompleted",
+        data=TaskCompletedPayload(category=instance.task.interaction_type),
+    )
+
+    RewardsClient.submit_event(event)

@@ -546,7 +546,7 @@ class TestCompleteReadyToGoTask:
         assert completed_task["task"]["name"] == task.name
         assert completed_task["task"]["description"] == task.description
 
-    @patch("openbook_communities.signals.publish_to_okuna_topic")
+    @patch("openbook_communities.signals.RewardsClient.submit_event")
     def test_complete_ready_to_go_task_publishes_signal(self, mock_publish):
         user = make_user()
         community = make_community()
@@ -587,28 +587,10 @@ class TestCompleteReadyToGoTask:
         mock_publish.assert_called_once()
         call_args = mock_publish.call_args[0][0]
         assert isinstance(call_args, TaskCompletedEvent)
-        assert call_args.completed_task.task.id == task.id
-        assert call_args.completed_task.user.id == user.id
         assert call_args.event_type == "TaskCompleted"
-        assert call_args.event_version == "1.0.0"
-        assert call_args.additional_attributes["userId"] == user.username
+        assert str(call_args.user_id) == user.username
 
-    def test_task_completed_event_data(self):
-        user = make_user()
-        community = make_community()
-        task = make_community_task(community=community)
-
-        # Create a completed task directly to test the event
-        completed_task = CompletedTask.objects.create(task=task, user=user)
-
-        event = TaskCompletedEvent(completed_task)
-
-        assert event.event_type == "TaskCompleted"
-        assert event.event_version == "1.0.0"
-        assert event.additional_attributes["userId"] == user.username
-        assert event.log_str() == f"TaskCompleted(completed_task_id={completed_task.id})"
-
-    @patch("openbook_communities.signals.publish_to_okuna_topic")
+    @patch("openbook_communities.signals.RewardsClient.submit_event")
     def test_signal_handler_only_publishes_on_creation(self, mock_publish):
         user = make_user()
         community = make_community()
@@ -623,7 +605,7 @@ class TestCompleteReadyToGoTask:
         completed_task.save()
         mock_publish.assert_not_called()
 
-    @patch("openbook_communities.signals.publish_to_okuna_topic")
+    @patch("openbook_communities.signals.RewardsClient.submit_event")
     def test_signal_handler_ignores_wrong_model(self, mock_publish):
         community = make_community()
         task = make_community_task(community=community)
