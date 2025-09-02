@@ -1,5 +1,6 @@
 import logging
 from unittest.mock import patch, Mock
+from uuid import UUID
 
 import pytest
 import pytz
@@ -226,15 +227,15 @@ class TestFeedPosts(TestCase):
         assert data["geolocation"]["longitude"] == self.public_feed_post_input_data["geolocation"]["longitude"]
         assert sorted(data["topicsV2"]) == sorted(self.topics_v2)
 
-    @patch("feed_posts.signals.publish_to_okuna_topic")
-    def test_event_gets_emitted_when_creating_feed_post(self, publish: Mock):
+    @patch("feed_posts.signals.RewardsClient")
+    def test_event_gets_emitted_when_creating_feed_post(self, rewards_client: Mock):
         create_feed_post(user=self.user, input=self.public_feed_post_input_data)
-        publish.assert_called_once()
+        rewards_client.submit_event.assert_called_once()
 
-        event_arg: FeedPostCreatedEvent = publish.call_args[0][0]
+        event_arg: FeedPostCreatedEvent = rewards_client.submit_event.call_args[0][0]
         assert isinstance(event_arg, FeedPostCreatedEvent)
         assert event_arg.event_type == "FeedPostCreated"
-        assert event_arg.additional_attributes["userId"] == self.user.username
+        assert event_arg.user_id == UUID(self.user.username)
 
     def test_can_query_my_posts_if_anonymous_user(self):
         first_mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
@@ -477,12 +478,12 @@ class TestFeedPosts(TestCase):
             == self.registered_users_only_feed_post_update_input_data["geolocation"]["longitude"]
         )
 
-    @patch("feed_posts.signals.publish_to_okuna_topic")
-    def test_events_do_not_get_emitted_on_update_of_feed_post(self, publish: Mock):
+    @patch("feed_posts.signals.RewardsClient")
+    def test_events_do_not_get_emitted_on_update_of_feed_post(self, rewards_client: Mock):
         mutation_response = create_feed_post(user=self.user, input=self.another_public_feed_post_update_input_data)
         assert mutation_response.errors is None
 
-        publish.reset_mock()
+        rewards_client.submit_event.reset_mock()
 
         post_id = mutation_response.data["createFeedPost"]["id"]
         images = mutation_response.data["createFeedPost"]["images"]
@@ -501,7 +502,7 @@ class TestFeedPosts(TestCase):
         )
 
         update_feed_post(user=self.user, input=input_data)
-        publish.assert_not_called()
+        rewards_client.submit_event.assert_not_called()
 
     def test_can_query_only_public_feed_posts_if_anonymous_user(self):
         # user creates 2 public feed posts and 2 registered users only feed post
