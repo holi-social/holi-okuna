@@ -186,7 +186,7 @@ resource "google_cloud_run_v2_job" "okuna_migration" {
       }
       vpc_access {
         connector = data.terraform_remote_state.holi_infra_state.outputs.vpc_access_connector_id
-        egress    = "PRIVATE_RANGES_ONLY"
+        egress    = "ALL_TRAFFIC"
       }
     }
   }
@@ -499,7 +499,7 @@ resource "google_cloud_run_service" "okuna" {
         # Use the VPC Connector
         "run.googleapis.com/vpc-access-connector" = data.terraform_remote_state.holi_infra_state.outputs.vpc_access_connector_name
         # possible values: all-traffic/private-ranges-only(default) https://cloud.google.com/sdk/gcloud/reference/run/services/update#--vpc-egress
-        "run.googleapis.com/vpc-access-egress" = "private-ranges-only"
+        "run.googleapis.com/vpc-access-egress" = "all-traffic"
         "run.googleapis.com/startup-cpu-boost" = "true"
       }
       # labels set on the revision level

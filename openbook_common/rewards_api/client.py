@@ -36,9 +36,7 @@ class RestClient(Client):
         self.http.headers["Content-Type"] = "application/json"
 
     def submit_event[Payload](self, event: Event[Payload]):
-        logger.debug("Submitting event: %s", event)
         self.http.post(self.config.events_url, data=event.to_json())
-        logger.debug("Event submitted successfully")
 
 
 class NoopClient(Client):
