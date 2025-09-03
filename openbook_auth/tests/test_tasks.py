@@ -218,7 +218,7 @@ class TestUpdateOryUser(TestCase):
         get_account_type("some_id")
 
         mock_get.assert_called_once_with(
-            f"{settings.ORY_BASE_URL}/admin/identities/{user_id}",
+            f"{settings.ORY_BASE_URL}/admin/identities/{user_id}?include_credential=password",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
             timeout=30,
         )
@@ -257,19 +257,36 @@ class TestUpdateOryUser(TestCase):
 
     @mock.patch("requests.get")
     def test_get_account_type_should_return_otp_for_account_without_other_credentials(self, mock_get):
-        mock_get.return_value = MockJsonResponse({})
+        mock_get.return_value = MockJsonResponse(
+            {"credentials": {"password": {"identifiers": ["123"], "config": {}}}, "code": {"identifiers": ["123"]}}
+        )
 
         result = get_account_type("some_id")
 
         self.assertEqual(result, AccountType.OTP)
 
     @mock.patch("requests.get")
-    def test_get_account_type_should_return_email_for_password_account(self, mock_get):
-        mock_get.return_value = MockJsonResponse({"credentials": {"password": {"identifiers": ["123"]}}})
+    def test_get_account_type_should_return_email_for_account_with_password(self, mock_get):
+        mock_get.return_value = MockJsonResponse(
+            {
+                "credentials": {
+                    "password": {"identifiers": ["123"], "config": {"hashed_password": "foobar"}},
+                    "code": {"identifiers": ["123"]},
+                }
+            }
+        )
 
         result = get_account_type("some_id")
 
         self.assertEqual(result, AccountType.EMAIL)
+
+    @mock.patch("requests.get")
+    def test_get_account_type_should_default_to_otp_if_credentials_are_empty(self, mock_get):
+        mock_get.return_value = MockJsonResponse({})
+
+        result = get_account_type("some_id")
+
+        self.assertEqual(result, AccountType.OTP)
 
     @mock.patch("requests.get")
     def test_get_account_type_should_raise_request_error(self, mock_get):
