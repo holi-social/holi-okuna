@@ -256,8 +256,16 @@ class TestUpdateOryUser(TestCase):
         self.assertEqual(result, AccountType.UNKNOWN)
 
     @mock.patch("requests.get")
-    def test_get_account_type_should_return_email_for_non_oidc_account(self, mock_get):
+    def test_get_account_type_should_return_otp_for_account_without_other_credentials(self, mock_get):
         mock_get.return_value = MockJsonResponse({})
+
+        result = get_account_type("some_id")
+
+        self.assertEqual(result, AccountType.OTP)
+
+    @mock.patch("requests.get")
+    def test_get_account_type_should_return_email_for_password_account(self, mock_get):
+        mock_get.return_value = MockJsonResponse({"credentials": {"password": {"identifiers": ["123"]}}})
 
         result = get_account_type("some_id")
 

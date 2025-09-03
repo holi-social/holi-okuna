@@ -154,6 +154,7 @@ class AccountType(models.TextChoices):
     GOOGLE = ("GOOGLE",)
     APPLE = ("APPLE",)
     FACEBOOK = ("FACEBOOK",)
+    OTP = ("OTP",)
     UNKNOWN = ("UNKNOWN",)
 
 
