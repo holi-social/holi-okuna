@@ -109,9 +109,9 @@ def get_account_type(user_id: str):
         raise error
     else:
         json = response.json()
+        logger.info(f"ory user {user_id}: {json}")
         credentials = json.get("credentials", {})
         oidc = credentials.get("oidc")
-        logger.info(f"credentials of user {user_id}: {credentials}")
         if oidc:
             if any(v.startswith("google") for v in oidc.get("identifiers", [])):
                 return AccountType.GOOGLE
