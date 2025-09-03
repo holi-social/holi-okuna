@@ -109,7 +109,8 @@ def get_account_type(user_id: str):
         raise error
     else:
         json = response.json()
-        oidc = json.get("credentials", {}).get("oidc")
+        credentials = json.get("credentials", {})
+        oidc = credentials.get("oidc")
         if oidc:
             if any(v.startswith("google") for v in oidc.get("identifiers", [])):
                 return AccountType.GOOGLE
@@ -118,8 +119,9 @@ def get_account_type(user_id: str):
             if any(v.startswith("facebook") for v in oidc.get("identifiers", [])):
                 return AccountType.FACEBOOK
             return AccountType.UNKNOWN
-
-        return AccountType.EMAIL
+        if credentials.get("password"):
+            return AccountType.EMAIL
+        return AccountType.OTP
 
 
 def extend_ory_session(user_session: str, user_session_expiry: str):
