@@ -154,6 +154,7 @@ class AccountType(models.TextChoices):
     GOOGLE = ("GOOGLE",)
     APPLE = ("APPLE",)
     FACEBOOK = ("FACEBOOK",)
+    OTP = ("OTP",)
     UNKNOWN = ("UNKNOWN",)
 
 
@@ -374,7 +375,7 @@ class User(ModelWithUUID, AbstractUser):
             email=email,
             password=password,
             are_guidelines_accepted=are_guidelines_accepted,
-            is_oidc=account_type != AccountType.EMAIL,
+            is_oidc=account_type != AccountType.EMAIL and account_type != AccountType.OTP,
             account_type=account_type,
         )
 

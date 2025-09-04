@@ -752,7 +752,7 @@ def make_insight():
 
 
 def make_feed_post():
-    return mixer.blend(FeedPost)
+    return mixer.blend(FeedPost, creator__username=uuid.uuid4())
 
 
 def make_feed_post_category():

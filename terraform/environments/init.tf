@@ -49,6 +49,14 @@ data "terraform_remote_state" "holi_data_pipeline_common_state" {
   }
 }
 
+data "terraform_remote_state" "rewards" {
+  backend = "gcs"
+  config = {
+    bucket = "holi-shared-terraform-state"
+    prefix = "rewards-environments"
+  }
+  workspace = local.environment_name == "production" ? "production" : "staging"
+}
 
 # provider google including beta features
 provider "google" {

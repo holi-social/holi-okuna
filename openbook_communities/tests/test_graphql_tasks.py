@@ -1861,3 +1861,57 @@ class TestTaskRecommendations:
             ],
             14,
         )
+
+    def test_total_completions_field(self):
+        user = make_user()
+        community = make_community(creator=user)
+        task = make_community_task(community)
+
+        task_query = """
+            query Task($id: UUID!) {
+                taskById(id: $id) {
+                    id
+                    totalCompletions
+                }
+            }
+        """
+
+        response = async_to_sync(schema.execute)(
+            task_query,
+            variable_values={"id": str(task.id)},
+            context_value=benedict({"request": {"user": user}}),
+        )
+
+        assert response.errors is None
+        assert response.data["taskById"]["totalCompletions"] == 0
+
+        from openbook_communities.models.completed_task import CompletedTask
+
+        user1 = make_user()
+        user2 = make_user()
+        user3 = make_user()
+
+        CompletedTask.objects.create(task=task, user=user1)
+        CompletedTask.objects.create(task=task, user=user2)
+        CompletedTask.objects.create(task=task, user=user3)
+
+        response = async_to_sync(schema.execute)(
+            task_query,
+            variable_values={"id": str(task.id)},
+            context_value=benedict({"request": {"user": user}}),
+        )
+
+        assert response.errors is None
+        assert response.data["taskById"]["totalCompletions"] == 3
+
+        user4 = make_user()
+        CompletedTask.objects.create(task=task, user=user4)
+
+        response = async_to_sync(schema.execute)(
+            task_query,
+            variable_values={"id": str(task.id)},
+            context_value=benedict({"request": {"user": user}}),
+        )
+
+        assert response.errors is None
+        assert response.data["taskById"]["totalCompletions"] == 4

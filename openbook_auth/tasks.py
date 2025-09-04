@@ -101,7 +101,11 @@ def send_extend_ory_session(session_id: str):
 
 
 def get_account_type(user_id: str):
-    response = requests.get(f"{settings.ORY_BASE_URL}/admin/identities/{user_id}", headers=ORY_HEADERS, timeout=30)
+    response = requests.get(
+        f"{settings.ORY_BASE_URL}/admin/identities/{user_id}?include_credential=password",
+        headers=ORY_HEADERS,
+        timeout=30,
+    )
     if response.status_code != http.HTTPStatus.OK:
         response_data = response.json()
         error = response_data.get("error")
@@ -109,7 +113,8 @@ def get_account_type(user_id: str):
         raise error
     else:
         json = response.json()
-        oidc = json.get("credentials", {}).get("oidc")
+        credentials = json.get("credentials", {})
+        oidc = credentials.get("oidc")
         if oidc:
             if any(v.startswith("google") for v in oidc.get("identifiers", [])):
                 return AccountType.GOOGLE
@@ -118,8 +123,9 @@ def get_account_type(user_id: str):
             if any(v.startswith("facebook") for v in oidc.get("identifiers", [])):
                 return AccountType.FACEBOOK
             return AccountType.UNKNOWN
-
-        return AccountType.EMAIL
+        if credentials.get("password", {}).get("config", {}).get("hashed_password"):
+            return AccountType.EMAIL
+        return AccountType.OTP
 
 
 def extend_ory_session(user_session: str, user_session_expiry: str):

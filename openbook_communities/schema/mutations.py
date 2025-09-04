@@ -32,6 +32,7 @@ from openbook_common.schema.types import GeolocationPointInput, Result
 from openbook_communities.models import Community as CommunityModel
 from openbook_communities.models import Task as TaskModel
 from openbook_communities.models import SpaceUserConnectionType
+from openbook_communities.models.completed_task import CompletedTask as CompletedTaskModel
 from openbook_communities.schema.types import (
     AddCollaborationToolInput,
     AddExternalLinkInput,
@@ -46,6 +47,7 @@ from openbook_communities.schema.types import (
     UpdateSpaceInput,
     UpdateTaskInput,
     ValidateSpaceInput,
+    CompletedTask,
 )
 from openbook_communities.serializers.communities_serializers import (
     AddCollaborationToolSerializer,
@@ -513,3 +515,37 @@ class Mutation:
             )
 
         return Result(success=True)
+
+    @strawberry.mutation
+    @sync_to_async
+    def complete_ready_to_go_task(self, info, id: uuid.UUID) -> CompletedTask:
+        current_user = verify_authorized_user(info)
+
+        task = TaskModel.objects.filter(id=id).first()
+        if not task:
+            raise GraphQLError("Task not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
+
+        is_permitted = (
+            TaskModel.objects.filter(id=id)
+            .filter(TaskModel.is_visible_query(current_user) & TaskModel.is_not_expired_query())
+            .exists()
+        )
+
+        if not is_permitted:
+            raise GraphQLError(
+                "You don't have permission to access this task or it has expired",
+                extensions={"code": GraphQLErrorCodes.FORBIDDEN},
+            )
+
+        is_ready_to_go = task.interaction_type == TaskModel.InteractionType.READY
+
+        if not is_ready_to_go:
+            raise GraphQLError(
+                "Only tasks with 'Ready to Go' interaction type can be completed",
+                extensions={"code": GraphQLErrorCodes.FORBIDDEN},
+            )
+
+        with transaction.atomic():
+            completed_task = CompletedTaskModel.objects.create(task_id=id, user=current_user)
+
+        return completed_task

@@ -31,6 +31,7 @@ from openbook_communities.models import (
     Task as TaskModel,
     VisibilityType,
 )
+from openbook_communities.models.completed_task import CompletedTask
 from openbook_communities.models.network_relationship import (
     SpacesRelationship as SpacesRelationshipModel,
     SpacesRelationshipType,
@@ -257,6 +258,10 @@ class Task:
             return False
 
         return UserFavoriteModel.objects.filter(user=current_user, favoritable_id=self.id).exists()
+
+    @strawberry_django.field()
+    def total_completions(self) -> int:
+        return self.completions.count()  # type: ignore
 
 
 @strawberry_django.type(CommunityMembershipModel)
@@ -527,3 +532,11 @@ class MySpaces:
         if hasattr(self, "query"):
             return Paged.of(self.query, offset, limit)
         return Paged()
+
+
+@strawberry_django.type(CompletedTask)
+class CompletedTask:
+    id: strawberry.auto
+    task: Task
+    user: User
+    completed_at: strawberry.auto
