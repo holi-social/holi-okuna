@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 
-from openbook_auth.events import UserNameUpdatedEvent, UserDeletedEvent, UserEmailUpdatedEvent
+from openbook_auth.events import UserNameUpdatedEvent, UserDeletedEvent, UserEmailUpdatedEvent, user_to_event_payload
 from openbook_auth.models import User
 from openbook_common.tests.helpers import make_user
 
@@ -70,3 +70,38 @@ def test_serialization_user_deleted_event():
         "data": (json.dumps({"user": expected_user_payload(user)}).encode("utf-8")),
     }
     assert event.to_dict() == expected_event_dict
+
+
+@pytest.mark.django_db
+def test_user_payload():
+    # GIVEN
+    user = make_user()
+
+    # WHEN
+    payload = user_to_event_payload(user)
+
+    # THEN
+    expected_payload = expected_user_payload(user)
+    assert payload == expected_payload
+
+
+@pytest.mark.django_db
+def test_user_payload_without_profile():
+    # GIVEN
+    user = make_user()
+    user.profile = None
+
+    # WHEN
+    payload = user_to_event_payload(user)
+
+    # THEN
+    expected_payload = {
+        "id": str(user.username),
+        "name": None,
+        "email": user.email,
+        "identity": user.identity,
+        "avatar": None,
+        "aboutMe": None,
+        "location": None,
+    }
+    assert payload == expected_payload
