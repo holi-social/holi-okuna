@@ -1,5 +1,5 @@
 import structlog
-from openbook_auth.models import User
+from openbook_auth.models import User, UserProfile
 from openbook_common.pubsub.event import Event
 from openbook_common.pubsub.topic import Topic
 from openbook_common.pubsub.publisher import publish_event
@@ -8,14 +8,18 @@ logger = structlog.getLogger(__name__)
 
 
 def user_to_event_payload(user):
+    try:
+        profile = user.profile
+    except UserProfile.DoesNotExist:
+        profile = None
     return {
         "id": str(user.username),
-        "name": user.profile.full_name(),
+        "name": profile.full_name() if profile else None,
         "email": user.email,
         "identity": user.identity,
-        "avatar": user.profile.avatar.url if user.profile.avatar else None,
-        "aboutMe": user.profile.about_me,
-        "location": user.profile.location,
+        "avatar": profile.avatar.url if profile and profile.avatar else None,
+        "aboutMe": profile.about_me if profile else None,
+        "location": profile.location if profile else None,
     }
 
 
