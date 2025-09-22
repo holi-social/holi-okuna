@@ -199,6 +199,7 @@ class Mutation:
         current_user = verify_authorized_user(info)
         headers = {"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"}
         logger.info(f"Deleting user {current_user.username}...")
+        task_model = get_task_model()
 
         response = requests.delete(
             f"{settings.ORY_BASE_URL}/admin/identities/{current_user.username}",
@@ -231,9 +232,9 @@ class Mutation:
                         space_to_delete = deepcopy(space)
                         space.delete_pending_notifications()
 
-                        tasks = list(get_task_model().objects.filter(deleted_at=None, community_id=space.id).all())
+                        tasks = list(task_model.objects.filter(deleted_at=None, community_id=space.id).all())
                         for task in tasks:
-                            publish_task_deleted_event(request.user, task)
+                            publish_task_deleted_event(current_user, task)
 
                         space.delete()
                         publish_space_deleted_event(space_to_delete)
