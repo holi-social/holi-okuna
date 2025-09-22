@@ -16,7 +16,7 @@ from graphql import GraphQLError
 from rest_framework.exceptions import ValidationError
 
 from openbook_common.tracking import track, TrackingEvent
-from openbook_communities.events import publish_space_deleted_event
+from openbook_communities.events import publish_space_deleted_event, publish_task_deleted_event
 from openbook_auth.events import (
     publish_user_deleted_event,
     publish_user_name_updated_event,
@@ -33,7 +33,7 @@ from openbook_auth.utils import verify_authorized_user
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.helpers import is_parameter_null, to_input_dict
 from openbook_common.schema.types import Result
-from openbook_common.utils.model_loaders import get_insight_model, get_community_model, get_topic_model
+from openbook_common.utils.model_loaders import get_insight_model, get_community_model, get_topic_model, get_task_model
 from openbook_communities.schema.helpers import create_filtered_spaces_query, DISCOVER_DEFAULT_SPACES_V2
 from openbook_notifications.api import NotificationApi
 from openbook_notifications.enums import NotificationProvider
@@ -230,6 +230,11 @@ class Mutation:
                         # Make a copy of the space before deleting it to pass it as a SpaceDeleted event payload
                         space_to_delete = deepcopy(space)
                         space.delete_pending_notifications()
+
+                        tasks = list(get_task_model().objects.filter(deleted_at=None, community_id=space.id).all())
+                        for task in tasks:
+                            publish_task_deleted_event(request.user, task)
+
                         space.delete()
                         publish_space_deleted_event(space_to_delete)
 

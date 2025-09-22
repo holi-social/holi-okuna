@@ -53,11 +53,16 @@ class CommunityAdminTest(TestCase):
         mock_publish_space_created_event.assert_called_once_with(community)
         mock_publish_space_updated_event.assert_not_called()
 
+    @patch("openbook_communities.admin.publish_task_updated_event")
     @patch("openbook_communities.admin.publish_space_updated_event")
     @patch("openbook_communities.admin.publish_space_created_event")
-    def test_save_model_existing_community_calls_publish_space_updated_event(
-        self, mock_publish_space_created_event, mock_publish_space_updated_event
+    def test_save_model_existing_community_calls_publish_space_and_task_updated_event(
+        self, mock_publish_space_created_event, mock_publish_space_updated_event, mock_publish_task_updated_event
     ):
+        task = make_community_task(
+            community=self.community, creator=self.user, name="Test Task", description="Test Description"
+        )
+
         request = self.factory.post(f"/admin/openbook_communities/community/{self.community.pk}/change/")
         request.user = self.user
 
@@ -65,13 +70,23 @@ class CommunityAdminTest(TestCase):
 
         mock_publish_space_created_event.assert_not_called()
         mock_publish_space_updated_event.assert_called_once_with(self.community)
+        mock_publish_task_updated_event.assert_called_once_with(self.user, task)
 
+    @patch("openbook_communities.admin.publish_task_deleted_event")
     @patch("openbook_communities.admin.publish_space_deleted_event")
     @patch("openbook_communities.admin.publish_space_updated_event")
     @patch("openbook_communities.admin.publish_space_created_event")
     def test_delete_model_calls_publish_space_deleted_event(
-        self, mock_publish_space_created_event, mock_publish_space_updated_event, mock_publish_space_deleted_event
+        self,
+        mock_publish_space_created_event,
+        mock_publish_space_updated_event,
+        mock_publish_space_deleted_event,
+        mock_publish_task_deleted_event,
     ):
+        task = make_community_task(
+            community=self.community, creator=self.user, name="Test Task", description="Test Description"
+        )
+
         request = self.factory.post(f"/admin/openbook_communities/community/{self.community.pk}/delete/")
         request.user = self.user
 
@@ -80,6 +95,7 @@ class CommunityAdminTest(TestCase):
         mock_publish_space_created_event.assert_not_called()
         mock_publish_space_updated_event.assert_not_called()
         mock_publish_space_deleted_event.assert_called_once_with(self.community)
+        mock_publish_task_deleted_event.assert_called_once_with(self.user, task)
 
     @patch("openbook_communities.admin.publish_space_created_event")
     def test_save_model_preserves_existing_behavior(self, mock_publish_space_created_event):
