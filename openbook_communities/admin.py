@@ -81,18 +81,29 @@ class CommunityAdmin(admin.ModelAdmin):
             else:
                 # This is an existing instance being updated
                 publish_space_updated_event(obj)
+
+                tasks = list(Task.objects.filter(deleted_at=None, community_id=obj.id).all())
+                for task in tasks:
+                    publish_task_updated_event(request.user, task)
+
         except Exception as e:
             # Log the error but don't break the delete operation
             logger.error(f"Failed to publish space event: {e}")
             logger.error(traceback.format_exc())
 
     def delete_model(self, request, obj):
-        super().delete_model(request, obj)
         try:
+            # Fetch tasks while they still exist - before actually deleting the space
+            tasks = list(Task.objects.filter(deleted_at=None, community_id=obj.id).all())
+
+            super().delete_model(request, obj)
+
+            for task in tasks:
+                publish_task_deleted_event(request.user, task)
             publish_space_deleted_event(obj)
         except Exception as e:
             # Log the error but don't break the delete operation
-            logger.error(f"Failed to publish space deleted event: {e}")
+            logger.error(f"Failed to publish space or task deleted event: {e}")
             logger.error(traceback.format_exc())
 
     @admin.action(description="Resend SpaceCreatedEvent")

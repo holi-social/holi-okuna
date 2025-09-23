@@ -43,6 +43,7 @@ from openbook_common.tests.helpers import (
     assert_is_unauthorized,
     make_authentication_headers_for_user,
     make_community,
+    make_community_task,
     make_fake_post_text,
     make_fake_post_title,
     make_user,
@@ -1145,6 +1146,7 @@ class TestUsers:
     @mock.patch("openbook_auth.tasks.requests.delete")
     @mock.patch("openbook_auth.schema.mutations.publish_user_deleted_event")
     @mock.patch("openbook_auth.schema.mutations.publish_space_deleted_event")
+    @mock.patch("openbook_auth.schema.mutations.publish_task_deleted_event")
     @mock.patch("openbook_notifications.api.NotificationApi.delete_subscriber")
     @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
     @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
@@ -1153,6 +1155,7 @@ class TestUsers:
         mock_notification_api_delete_in_app_messages,
         mock_notification_api_cancel_workflow,
         mock_delete_subscriber,
+        mock_publish_task_deleted_event,
         mock_publish_space_deleted_event,
         mock_publish_user_deleted_event,
         mock_delete,
@@ -1163,6 +1166,7 @@ class TestUsers:
 
         user = make_user(name="Fritz", last_name="Meier")
         space = make_community(creator=user)
+        task = make_community_task(community=space, creator=user)
         invitee = make_user()
         membership_requestor = make_user()
 
@@ -1208,6 +1212,8 @@ class TestUsers:
         mock_publish_user_deleted_event.assert_called_once_with(user=user)
         # Expect space to be deleted as there are no other admins left
         mock_publish_space_deleted_event.assert_called_once_with(space)
+        # Expect space task to be deleted as well
+        mock_publish_task_deleted_event.assert_called_once_with(user, task)
         mock_delete_subscriber.assert_called_once_with(user_id=str(user.username))
         # Expect pending notifications for invitations and membership requests to be deleted resp. workflows to be cancelled
         mock_notification_api_cancel_workflow.assert_has_calls(
