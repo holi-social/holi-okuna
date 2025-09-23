@@ -1166,7 +1166,7 @@ class TestUsers:
 
         user = make_user(name="Fritz", last_name="Meier")
         space = make_community(creator=user)
-        task = make_community_task(space)
+        task = make_community_task(community=space, creator=user)
         invitee = make_user()
         membership_requestor = make_user()
 

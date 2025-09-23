@@ -220,9 +220,7 @@ class Mutation:
 
                 current_user.delete_pending_notifications()
                 NotificationApi.delete_subscriber(user_id=current_user.username)
-                current_user.delete()
                 publish_user_deleted_event(user=current_user)
-                logger.info(f"Successfully deleted user {current_user.username}")
 
                 logger.warning(f"All spaces exclusively administered by {current_user.username} will be deleted")
 
@@ -240,6 +238,10 @@ class Mutation:
                         publish_space_deleted_event(space_to_delete)
 
                     invalidate_discover_spaces_query_cache()
+
+                current_user.delete()
+                logger.info(f"Successfully deleted user {current_user.username}")
+
                 return Result(success=True)
             except (Exception,):
                 logger.warning(
