@@ -2903,12 +2903,11 @@ class User(ModelWithUUID, AbstractUser):
         Community = get_community_model()
         return Community.objects.filter(memberships__user=self, memberships__is_administrator=True)
 
-    """
-    Gets all communities where the user is the exclusive administrator.
-    An exclusive administrator is defined as the only user with administrator privileges in a given community.
-    """
-
     def get_exclusive_administrated_communities(self):
+        """
+        Gets all communities where the user is the exclusive administrator.
+        An exclusive administrator is defined as the only user with administrator privileges in a given community.
+        """
         Community = get_community_model()
         return Community.objects.annotate(
             num_admins=Count("memberships", filter=Q(memberships__is_administrator=True))

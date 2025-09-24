@@ -1166,7 +1166,9 @@ class TestUsers:
 
         user = make_user(name="Fritz", last_name="Meier")
         space = make_community(creator=user)
-        task = make_community_task(community=space, creator=user)
+        other_space = make_community()
+        task_of_space = make_community_task(community=space, creator=user)
+        task_of_user = make_community_task(community=other_space, creator=user)
         invitee = make_user()
         membership_requestor = make_user()
 
@@ -1213,7 +1215,12 @@ class TestUsers:
         # Expect space to be deleted as there are no other admins left
         mock_publish_space_deleted_event.assert_called_once_with(space)
         # Expect space task to be deleted as well
-        mock_publish_task_deleted_event.assert_called_once_with(user, task)
+        mock_publish_task_deleted_event.assert_has_calls(
+            [
+                mock.call(user, task_of_space),
+                mock.call(user, task_of_user),
+            ]
+        )
         mock_delete_subscriber.assert_called_once_with(user_id=str(user.username))
         # Expect pending notifications for invitations and membership requests to be deleted resp. workflows to be cancelled
         mock_notification_api_cancel_workflow.assert_has_calls(
