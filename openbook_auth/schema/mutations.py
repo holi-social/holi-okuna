@@ -10,7 +10,7 @@ import structlog
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.core.cache import cache
-from django.db.models import When, Value, Count, Case, IntegerField
+from django.db.models import When, Value, Count, Case, IntegerField, Q
 from django.utils.translation import get_language_from_request
 from graphql import GraphQLError
 from rest_framework.exceptions import ValidationError
@@ -217,12 +217,23 @@ class Mutation:
         for count in range(3, -1, -1):
             try:
                 exclusive_administrated_communities = list(current_user.get_exclusive_administrated_communities())
+                tasks_of_communities_or_user = list(
+                    task_model.objects.filter(
+                        Q(deleted_at=None, community_id__in=exclusive_administrated_communities)
+                        | Q(deleted_at=None, creator=current_user)
+                    ).all()
+                )
 
                 current_user.delete_pending_notifications()
                 NotificationApi.delete_subscriber(user_id=current_user.username)
+                current_user.delete()
                 publish_user_deleted_event(user=current_user)
+                logger.info(f"Successfully deleted user {current_user.username}")
 
                 logger.warning(f"All spaces exclusively administered by {current_user.username} will be deleted")
+
+                for task in tasks_of_communities_or_user:
+                    publish_task_deleted_event(current_user, task)
 
                 if exclusive_administrated_communities:
                     for space in exclusive_administrated_communities:
@@ -230,17 +241,10 @@ class Mutation:
                         space_to_delete = deepcopy(space)
                         space.delete_pending_notifications()
 
-                        tasks = list(task_model.objects.filter(deleted_at=None, community_id=space.id).all())
-                        for task in tasks:
-                            publish_task_deleted_event(current_user, task)
-
                         space.delete()
                         publish_space_deleted_event(space_to_delete)
 
                     invalidate_discover_spaces_query_cache()
-
-                current_user.delete()
-                logger.info(f"Successfully deleted user {current_user.username}")
 
                 return Result(success=True)
             except (Exception,):
