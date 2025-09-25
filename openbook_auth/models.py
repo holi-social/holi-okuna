@@ -359,6 +359,7 @@ class User(ModelWithUUID, AbstractUser):
         are_guidelines_accepted=None,
         badge=None,
         account_type=AccountType.EMAIL,
+        is_employee=False,
     ):
         if not is_of_legal_age:
             raise ValidationError(
@@ -377,6 +378,7 @@ class User(ModelWithUUID, AbstractUser):
             are_guidelines_accepted=are_guidelines_accepted,
             is_oidc=account_type != AccountType.EMAIL and account_type != AccountType.OTP,
             account_type=account_type,
+            is_employee=is_employee,
         )
 
         user_profile = bootstrap_user_profile(

@@ -166,6 +166,7 @@ class TestUsers:
             query {
                 authenticatedUserV2 {
                     id
+                    isEmployee
                 }
             }
         """
@@ -185,10 +186,12 @@ class TestUsers:
 
         authenticated_user = json.loads(response.content)["data"]["authenticatedUserV2"]
         assert authenticated_user["id"] == str(username)
+        assert not authenticated_user["isEmployee"]
 
         # Ensure user was created
         user = await sync_to_async(User.objects.get)(username=username)
         assert user.email == email
+        assert not user.is_employee
 
     @pytest.mark.asyncio
     @mock.patch("openbook_auth.tasks.requests.get", return_value=MockJsonResponse({}))
@@ -229,6 +232,49 @@ class TestUsers:
         # Ensure user was created
         user = await sync_to_async(User.objects.get)(username=username)
         assert user.email == email
+
+    @pytest.mark.asyncio
+    @mock.patch("openbook_auth.tasks.requests.get", return_value=MockJsonResponse({}))
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
+    async def test_creates_user_marked_as_employee(
+        self, mock_create_or_update_subscriber, mock_get_language_from_request, mock_get, client
+    ):
+        username = uuid.uuid4()
+        email = "test@holi.social"
+        ory_user = benedict({"username": username, "email": email})
+        headers = await sync_to_async(make_authentication_headers_for_user)(ory_user)
+        endpoint = reverse("graphql-endpoint")
+        graphql_query = """
+            query {
+                authenticatedUserV2 {
+                    id
+                    isEmployee
+                }
+            }
+        """
+
+        # Ensure user does not exist yet
+        result = await sync_to_async(User.objects.filter)(username=username)
+        assert await sync_to_async(result.exists)() is False
+
+        response = await client.post(
+            path=endpoint,
+            data=json.dumps({"query": graphql_query}),
+            content_type="application/json",
+            **headers,
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        authenticated_user = json.loads(response.content)["data"]["authenticatedUserV2"]
+        assert authenticated_user["id"] == str(username)
+        assert authenticated_user["isEmployee"]
+
+        # Ensure user was created
+        user = await sync_to_async(User.objects.get)(username=username)
+        assert user.email == email
+        assert user.is_employee
 
     def test_get_user_by_name_returns_only_matching_users_without_logged_in_user(self):
         user = make_user(name="Peter", last_name="Moser")
