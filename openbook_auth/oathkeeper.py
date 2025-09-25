@@ -19,6 +19,8 @@ HEADER_USER_FAMILY_NAME = "X-Holi-User-family_name"
 HEADER_SESSION = "X-Holi-Session"
 HEADER_SESSION_EXPIRY = "X-Holi-Session-Expiry"
 
+EMPLOYEE_EMAIL_SUFFIX = "@holi.social"
+
 logger = logging.getLogger("openbook_auth/oathkeeper")
 
 
@@ -62,6 +64,7 @@ class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
                             is_of_legal_age=True,
                             are_guidelines_accepted=True,
                             account_type=account_type,
+                            is_employee=user_email.endswith(EMPLOYEE_EMAIL_SUFFIX),
                         )
                         generate_identity_when_needed(user)
                         cache.set(cache_key, user, timeout=CACHE_TIMEOUT)
