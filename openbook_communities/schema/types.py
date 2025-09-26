@@ -39,7 +39,7 @@ from openbook_communities.models.network_relationship import (
 from openbook_posts.enums import VisibilityFilter
 from openbook_posts.models import Post as PostModel
 from openbook_posts.schema.types import Post
-from openbook_terms.schema.types import SDG, Skill, Topic
+from openbook_terms.schema.types import Topic
 
 logger = logging.getLogger(__name__)
 
@@ -51,16 +51,8 @@ Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
 class ValidateSpaceInput:
     title: Optional[str] = strawberry.UNSET
     description: Optional[str] = strawberry.UNSET
-    topics: Annotated[
-        Optional[List[Optional[uuid.UUID]]],
-        strawberry.argument(description="Deprecated since 1.52. Use topics_v2 instead."),
-    ] = strawberry.UNSET
     topics_v2: Optional[List[str]] = strawberry.UNSET
     cover: Optional[Upload] = strawberry.UNSET
-    sdgs: Annotated[
-        Optional[List[Optional[uuid.UUID]]],
-        strawberry.argument(description="Deprecated since 1.53."),
-    ] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
 
 
@@ -68,10 +60,6 @@ class ValidateSpaceInput:
 class CreateSpaceInput:
     title: str
     description: str
-    topics: Annotated[
-        Optional[List[Optional[uuid.UUID]]],
-        strawberry.argument(description="Deprecated since 1.52. Use topics_v2 instead."),
-    ] = strawberry.UNSET
     topics_v2: Optional[List[str]] = strawberry.UNSET
     cover: Upload
 
@@ -93,10 +81,6 @@ class CreateTaskInput:
     contact_email: str
     slots_available: Optional[int] = strawberry.UNSET
     thumbnail: Optional[Upload] = strawberry.UNSET
-    skills: Annotated[
-        Optional[List[Optional[uuid.UUID]]],
-        strawberry.argument(description="Deprecated since 1.52. Use skills_v2 instead."),
-    ] = strawberry.UNSET
     skills_v2: Optional[List[str]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
@@ -122,10 +106,6 @@ class UpdateTaskInput:
     contact_email: str
     slots_available: Optional[int] = strawberry.UNSET
     thumbnail: Optional[Upload] = strawberry.UNSET
-    skills: Annotated[
-        Optional[List[Optional[uuid.UUID]]],
-        strawberry.argument(description="Deprecated since 1.52. Use skills_v2 instead."),
-    ] = strawberry.UNSET
     skills_v2: Optional[List[str]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
@@ -187,17 +167,9 @@ class UpdateSpaceInput:
     id: uuid.UUID
     title: Optional[str] = strawberry.UNSET
     description: Optional[str] = strawberry.UNSET
-    topics: Annotated[
-        Optional[List[Optional[uuid.UUID]]],
-        strawberry.argument(description="Deprecated since 1.52. Use topics_v2 instead."),
-    ] = strawberry.UNSET
     topics_v2: Optional[List[str]] = strawberry.UNSET
     cover: Optional[Upload] = strawberry.UNSET
     avatar: Optional[Upload] = strawberry.UNSET
-    sdgs: Annotated[
-        Optional[List[Optional[uuid.UUID]]],
-        strawberry.argument(description="Deprecated since 1.53."),
-    ] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     contact_description: Optional[str] = strawberry.UNSET
@@ -237,9 +209,6 @@ class Task:
     duration: Optional[TaskModel.Duration]
     timeframe_start_date: strawberry.auto
     timeframe_end_date: strawberry.auto
-    skills: List[Skill] = strawberry_django.field(
-        deprecation_reason="Deprecated since version 1.52, use skills_v2 instead.", default=None
-    )
     skills_v2: List[str]
     thumbnail: Optional[str]
     thumbnail_blurhash: Optional[str]
@@ -326,9 +295,6 @@ class Space:
         deprecation_reason="Deprecated since version 1.52, use topics_v2 instead.", default=None
     )
     topics_v2: List[str]
-    sdgs: List[Optional[SDG]] = strawberry_django.field(
-        deprecation_reason="Deprecated since version 1.53.", default=None
-    )
     contact_description: Optional[str]
     contact_email: Optional[str]
     contact_phone: Optional[str]
@@ -506,19 +472,8 @@ class Space:
 @strawberry.type
 class DiscoverSpaces:
     spaces: Paged[Space]
-    topic_id: Optional[uuid.UUID] = strawberry.field(
-        deprecation_reason="Deprecated since version 1.52, use topic_v2 instead", default=None
-    )
     topic_v2: Optional[str] = None
-    location: Optional[str] = strawberry.field(
-        deprecation_reason="Deprecated since version 1.0.16, use location_id instead",
-        default=None,
-    )
     location_id: Optional[str] = None
-    skill_id: Optional[uuid.UUID] = strawberry.field(
-        deprecation_reason="Deprecated since version 1.52, use skill_v2 instead",
-        default=None,
-    )
     skill_v2: Optional[str] = None
 
 

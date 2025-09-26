@@ -148,25 +148,8 @@ class Query:
     def discover_spaces(
         self,
         info,
-        topic_ids: Annotated[
-            Optional[List[Optional[uuid.UUID]]],
-            strawberry.argument(
-                description="Deprecated since version 1.52, use topics_v2 instead",
-            ),
-        ] = None,
         topics_v2: Optional[List[str]] = None,
-        location: Annotated[
-            Optional[str],
-            # Using description instead of deprecation_reason as deprecated arguments are removed in GraphQL Mesh
-            strawberry.argument(description="Unsupported since version 1.0.16, use geolocation instead"),
-        ] = None,
         geolocation: Optional[GeoJSON] = None,
-        skill_ids: Annotated[
-            Optional[List[Optional[uuid.UUID]]],
-            strawberry.argument(
-                description="Deprecated since version 1.52, use skills_v2 instead",
-            ),
-        ] = None,
         skills_v2: Optional[List[str]] = None,
         offset: int = 0,
         limit: int = 10,
@@ -184,16 +167,6 @@ class Query:
             )
 
         # get all spaces by topic (independent of other filters)
-        if topic_ids is not None:
-            for topic_id in topic_ids:
-                spaces = async_to_sync(filtered_spaces)(topic_id=topic_id)
-                result.append(
-                    DiscoverSpaces(
-                        topic_id=topic_id,
-                        spaces=Paged.of(spaces, offset, limit),
-                    )
-                )
-
         if topics_v2 is not None:
             for topic_v2 in topics_v2:
                 spaces = async_to_sync(filtered_spaces)(topics_v2=[topic_v2])
@@ -205,17 +178,6 @@ class Query:
                 )
 
         # get all spaces by skill_id (including geolocation filter)
-        if skill_ids is not None:
-            for skill_id in skill_ids:
-                spaces = async_to_sync(filtered_spaces)(skill_ids=skill_ids, geolocation=geolocation)
-                result.append(
-                    DiscoverSpaces(
-                        skill_id=skill_id,
-                        location_id=geolocation.id if geolocation else None,
-                        spaces=Paged.of(spaces, offset, limit),
-                    )
-                )
-
         if skills_v2 is not None:
             for skill_v2 in skills_v2:
                 spaces = async_to_sync(filtered_spaces)(skills_v2=[skill_v2], geolocation=geolocation)

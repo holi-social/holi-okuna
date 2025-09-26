@@ -67,11 +67,6 @@ def _get_updated_fields(o1: Dict[str, any], o2: Dict[str, any]) -> List[str]:
 
 @strawberry.type
 class Mutation:
-    # TODO HOLI-8088 remove once not used by the frontend anymore
-    @strawberry.mutation(deprecation_reason="Deprecated in favor of 'updateAuthenticatedUserV2'.")
-    def update_authenticated_user(self, info, input: UpdateAuthenticatedUserInput) -> User:
-        return Mutation().update_authenticated_user_v2(info, input)
-
     @strawberry.mutation
     @sync_to_async
     def update_authenticated_user_v2(self, info, input: UpdateAuthenticatedUserInput) -> AuthenticatedUser:

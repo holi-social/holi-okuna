@@ -80,7 +80,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill.slug],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -124,7 +124,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill.slug],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -212,8 +212,6 @@ class TestTasks:
             }
             """
 
-        non_existent_skill_id = str(uuid4())
-
         valid_input = {
             "taskId": str(task.id),
             "spaceId": str(community.id),
@@ -225,7 +223,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill.slug],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -241,11 +239,6 @@ class TestTasks:
             {"field": "regularity", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "contactEmail", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "contactPhone", "value": "c" * 500, "expected_code": "max_length"},
-            {
-                "field": "skills",
-                "value": [non_existent_skill_id],
-                "expected_error": f"No skill with the id '{non_existent_skill_id}' found.",
-            },
             {
                 "field": "skillsV2",
                 "value": ["unknown"],
@@ -308,7 +301,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill.slug],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -412,7 +405,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill.slug],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -501,7 +494,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill.slug],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -544,7 +537,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill.slug],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -592,7 +585,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill.slug],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -754,8 +747,6 @@ class TestTasks:
             }
             """
 
-        non_existent_skill_id = str(uuid4())
-
         valid_input = {
             "spaceId": str(community.id),
             "name": "Valid name",
@@ -766,7 +757,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill.slug],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -781,11 +772,6 @@ class TestTasks:
             {"field": "regularity", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "contactEmail", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "contactPhone", "value": "c" * 500, "expected_code": "max_length"},
-            {
-                "field": "skills",
-                "value": [non_existent_skill_id],
-                "expected_error": f"No skill with the id '{non_existent_skill_id}' found.",
-            },
             {
                 "field": "skillsV2",
                 "value": ["unknown"],
@@ -843,7 +829,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill.slug],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -897,7 +883,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill.slug],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -996,7 +982,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill.slug],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -1042,7 +1028,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill.slug],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -1507,7 +1493,7 @@ class TestTaskFavorites:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill.slug],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -1551,7 +1537,7 @@ class TestTaskFavorites:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill.slug],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -1652,12 +1638,12 @@ class TestTaskRecommendations:
         self.space_deleted_owner = make_user()
         self.space_deleted = make_community(creator=self.space_deleted_owner, is_deleted=True)
 
-    def create_task(self, skills, location_type, geolocation=None, visibility=VisibilityType.PUBLIC, space=None):
+    def create_task(self, skills_v2, location_type, geolocation=None, visibility=VisibilityType.PUBLIC, space=None):
         if space is None:
             space = self.space
         return space.creator.create_task(
             geolocation=geolocation,
-            skills=skills,
+            skills_v2=skills_v2,
             location_type=location_type,
             visibility=visibility,
             space_id=space.id,
@@ -1704,35 +1690,37 @@ class TestTaskRecommendations:
         # location outside geolocation filter
         geolocation3 = geos.Point(9.76302, 53.5586627, srid=4326)
 
-        task_remote_2_skills = self.create_task(skills=[skill1.id, skill2.id], location_type="REMOTE")
+        task_remote_2_skills = self.create_task(skills_v2=[skill1.slug, skill2.slug], location_type="REMOTE")
         task_onsite_2_skills = self.create_task(
-            skills=[skill1.id, skill2.id], location_type="ONSITE", geolocation=geolocation1
+            skills_v2=[skill1.slug, skill2.slug], location_type="ONSITE", geolocation=geolocation1
         )
-        task_onsite_skill_1 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation1)
-        task_remote_skill_2 = self.create_task(skills=[skill2.id], location_type="REMOTE")
+        task_onsite_skill_1 = self.create_task(
+            skills_v2=[skill1.slug], location_type="ONSITE", geolocation=geolocation1
+        )
+        task_remote_skill_2 = self.create_task(skills_v2=[skill2.slug], location_type="REMOTE")
         task_outside_onsite_skill_2 = self.create_task(
-            skills=[skill2.id], location_type="ONSITE", geolocation=geolocation3
+            skills_v2=[skill2.slug], location_type="ONSITE", geolocation=geolocation3
         )
         task_onsite_other_skill = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation1
+            skills_v2=[other_skill.slug], location_type="ONSITE", geolocation=geolocation1
         )
         task_onsite_skill_1_and_other_skill = self.create_task(
-            skills=[skill1.id, other_skill.id], location_type="ONSITE", geolocation=geolocation1
+            skills_v2=[skill1.id, other_skill.slug], location_type="ONSITE", geolocation=geolocation1
         )
         task_outside_onsite_other_skill = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation3
+            skills_v2=[other_skill.slug], location_type="ONSITE", geolocation=geolocation3
         )
-        task_remote_other_skill = self.create_task(skills=[other_skill.id], location_type="REMOTE")
+        task_remote_other_skill = self.create_task(skills_v2=[other_skill.slug], location_type="REMOTE")
 
         # tasks from moderated spaces are not shown
-        self.create_task(space=self.space_deleted, skills=[skill2.id], location_type="REMOTE")
+        self.create_task(space=self.space_deleted, skills_v2=[skill2.slug], location_type="REMOTE")
 
         # moderated tasks are not shown
-        moderated_task = self.create_task(skills=[skill2.id], location_type="REMOTE")
+        moderated_task = self.create_task(skills_v2=[skill2.slug], location_type="REMOTE")
         moderated_task.soft_delete()
 
         # member only tasks are not visible to non-members
-        self.create_task(skills=[skill1.id], location_type="REMOTE", visibility=VisibilityType.MEMBERS)
+        self.create_task(skills_v2=[skill1.slug], location_type="REMOTE", visibility=VisibilityType.MEMBERS)
 
         # when the user has no profile information, the last five tasks are returned
         self.assert_filtered_tasks(
@@ -1746,8 +1734,6 @@ class TestTaskRecommendations:
             ],
         )
 
-        self.user.profile.skills.add(skill1)
-        self.user.profile.skills.add(skill2)
         self.user.profile.skills_v2 = [skill1.slug, skill2.slug]
         self.user.profile.geolocation = geos.GEOSGeometry(json.dumps(geolocation_geometry))
 
@@ -1773,7 +1759,6 @@ class TestTaskRecommendations:
 
     def test_filters_for_recommended_tasks_paging(self):
         [skill1, other_skill] = make_skills(2)
-        self.user.profile.skills.add(skill1)
         self.user.profile.skills_v2 = [skill1.slug]
         self.user.profile.geolocation = geos.GEOSGeometry(json.dumps(geolocation_geometry))
 
@@ -1781,30 +1766,40 @@ class TestTaskRecommendations:
         geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
         # location outside geolocation filter
         geolocation3 = geos.Point(9.76302, 53.5586627, srid=4326)
-        task_remote_skill1 = self.create_task(skills=[skill1.id], location_type="REMOTE")
-        task_onsite_skill1 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation1)
-        task_remote_skill2 = self.create_task(skills=[skill1.id], location_type="REMOTE")
-        task_onsite_skill2 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation1)
-        task_other_site_skill1 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation3)
-        task_other_site_skill2 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation3)
-        task_other_site_skill3 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation3)
+        task_remote_skill1 = self.create_task(skills_v2=[skill1.slug], location_type="REMOTE")
+        task_onsite_skill1 = self.create_task(
+            skills_v2=[skill1.slug], location_type="ONSITE", geolocation=geolocation1
+        )
+        task_remote_skill2 = self.create_task(skills_v2=[skill1.slug], location_type="REMOTE")
+        task_onsite_skill2 = self.create_task(
+            skills_v2=[skill1.slug], location_type="ONSITE", geolocation=geolocation1
+        )
+        task_other_site_skill1 = self.create_task(
+            skills_v2=[skill1.slug], location_type="ONSITE", geolocation=geolocation3
+        )
+        task_other_site_skill2 = self.create_task(
+            skills_v2=[skill1.slug], location_type="ONSITE", geolocation=geolocation3
+        )
+        task_other_site_skill3 = self.create_task(
+            skills_v2=[skill1.slug], location_type="ONSITE", geolocation=geolocation3
+        )
         task_onsite_other_skill1 = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation1
+            skills_v2=[other_skill.slug], location_type="ONSITE", geolocation=geolocation1
         )
         task_onsite_other_skill2 = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation1
+            skills_v2=[other_skill.slug], location_type="ONSITE", geolocation=geolocation1
         )
         task_onsite_other_skill3 = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation1
+            skills_v2=[other_skill.slug], location_type="ONSITE", geolocation=geolocation1
         )
         task_outside_onsite_other_skill1 = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation3
+            skills_v2=[other_skill.slug], location_type="ONSITE", geolocation=geolocation3
         )
-        task_remote_other_skill1 = self.create_task(skills=[other_skill.id], location_type="REMOTE")
+        task_remote_other_skill1 = self.create_task(skills_v2=[other_skill.slug], location_type="REMOTE")
         task_outside_onsite_other_skill2 = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation3
+            skills_v2=[other_skill.slug], location_type="ONSITE", geolocation=geolocation3
         )
-        task_remote_other_skill2 = self.create_task(skills=[other_skill.id], location_type="REMOTE")
+        task_remote_other_skill2 = self.create_task(skills_v2=[other_skill.slug], location_type="REMOTE")
 
         self.assert_filtered_tasks(
             {"limit": 20},

@@ -195,14 +195,6 @@ class Mutation:
         serializer = CreateCommunitySerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        if not data.get("topics") and not data.get("topics_v2"):
-            raise GraphQLError(
-                "Either topics or topics_v2 must be specified",
-                extensions={
-                    "code": GraphQLErrorCodes.BAD_USER_INPUT,
-                    "errors": [],
-                },
-            ) from None
 
         with transaction.atomic():
             space = current_user.create_community(

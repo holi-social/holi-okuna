@@ -29,9 +29,6 @@ from openbook_communities.validators import (
     community_id_exists,
     external_link_id_exists,
     task_id_exists,
-    sdg_with_id_exists,
-    topic_with_id_exists,
-    skill_with_id_exists,
 )
 
 
@@ -81,16 +78,10 @@ class CreateCommunitySerializer(serializers.Serializer):
             validators=[category_name_exists],
         ),
     )
-    topics = serializers.ListField(
-        min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
-        max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
-        required=False,
-        child=serializers.UUIDField(validators=[topic_with_id_exists]),
-    )
     topics_v2 = serializers.ListField(
         min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
         max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
-        required=False,
+        required=True,
         child=serializers.CharField(validators=[topic_v2_exists]),
     )
 
@@ -104,12 +95,6 @@ class ValidateCommunitySerializer(serializers.Serializer):
     description = serializers.CharField(
         max_length=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH, required=True, validators=[sanitize_text]
     )
-    topics = serializers.ListField(
-        min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
-        max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
-        required=False,
-        child=serializers.UUIDField(validators=[topic_with_id_exists]),
-    )
     topics_v2 = serializers.ListField(
         min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
         max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
@@ -120,10 +105,6 @@ class ValidateCommunitySerializer(serializers.Serializer):
         allow_empty_file=False,
         required=False,
         max_upload_size=settings.COMMUNITY_COVER_MAX_SIZE,
-    )
-    sdgs = serializers.ListField(
-        required=False,
-        child=serializers.UUIDField(validators=[sdg_with_id_exists]),
     )
     location = serializers.CharField(
         max_length=settings.COMMUNITY_LOCATION_MAX_LENGTH,
@@ -153,12 +134,6 @@ class UpdateCommunitySerializer(serializers.Serializer):
     description = serializers.CharField(
         max_length=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH, required=False, validators=[sanitize_text]
     )
-    topics = serializers.ListField(
-        min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
-        max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
-        required=False,
-        child=serializers.UUIDField(validators=[topic_with_id_exists]),
-    )
     topics_v2 = serializers.ListField(
         min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
         max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
@@ -176,10 +151,6 @@ class UpdateCommunitySerializer(serializers.Serializer):
         allow_null=True,
         required=False,
         max_upload_size=settings.COMMUNITY_AVATAR_MAX_SIZE,
-    )
-    sdgs = serializers.ListField(
-        required=False,
-        child=serializers.UUIDField(validators=[sdg_with_id_exists]),
     )
     location = serializers.CharField(
         max_length=settings.COMMUNITY_LOCATION_MAX_LENGTH,
@@ -431,12 +402,6 @@ class CreateTaskSerializer(serializers.Serializer):
         allow_blank=True,
         max_length=settings.TASK_CONTACT_PHONE_MAX_LENGTH,
     )
-    skills = serializers.ListField(
-        min_length=settings.TASK_SKILLS_MIN_AMOUNT,
-        max_length=settings.TASK_SKILLS_MAX_AMOUNT,
-        required=False,
-        child=serializers.UUIDField(validators=[skill_with_id_exists]),
-    )
     skills_v2 = serializers.ListField(
         min_length=settings.TASK_SKILLS_MIN_AMOUNT,
         max_length=settings.TASK_SKILLS_MAX_AMOUNT,
@@ -515,12 +480,6 @@ class UpdateTaskSerializer(serializers.Serializer):
         required=False,
         allow_blank=True,
         max_length=settings.TASK_CONTACT_PHONE_MAX_LENGTH,
-    )
-    skills = serializers.ListField(
-        min_length=settings.TASK_SKILLS_MIN_AMOUNT,
-        max_length=settings.TASK_SKILLS_MAX_AMOUNT,
-        required=False,
-        child=serializers.UUIDField(validators=[skill_with_id_exists]),
     )
     skills_v2 = serializers.ListField(
         min_length=settings.TASK_SKILLS_MIN_AMOUNT,

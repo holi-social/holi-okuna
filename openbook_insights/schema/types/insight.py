@@ -19,7 +19,6 @@ from openbook_insights.schema.types.quote import Quote
 from openbook_insights.schema.types.recommendation import Recommendation
 from openbook_posts.models import Post as PostModel
 from openbook_posts.schema.types import Post
-from openbook_terms.schema.types import Topic
 from openbook_polls.models import Poll as PollModel
 from openbook_polls.schema.types import Poll
 
@@ -35,9 +34,6 @@ class Insight:
     date_published: strawberry.auto
     header_image: Optional[str]
     header_image_blurhash: Optional[str]
-    topic: Optional[Topic] = strawberry_django.field(
-        deprecation_reason="Deprecated since version 1.52, use topic_v2 instead.", default=None
-    )
     topic_v2: Optional[str] = None
 
     @strawberry_django.field()
