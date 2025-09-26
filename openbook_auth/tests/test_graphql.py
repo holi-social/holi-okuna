@@ -80,36 +80,6 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 @pytest.mark.django_db
 class TestUsers:
-    # TODO HOLI-8088 remove once not used by the frontend anymore
-    @pytest.mark.asyncio
-    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
-    async def test_get_authenticated_user_returns_self_reference(self, mock_get_language_from_request, client):
-        user = await sync_to_async(make_user)(name="John", last_name="Holi")
-        headers = await sync_to_async(make_authentication_headers_for_user)(user)
-        endpoint = reverse("graphql-endpoint")
-        graphql_query = """
-            query {
-                authenticatedUser {
-                    id
-                    fullName
-                    engagementLevel
-                }
-            }
-        """
-        response = await client.post(
-            path=endpoint,
-            data=json.dumps({"query": graphql_query}),
-            content_type="application/json",
-            **headers,
-        )
-
-        assert response.status_code == status.HTTP_200_OK
-
-        authenticated_user = json.loads(response.content)["data"]["authenticatedUser"]
-        assert authenticated_user["id"] == str(user.uuid)
-        assert authenticated_user["fullName"] == user.profile.full_name()
-        assert authenticated_user["engagementLevel"] == user.profile.engagement_level
-
     @pytest.mark.asyncio
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
@@ -382,98 +352,6 @@ class TestUsers:
         print(response.errors)
         assert response.errors is not None
         assert response.data is None
-
-    # TODO HOLI-8088 remove test once update_authenticated_user is removed
-    @mock.patch("openbook_auth.tasks.requests.patch")
-    @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
-    @mock.patch("openbook_auth.schema.mutations.publish_user_updated_event")
-    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
-    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
-    @mock.patch("openbook_auth.schema.mutations.track")
-    def test_can_update_authenticated_user(
-        self,
-        mock_track,
-        mock_create_or_update_subscriber,
-        mock_get_language_from_request,
-        mock_publish_user_name_updated_event,
-        mock_publish_user_updated_event,
-        mock_ory_patch,
-    ):
-        mock_ory_patch.return_value = self.create_response(200)
-
-        user = make_user(name="Fritz", last_name="Meier", identity="fritz")
-        community = make_community()
-        community.add_member(user)
-        pronouns = "She/her"
-        location = "Bremerhaven"
-
-        assert User.objects.get(username=user.username).profile.pronouns != pronouns
-        first_name = "Peter"
-        last_name = "Shaw"
-        engagement_level = EngagementLevelChoice.INITIATOR
-
-        request = HttpRequest()
-        request.COOKIES = {}
-        request.user = user
-
-        executed = async_to_sync(schema.execute)(
-            """
-            mutation test($input: UpdateAuthenticatedUserInput!) {
-                updateAuthenticatedUser(input: $input) {
-                    id
-                    pronouns
-                    location
-                    geolocationId
-                    engagementLevel
-                }
-            }
-            """,
-            context_value=benedict({"request": request}),
-            variable_values={
-                "input": {
-                    "pronouns": pronouns,
-                    "firstName": first_name,
-                    "lastName": last_name,
-                    "location": location,
-                    "geolocation": geolocation,
-                    "engagementLevel": engagement_level,
-                }
-            },
-        )
-
-        assert executed.errors is None
-
-        json_body = [
-            {"op": "add", "path": "/traits/given_name", "value": f"{first_name}"},
-            {"op": "add", "path": "/traits/family_name", "value": f"{last_name}"},
-            {"op": "add", "path": "/traits/name", "value": f"{first_name} {last_name}"},
-        ]
-        mock_ory_patch.assert_called_once_with(
-            f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
-            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
-            json=json_body,
-            timeout=30,
-        )
-        updated_user = executed.data["updateAuthenticatedUser"]
-        graphql_pronouns = updated_user["pronouns"]
-        persisted_profile = User.objects.get(username=user.username).profile
-
-        assert graphql_pronouns == persisted_profile.pronouns
-        assert graphql_pronouns == pronouns
-        assert last_name == persisted_profile.last_name
-        assert first_name == persisted_profile.name
-        assert persisted_profile.engagement_level == EngagementLevelChoice.INITIATOR
-        assert location == persisted_profile.location
-        assert geolocation_id == persisted_profile.geolocation_id
-        assert persisted_profile.geolocation is not None
-        assert geos.GEOSGeometry(json.dumps(geolocation_geometry)) == persisted_profile.geolocation
-
-        mock_publish_user_name_updated_event.assert_called_once_with(user=user)
-        mock_publish_user_updated_event.assert_called_once_with(user=user)
-        mock_create_or_update_subscriber.assert_called_once_with(
-            user=user, locale=mock_get_language_from_request.return_value
-        )
-        self._validate_tracking_event_user_updated(mock_track)
 
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
@@ -1235,21 +1113,6 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             """
-            query {
-                userSuggestions(limit:100) {
-                    totalResults
-                    data {
-                        fullName
-                    }
-                }
-            }
-            """,
-            context_value=benedict({"request": {"user": blocking_user}}),
-        )
-        assert response.data["userSuggestions"]["totalResults"] == 2
-
-        response = async_to_sync(schema.execute)(
-            """
             mutation ($userId: UUID!) {
                 blockUser(userId: $userId) {
                     success
@@ -1282,23 +1145,6 @@ class TestUsers:
 
         response_after_blocking = get_user_with_id_raw(blocking_user, blocked_user)
         assert response_after_blocking.data["userById"] is None
-
-        response = async_to_sync(schema.execute)(
-            """
-            query {
-                userSuggestions(limit:20) {
-                    totalResults
-                    data {
-                        fullName
-                    }
-                }
-            }
-            """,
-            context_value=benedict({"request": {"user": blocking_user}}),
-        )
-        assert response.data["userSuggestions"]["totalResults"] == 2  # does include blocked users
-        assert len(response.data["userSuggestions"]["data"]) == 1  # does not include blocked users
-        assert response.data["userSuggestions"]["data"][0]["fullName"] == "OtherUser"
 
     def test_user_connection_status_to_space(self):
         user = make_user()
@@ -1558,82 +1404,6 @@ class TestUsers:
     def test_cannot_retrieve_connected_users_if_not_logged_in(self):
         response = get_connected_users_raw()
         assert_is_unauthorized(response)
-
-    def test_user_suggestions_only_accessible_when_logged_in(self):
-        response = async_to_sync(schema.execute)(
-            """
-            query {
-                userSuggestions {
-                    totalResults
-                    data {
-                        id
-                        fullName
-                    }
-                }
-            }
-            """,
-            context_value=benedict({"request": {"user": AnonymousUser}}),
-        )
-        assert_is_unauthorized(response)
-
-    def test_user_suggestions_limited(self):
-        user = make_user()
-        response = async_to_sync(schema.execute)(
-            """
-            query {
-                userSuggestions(offset: 20) {
-                    totalResults
-                    data {
-                        id
-                        fullName
-                    }
-                }
-            }
-            """,
-            context_value=benedict({"request": {"user": user}}),
-        )
-        assert_is_forbidden(response)
-
-    def test_user_suggestions(self):
-        user = make_user()
-        for x in range(0, 25):
-            make_user(name="A", last_name="B" + str(x), date_joined=datetime.now() - timedelta(hours=2))
-        response = async_to_sync(schema.execute)(
-            """
-            query {
-                userSuggestions {
-                    totalResults
-                    data {
-                        id
-                        fullName
-                    }
-                }
-            }
-            """,
-            context_value=benedict({"request": {"user": user}}),
-        )
-        assert response.errors is None
-        assert response.data["userSuggestions"]["totalResults"] == 25
-        assert len(response.data["userSuggestions"]["data"]) == 10
-
-        # A maximum of 20 user suggestions may be requested
-        response = async_to_sync(schema.execute)(
-            """
-            query {
-                userSuggestions(offset:15, limit: 25) {
-                    totalResults
-                    data {
-                        id
-                        fullName
-                    }
-                }
-            }
-            """,
-            context_value=benedict({"request": {"user": user}}),
-        )
-        assert response.errors is None
-        assert response.data["userSuggestions"]["totalResults"] == 25
-        assert len(response.data["userSuggestions"]["data"]) == 5
 
     def test_my_connections(self):
         user1 = make_user(name="First", last_name="User")
