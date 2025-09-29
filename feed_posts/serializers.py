@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from feed_posts.enums import VisibilityLevel, AspectRatio
 from feed_posts.validators import (
-    validate_topic_exists_by_id,
     validate_feed_post_category_exists_by_id,
     feed_post_exists,
 )
@@ -49,11 +48,6 @@ class CreateFeedPostSerializer(serializers.Serializer):
         validators=[sanitize_text],
     )
     visibility = serializers.ChoiceField(required=True, choices=VisibilityLevel.choices)
-    topic_ids = serializers.ListField(
-        max_length=settings.FEED_POST_TOPICS_MAX_AMOUNT,
-        required=False,
-        child=serializers.UUIDField(validators=[validate_topic_exists_by_id]),
-    )
     topics_v2 = serializers.ListField(
         max_length=settings.FEED_POST_TOPICS_MAX_AMOUNT,
         required=False,
@@ -100,11 +94,6 @@ class UpdateFeedPostSerializer(serializers.Serializer):
         validators=[sanitize_text],
     )
     visibility = serializers.ChoiceField(required=False, choices=VisibilityLevel.choices)
-    topic_ids = serializers.ListField(
-        max_length=settings.FEED_POST_TOPICS_MAX_AMOUNT,
-        required=False,
-        child=serializers.UUIDField(validators=[validate_topic_exists_by_id]),
-    )
     topics_v2 = serializers.ListField(
         max_length=settings.FEED_POST_TOPICS_MAX_AMOUNT,
         required=False,

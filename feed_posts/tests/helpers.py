@@ -20,9 +20,6 @@ def create_feed_post(user, input):
                 category {
                     id
                 }
-                topics {
-                    id
-                }
                 topicsV2
                 creator {
                     id
@@ -64,9 +61,6 @@ def update_feed_post(user, input):
                 image
                 imageBlurhash
                 category {
-                    id
-                }
-                topics {
                     id
                 }
                 topicsV2
@@ -131,9 +125,6 @@ def update_feed_post_reaction(
                 category {
                     id
                 }
-                topics {
-                    id
-                }
                 creator {
                     id
                 }
@@ -180,9 +171,6 @@ def my_posts(user):
                     category {
                         id
                     }
-                    topics {
-                        id
-                    }
                     topicsV2
                     creator {
                         id
@@ -215,9 +203,6 @@ def posts_by_user_id(user, user_id):
                     image
                     imageBlurhash
                     category {
-                        id
-                    }
-                    topics {
                         id
                     }
                     topicsV2
@@ -255,9 +240,6 @@ def feed_posts(user):
                     category {
                         id
                     }
-                    topics {
-                        id
-                    }
                     topicsV2
                     creator {
                         id
@@ -288,9 +270,6 @@ def post(user, id_or_slug):
                     image
                     imageBlurhash
                     category {
-                        id
-                    }
-                    topics {
                         id
                     }
                     topicsV2

@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime, timedelta
 from typing import List, Optional
 
 import strawberry
@@ -12,7 +11,7 @@ from django.db.models.lookups import IContains
 from openbook_auth.models import User as UserModel, UserBlock as UserBlockModel
 from openbook_auth.schema.helpers import get_ordered_user_connections
 from openbook_auth.schema.types import User, AuthenticatedUser
-from openbook_auth.utils import verify_authorized_user, check_max_limit
+from openbook_auth.utils import verify_authorized_user
 from openbook_common.validators import string_not_empty
 from openbook_common.schema.types import Paged
 
@@ -21,11 +20,6 @@ logger = structlog.get_logger(__name__)
 
 @strawberry.type
 class Query:
-    # TODO HOLI-8088 remove test once get_authenticated_user is removed
-    @strawberry_django.field(deprecation_reason="Deprecated in favor of 'authenticatedUserV2'.")
-    def authenticated_user(self, info) -> Optional[User]:
-        return Query.authenticated_user_v2(self, info)
-
     @strawberry_django.field()
     def authenticated_user_v2(self, info) -> Optional[AuthenticatedUser]:
         current_user = info.context.request.user
@@ -94,21 +88,6 @@ class Query:
         )
 
         return Paged(by_first_name + by_full_name, total_results)
-
-    @strawberry_django.field()
-    def user_suggestions(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
-        current_user = verify_authorized_user(info)
-        limit = check_max_limit(20, offset, limit)
-        query = (
-            UserModel.objects.select_related("profile")
-            .filter(UserModel.is_visible_ignore_blocked_query())
-            .filter(date_joined__lte=datetime.now() - timedelta(hours=1))
-            .order_by("-date_joined", "profile__id")
-        )
-        if current_user.id:
-            query = query.exclude(id=current_user.id)
-
-        return UserBlockModel.paged(current_user, lambda user: user.id, query, offset, limit)
 
     @strawberry_django.field()
     def connected_users(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:

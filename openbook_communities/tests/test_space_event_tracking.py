@@ -183,7 +183,7 @@ class TestSpaceEvents(TestCase):
             "regularity": "REGULARLY",
             "duration": "INDETERMINATE",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill.slug],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -195,7 +195,7 @@ class TestSpaceEvents(TestCase):
         input_create_space = {
             "title": "valid",
             "description": "valid",
-            "topics": [str(t.id) for t in make_topics(2)],
+            "topicsV2": [t.slug for t in make_topics(2)],
             "cover": (SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)),
         }
         mock_track.reset_mock()
