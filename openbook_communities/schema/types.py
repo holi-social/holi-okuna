@@ -40,6 +40,7 @@ from openbook_posts.enums import VisibilityFilter
 from openbook_posts.models import Post as PostModel
 from openbook_posts.schema.types import Post
 from openbook_terms.schema.types import Topic
+from django.utils.translation import get_language_from_request
 
 logger = logging.getLogger(__name__)
 
@@ -276,6 +277,62 @@ class Onboarding:
     steps: List[Optional[OnboardingStep]]
 
 
+topics = {
+    "de": {
+        "animal-welfare": "Tierschutz",
+        "arts-culture": "Kunst & Kultur",
+        "climate-environment": "Klima & Umwelt",
+        "democracy-politics": "Demokratie & Politik",
+        "disability-inclusion": "Behinderung & Inklusion",
+        "disaster-relief": "Katastrophenhilfe",
+        "elderly-care": "Altenpflege",
+        "family-kids": "Familie & Kinder",
+        "food-hunger-relief": "Ernährung & Hungerhilfe",
+        "gender-equality": "Geschlechtergerechtigkeit",
+        "housing": "Bauen & Wohnen",
+        "human-rights": "Menschenrechte",
+        "lgbtqia-plus": "LGBTQIA+",
+        "lifestyle-consumption": "Lebensstil & Konsum",
+        "literacy-education": "Bildung & Leseförderung",
+        "mental-physical-health": "Psychische & körperliche Gesundheit",
+        "migration-refugees": "Migration & Geflüchtete",
+        "mobility-transport": "Mobilität & Transport",
+        "other": "Sonstiges",
+        "peace-security": "Frieden & Sicherheit",
+        "poverty-homelessness": "Armut & Obdachlosigkeit",
+        "sports-recreation": "Sport & Freizeit",
+        "technology-innovation": "Technologie & Innovation",
+        "youth-development": "Jugendförderung",
+    },
+    "en": {
+        "animal-welfare": "Animal Welfare",
+        "arts-culture": "Arts & Culture",
+        "climate-environment": "Climate & Environment",
+        "democracy-politics": "Democracy & Politics",
+        "disability-inclusion": "Disability & Inclusion",
+        "disaster-relief": "Disaster Relief",
+        "elderly-care": "Elderly Care",
+        "family-kids": "Family & Kids",
+        "food-hunger-relief": "Food & Hunger Relief",
+        "gender-equality": "Gender Equality",
+        "housing": "Housing",
+        "human-rights": "Human Rights",
+        "lgbtqia-plus": "LGBTQIA+",
+        "lifestyle-consumption": "Lifestyle & Consumption",
+        "literacy-education": "Literacy & Education",
+        "mental-physical-health": "Mental & Physical Health",
+        "migration-refugees": "Migration & Refugees",
+        "mobility-transport": "Mobility & Transport",
+        "other": "Other",
+        "peace-security": "Peace & Security",
+        "poverty-homelessness": "Poverty & Homelessness",
+        "sports-recreation": "Sports & Recreation",
+        "technology-innovation": "Technology & Innovation",
+        "youth-development": "Youth Development",
+    },
+}
+
+
 @strawberry_django.type(CommunityModel)
 class Space:
     id: strawberry.auto
@@ -291,13 +348,19 @@ class Space:
     cover_blurhash: Optional[str]
     location: strawberry.auto
     links: List[Optional[ExternalLink]]
-    topics: List[Optional[Topic]] = strawberry_django.field(
-        deprecation_reason="Deprecated since version 1.52, use topics_v2 instead.", default=None
-    )
     topics_v2: List[str]
     contact_description: Optional[str]
     contact_email: Optional[str]
     contact_phone: Optional[str]
+
+    # This is still needed for backwards compatibility for "Wir sind der Osten"
+    @strawberry_django.field()
+    def topics(self, info) -> List[Optional[Topic]]:
+        lang = get_language_from_request(info.context.request)
+        topics_lang = topics.get(lang)
+        if not topics_lang:
+            return []
+        return [Topic(slug=slug, title=topics_lang.get(slug)) for slug in self.topics_v2]
 
     @strawberry_django.field()
     def geolocation(self) -> Optional[GeolocationPoint]:
