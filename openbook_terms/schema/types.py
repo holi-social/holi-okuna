@@ -8,19 +8,13 @@ from django.utils.translation import get_language_from_request
 from openbook_terms.models import FeedPostCategory as FeedPostCategoryModel
 from openbook_terms.models import SDG as SDG_MODEL
 from openbook_terms.models import Skill as SkillModel
-from openbook_terms.models import Topic as TopicModel
 
 
-@strawberry_django.type(TopicModel)
+# This is still needed for backwards compatibility for "Wir sind der Osten"
+@strawberry.type()
 class Topic:
-    id: strawberry.auto
-    slug: strawberry.auto
-    is_discover_spaces_default: strawberry.auto
-
-    @strawberry_django.field(only=["title"])
-    def title(self, info) -> str:
-        with translation.override(get_language_from_request(info.context.request)):
-            return self.title
+    slug: str
+    title: str
 
 
 @strawberry_django.type(SDG_MODEL)
