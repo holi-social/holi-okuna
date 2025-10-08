@@ -279,7 +279,7 @@ def make_topics_v2(count: int) -> List[str]:
 
 
 def make_skill_v2() -> str:
-    return random.choice(list(get_args(SkillV2)))
+    return random.choice(list(get_args(SkillV2)))  # noqa: S311
 
 
 def make_skills_v2(count: int) -> List[str]:
