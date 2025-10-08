@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import ValidationError, NotFound, ParseError
 
 from openbook_auth.models import User
-from openbook_terms.models import Topic, SDG
+from openbook_terms.models import SDG
 
 
 def username_characters_validator(username):
@@ -51,11 +51,6 @@ def user_email_exists(email):
         raise NotFound(
             _("No user with the provided email exists."),
         )
-
-
-def interest_with_id_exists(interest_uuid):
-    if not Topic.objects.filter(id=interest_uuid).exists():
-        raise ParseError(_(f"Unknown UUID '{interest_uuid}' contained in interests array"))
 
 
 def sdg_with_id_exists(sdg_uuid):
