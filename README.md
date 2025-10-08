@@ -136,7 +136,7 @@ Then, run all the database migrations
 And fill the DB with some fixture data:
 
 ```bash
-./manage.py loaddata emoji-groups.json emojis.json badges.json categories.json languages.json topics.json skills.json sdgs.json moderation_categories.json feed_post_categories.json
+./manage.py loaddata emoji-groups.json emojis.json badges.json categories.json languages.json sdgs.json moderation_categories.json feed_post_categories.json
 ```
 
 In addition, there is also a users.json you can load if you want.
