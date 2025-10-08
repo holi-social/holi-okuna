@@ -54,9 +54,9 @@ def _capture_user_fields(user: UserModel) -> Dict[str, str]:
         "aboutMe": user.profile.about_me,
         "pronouns": user.profile.pronouns,
         "engagementLevel": user.profile.engagement_level,
-        "interests": set(user.profile.interests.values_list("id", flat=True)) | set(user.profile.interests_v2),
+        "interests": set(user.profile.interests_v2),
         "sdgs": set(user.profile.sdgs.values_list("id", flat=True)),
-        "skills": set(user.profile.skills.values_list("id", flat=True)) | set(user.profile.skills_v2),
+        "skills": set(user.profile.skills_v2),
         "avatar": user.profile.avatar.url if user.profile.avatar else None,
     }
 
@@ -102,7 +102,6 @@ class Mutation:
             interests=data.get("interests"),
             interests_v2=data.get("interests_v2"),
             sdgs=data.get("sdgs"),
-            skills=data.get("skills"),
             skills_v2=data.get("skills_v2"),
             avatar=data.get("avatar"),
             remove_avatar=remove_avatar,
@@ -131,7 +130,6 @@ class Mutation:
         if user_current_name is None and user_updated_name is not None:
             community_model = get_community_model()
             insight_model = get_insight_model()
-            topic_model = get_topic_model()
 
             whens = []
             topics_v2 = list(current_user.profile.interests_v2)

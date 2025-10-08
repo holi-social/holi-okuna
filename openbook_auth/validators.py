@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import ValidationError, NotFound, ParseError
 
 from openbook_auth.models import User
-from openbook_terms.models import Topic, SDG, Skill
+from openbook_terms.models import Topic, SDG
 
 
 def username_characters_validator(username):
@@ -61,8 +61,3 @@ def interest_with_id_exists(interest_uuid):
 def sdg_with_id_exists(sdg_uuid):
     if not SDG.objects.filter(id=sdg_uuid).exists():
         raise ParseError(_(f"Unknown UUID '{sdg_uuid}' contained in sdgs array"))
-
-
-def skill_with_id_exists(skill_uuid):
-    if not Skill.objects.filter(id=skill_uuid).exists():
-        raise ParseError(_(f"Unknown UUID '{skill_uuid}' contained in skills array"))

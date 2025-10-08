@@ -33,8 +33,8 @@ from openbook_common.tests.helpers import (
     simple_jpeg_bytes,
     make_community,
     make_feed_post_founder_update_category,
-    make_topics,
     make_feed_post_good_deed_category,
+    make_topics_v2,
 )
 from openbook_notifications.notifications import PostReactionNotification
 
@@ -57,8 +57,7 @@ class TestFeedPosts(TestCase):
         cls.yet_another_user = make_user()
         cls.space = make_community(creator=cls.user)
         cls.space.add_member(cls.yet_another_user)
-        topics = make_topics(6)
-        cls.topics_v2 = [t.slug for t in topics]
+        cls.topics_v2 = make_topics_v2(6)
 
         cls.public_feed_post_input_data = {
             "title": fake.text(max_nb_chars=settings.FEED_POST_TITLE_MAX_LENGTH),

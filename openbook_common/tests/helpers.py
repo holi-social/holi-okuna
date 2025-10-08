@@ -7,7 +7,6 @@ from PIL import Image
 from asgiref.sync import async_to_sync
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 from faker import Faker
@@ -30,7 +29,6 @@ from openbook_common.models import (
     ProxyBlacklistedDomain,
 )
 from openbook_common.utils.helpers import get_random_pastel_color
-from openbook_common.utils.model_loaders import get_topic_model, get_skill_model
 from openbook_communities.models import CollaborationTool, Community, ExternalLink, SpacesRelationship, Task
 from openbook_devices.models import Device
 from openbook_hashtags.models import Hashtag
@@ -46,8 +44,7 @@ from openbook_moderation.models import (
 )
 from openbook_notifications.models import Notification
 from openbook_posts.models import Post
-from openbook_terms.models import SDG, Skill, Topic, FeedPostCategory
-from openbook_terms.helpers import topics_to_topic_v2_slugs, skills_to_skill_v2_slugs
+from openbook_terms.models import SDG, FeedPostCategory
 
 fake = Faker()
 
@@ -91,9 +88,7 @@ def make_user(
     role: UserRole = UserRole.REGULAR,
     is_employee: bool = False,
     engagement_level=None,
-    interests: Optional[List[Topic]] = None,
     interests_v2: Optional[List[str]] = None,
-    skills: Optional[List[Skill]] = None,
     skills_v2: Optional[List[str]] = None,
 ) -> User:
     defined_arguments = {k: v for k, v in locals().items() if v is not None}
@@ -274,54 +269,22 @@ def make_category():
     return mixer.blend(Category)
 
 
-def make_topic(
-    title: Optional[str] = None, slug: Optional[str] = None, is_discover_spaces_default: bool = False
-) -> Topic:
-    TopicModel = get_topic_model()
-    if slug is not None:
-        try:
-            return TopicModel.objects.get(slug=slug)
-        except ObjectDoesNotExist:
-            pass
-
-    defined_arguments = {k: v for k, v in locals().items() if v is not None}
-    if slug is None:
-        existing_topics = [t.slug for t in TopicModel.objects.all()]
-        all_topic_slugs = set(get_args(TopicV2))
-        existing_topic_slugs = set(existing_topics)
-        defined_arguments["slug"] = random.choice(list(all_topic_slugs.difference(existing_topic_slugs)))  # noqa: S311
-    return mixer.blend(TopicModel, **defined_arguments)
-
-
 def make_sdg() -> SDG:
     return mixer.blend(SDG)
 
 
-def make_topics(count: int) -> List[Topic]:
+def make_topics_v2(count: int) -> List[str]:
     slugs = list(get_args(TopicV2))
-    return [make_topic(slug=slugs[index]) for index in range(count)]
+    return [slugs[index] for index in range(count)]
 
 
-def make_skill(title: Optional[str] = None, slug: Optional[str] = None) -> Skill:
-    SkillModel = get_skill_model()
-    if slug is not None:
-        try:
-            return SkillModel.objects.get(slug=slug)
-        except ObjectDoesNotExist:
-            pass
-
-    defined_arguments = {k: v for k, v in locals().items() if v is not None}
-    if slug is None:
-        existing_skills = [t.slug for t in SkillModel.objects.all()]
-        all_skill_slugs = set(get_args(SkillV2))
-        existing_skill_slugs = set(existing_skills)
-        defined_arguments["slug"] = random.choice(list(all_skill_slugs.difference(existing_skill_slugs)))  # noqa: S311
-    return mixer.blend(Skill, **defined_arguments)
+def make_skill_v2() -> str:
+    return random.choice(list(get_args(SkillV2)))
 
 
-def make_skills(count: int) -> List[Skill]:
+def make_skills_v2(count: int) -> List[str]:
     slugs = list(get_args(SkillV2))
-    return [make_skill(slug=slugs[index]) for index in range(count)]
+    return [slugs[index] for index in range(count)]
 
 
 def make_community_invites_enabled():
@@ -329,19 +292,15 @@ def make_community_invites_enabled():
 
 
 def make_community_task(
-    community, skills=None, skills_v2=None, visibility=VisibilityType.MEMBERS, is_deleted=False, **kwargs
+    community, skills_v2=None, visibility=VisibilityType.MEMBERS, is_deleted=False, **kwargs
 ) -> Task:
-    if not skills:
-        skills = [make_skill()]
     if not skills_v2:
-        skills_v2 = skills_to_skill_v2_slugs(skills)
-
+        skills_v2 = make_skills_v2(1)
     deleted_at = timezone.now() if is_deleted else None
 
     return mixer.blend(
         Task,
         community=community,
-        skills=skills,
         skills_v2=skills_v2,
         visibility=visibility,
         deleted_at=deleted_at,
@@ -354,7 +313,6 @@ def make_community(
     creator=None,
     type=Community.COMMUNITY_TYPE_PUBLIC,
     title=None,
-    topics=None,
     topics_v2=None,
     location=None,
     geolocation=None,
@@ -369,11 +327,8 @@ def make_community(
     if not title:
         title = make_community_title()
 
-    if not topics:
-        topics = make_topics(settings.COMMUNITY_TOPICS_MAX_AMOUNT)
-
     if not topics_v2:
-        topics_v2 = topics_to_topic_v2_slugs(topics)
+        topics_v2 = make_topics_v2(settings.COMMUNITY_TOPICS_MAX_AMOUNT)
 
     if not location:
         location = fake.text(max_nb_chars=settings.COMMUNITY_LOCATION_MAX_LENGTH)
@@ -391,7 +346,6 @@ def make_community(
         location=location,
         topics_v2=topics_v2,
     )
-    community.topics.set(topics)
     community.geolocation = geolocation
     if admins:
         for admin in admins:

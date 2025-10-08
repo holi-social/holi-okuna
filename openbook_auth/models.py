@@ -796,7 +796,6 @@ class User(ModelWithUUID, AbstractUser):
         interests: Optional[List[Topic]] = None,
         interests_v2: Optional[List[str]] = None,
         sdgs=None,
-        skills: Optional[List[Skill]] = None,
         skills_v2: Optional[List[str]] = None,
         save=True,
         update_location=False,
@@ -868,10 +867,6 @@ class User(ModelWithUUID, AbstractUser):
             self.profile.interests_v2 = interests_v2
         if sdgs is not None:
             self.profile.sdgs.set(sdgs)
-        if skills is not None:
-            updated_skills = Skill.objects.filter(id__in=skills)
-            self.profile.skills.set(updated_skills)
-            self.profile.skills_v2 = skills_to_skill_v2_slugs(updated_skills)
         elif skills_v2 is not None:
             self.profile.skills_v2 = skills_v2
 
@@ -4981,7 +4976,6 @@ class User(ModelWithUUID, AbstractUser):
         timeframe_start_date=None,
         timeframe_end_date=None,
         contact_phone=None,
-        skills=None,
         skills_v2=None,
         thumbnail=None,
         interaction_signup_link=None,
@@ -5011,7 +5005,6 @@ class User(ModelWithUUID, AbstractUser):
             timeframe_start_date=timeframe_start_date,
             timeframe_end_date=timeframe_end_date,
             contact_phone=contact_phone,
-            skills=skills,
             skills_v2=skills_v2,
             thumbnail=thumbnail,
             interaction_signup_link=interaction_signup_link,
@@ -5036,7 +5029,6 @@ class User(ModelWithUUID, AbstractUser):
         timeframe_start_date=None,
         timeframe_end_date=None,
         contact_phone=None,
-        skill_ids=None,
         skills_v2=None,
         thumbnail=None,
         remove_thumbnail=False,
@@ -5065,7 +5057,6 @@ class User(ModelWithUUID, AbstractUser):
             timeframe_start_date=timeframe_start_date,
             timeframe_end_date=timeframe_end_date,
             contact_phone=contact_phone,
-            skill_ids=skill_ids,
             skills_v2=skills_v2,
             thumbnail=thumbnail,
             remove_thumbnail=remove_thumbnail,
