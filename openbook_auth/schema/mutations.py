@@ -33,7 +33,7 @@ from openbook_auth.utils import verify_authorized_user
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.helpers import is_parameter_null, to_input_dict
 from openbook_common.schema.types import Result
-from openbook_common.utils.model_loaders import get_insight_model, get_community_model, get_topic_model, get_task_model
+from openbook_common.utils.model_loaders import get_insight_model, get_community_model, get_task_model
 from openbook_communities.schema.helpers import create_filtered_spaces_query, DISCOVER_DEFAULT_SPACES_V2
 from openbook_notifications.api import NotificationApi
 from openbook_notifications.enums import NotificationProvider

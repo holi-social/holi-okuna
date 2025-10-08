@@ -31,8 +31,6 @@ from openbook_common.utils.model_loaders import (
     get_community_log_model,
     get_category_model,
     get_sdg_model,
-    get_topic_model,
-    get_skill_model,
     get_community_notifications_subscription_model,
     get_community_new_post_notification_model,
     get_community_invite_notification_model,
@@ -358,7 +356,6 @@ class Community(ModelWithUUID):
         categories_names=None,
         invites_enabled=None,
         location=None,
-        topic_ids=None,
         topics_v2=None,
     ):
         # If it's a private community and no invites_enabled
@@ -395,8 +392,6 @@ class Community(ModelWithUUID):
 
         if categories_names:
             community.set_categories_with_names(categories_names=categories_names)
-        if topic_ids:
-            community.set_topics_with_ids(topic_ids=topic_ids)
 
         community.save()
         return community
@@ -556,7 +551,6 @@ class Community(ModelWithUUID):
         rules=None,
         categories_names=None,
         invites_enabled=None,
-        topic_ids=None,
         topics_v2=None,
         sdg_ids=None,
         cover=None,
@@ -599,9 +593,6 @@ class Community(ModelWithUUID):
 
         if topics_v2 is not None:
             self.topics_v2 = topics_v2
-
-        if topic_ids is not None:
-            self.set_topics_with_ids(topic_ids=topic_ids)
 
         if remove_cover:
             self._delete_cover()
@@ -693,13 +684,6 @@ class Community(ModelWithUUID):
 
     def clear_categories(self):
         self.categories.clear()
-
-    def set_topics_with_ids(self, topic_ids):
-        self.topics.clear()
-        Topic = get_topic_model()
-        topics = Topic.objects.filter(id__in=topic_ids)
-        self.topics_v2 = topics_to_topic_v2_slugs(topics)
-        self.topics.set(topics)
 
     def set_sdgs_with_ids(self, sdg_ids):
         self.clear_sdgs()
@@ -1394,13 +1378,6 @@ class Task(ModelWithUUID):
         pQ = PrefixedQ(prefix)
         return pQ(timeframe_end_date__isnull=True) | pQ(timeframe_end_date__gte=timezone.now())
 
-    def set_skills_with_ids(self, skill_ids):
-        self.skills.clear()
-        Skill = get_skill_model()
-        skills = Skill.objects.filter(id__in=skill_ids)
-        self.skills_v2 = skills_to_skill_v2_slugs(skills)
-        self.skills.set(skills)
-
     @classmethod
     def create_task(
         cls,
@@ -1421,7 +1398,6 @@ class Task(ModelWithUUID):
         timeframe_start_date=None,
         timeframe_end_date=None,
         contact_phone=None,
-        skills=None,
         skills_v2=None,
         thumbnail=None,
         interaction_signup_link=None,
@@ -1453,9 +1429,6 @@ class Task(ModelWithUUID):
             interaction_signup_link=interaction_signup_link,
         )
 
-        if skills:
-            task.set_skills_with_ids(skill_ids=skills)
-
         task.save()
         return task
 
@@ -1476,7 +1449,6 @@ class Task(ModelWithUUID):
         timeframe_start_date=None,
         timeframe_end_date=None,
         contact_phone=None,
-        skill_ids=None,
         skills_v2=None,
         thumbnail=None,
         remove_thumbnail=False,
@@ -1504,11 +1476,6 @@ class Task(ModelWithUUID):
             self.contact_phone = contact_phone
         if skills_v2 is not None:
             self.skills_v2 = skills_v2
-        if skill_ids is not None:
-            Skill = get_skill_model()
-            updated_skills = Skill.objects.filter(id__in=skill_ids)
-            self.skills_v2 = skills_to_skill_v2_slugs(updated_skills)
-            self.skills.set(updated_skills)
 
         if remove_thumbnail:
             self._delete_thumbnail(save=False)

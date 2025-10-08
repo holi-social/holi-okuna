@@ -5,7 +5,7 @@ import random
 import sys
 from contextlib import contextmanager
 from urllib import request
-
+from typing import get_args
 from django.contrib.auth.backends import UserModel
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.management import BaseCommand, CommandError
@@ -24,11 +24,12 @@ from openbook_common.tests.helpers import (
     make_users,
 )
 from openbook_common.enums import ReactionType, VisibilityType
+from openbook_common.topics import TopicV2
 from openbook_communities.models import Community, Task
 from openbook_insights.models import Insight, Discussion
 from openbook_polls.models import Poll, Choice
 from openbook_posts.models import Post
-from openbook_terms.models import Topic, FeedPostCategory
+from openbook_terms.models import FeedPostCategory
 
 from unittest import mock
 
@@ -170,8 +171,8 @@ class Command(BaseCommand):
         users = self._get_random_users(int(nr / 1.5))
         if not users:
             raise CommandError(NO_USERS_AVAILABLE)
-        topic_ids = [t.id for t in Topic.objects.all()]
-        if not topic_ids:
+        topic_slugs = list(get_args(TopicV2))
+        if not topic_slugs:
             raise CommandError(NO_TOPICS_AVAILABLE)
         for _ in range(nr):
             with image_fetcher() as image_file:
@@ -182,7 +183,7 @@ class Command(BaseCommand):
                     description=fake.text(max_nb_chars=300),
                     avatar=image_file,
                     cover=image_file,
-                    topic_ids=[random.choice(topic_ids)],
+                    topics_v2=[random.choice(topic_slugs)],
                     location="Germany",
                 )
                 creator.create_task(

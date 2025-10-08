@@ -203,7 +203,6 @@ class Mutation:
                 description=data.get("description"),
                 cover=data.get("cover"),
                 invites_enabled=True,
-                topic_ids=data.get("topics"),
                 topics_v2=data.get("topics_v2"),
             )
 
@@ -229,7 +228,6 @@ class Mutation:
             community=space,
             title=data.get("title"),
             description=data.get("description"),
-            topic_ids=data.get("topics"),
             topics_v2=data.get("topics_v2"),
             cover=data.get("cover"),
             remove_cover=is_parameter_null(data, "cover"),
