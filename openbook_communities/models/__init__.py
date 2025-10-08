@@ -51,8 +51,7 @@ from openbook_communities.queries import (
 )
 from openbook_moderation.models import ModeratedObject
 from openbook_notifications.api import NotificationApi
-from openbook_terms.models import SDG, Topic, Skill
-from openbook_terms.helpers import topics_to_topic_v2_slugs, skills_to_skill_v2_slugs
+from openbook_terms.models import SDG
 from django.contrib.postgres.fields import ArrayField
 
 community_image_storage = default_storage
@@ -1311,7 +1310,6 @@ class Task(ModelWithUUID):
     geolocation = models.PointField(blank=True, null=True, spatial_index=True)
     # also store as GeoJSON as downstream processes (Google Datastream) can't understand Postgis binary format
     geolocation_geojson = models.JSONField(blank=True, null=True)
-    skills = models.ManyToManyField(Skill, related_name="tasks", blank=True, db_index=True)
     skills_v2 = ArrayField(models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH), blank=True, default=list)
     thumbnail = ProcessedImageField(
         storage=community_task_image_storage,

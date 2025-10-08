@@ -1,10 +1,8 @@
 from modeltranslation import translator
-from .models import Topic, SDG, Skill, FeedPostCategory
+from .models import SDG, FeedPostCategory
 
 
-@translator.register(Topic)
 @translator.register(SDG)
-@translator.register(Skill)
 class TermTranslationOptions(translator.TranslationOptions):
     fields = ("title",)
 
