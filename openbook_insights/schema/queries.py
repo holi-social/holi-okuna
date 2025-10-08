@@ -39,7 +39,7 @@ class Query:
         base_queryset = InsightModel.objects.filter(
             Q(creator__isnull=True) | UserModel.is_visible_ignore_blocked_query("creator"),
             date_published__lte=datetime.now(),
-        ).select_related("creator", "creator__profile", "topic")
+        ).select_related("creator", "creator__profile")
 
         base_queryset = base_queryset.prefetch_related("posts")
 

@@ -187,7 +187,6 @@ class Community(ModelWithUUID):
         null=True,
         db_index=True,
     )
-    topics = models.ManyToManyField(Topic, related_name="communities", blank=False, db_index=True)
     topics_v2 = ArrayField(models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH), blank=True, default=list)
     sdgs = models.ManyToManyField(SDG, related_name="communities", blank=True, db_index=True)
     geolocation = models.PointField(blank=True, null=True, spatial_index=True)

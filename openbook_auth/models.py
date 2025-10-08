@@ -100,7 +100,7 @@ from openbook_hashtags.queries import (
 from openbook_notifications.toggles import mute_notifications
 from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
 from openbook_posts.query_collections import get_posts_for_user_collection
-from openbook_terms.helpers import topics_to_topic_v2_slugs, skills_to_skill_v2_slugs
+from openbook_terms.helpers import topics_to_topic_v2_slugs
 from openbook_terms.models import Topic, SDG, Skill
 
 if typing.TYPE_CHECKING:
@@ -793,7 +793,6 @@ class User(ModelWithUUID, AbstractUser):
         last_name=None,
         pronouns=None,
         engagement_level=None,
-        interests: Optional[List[Topic]] = None,
         interests_v2: Optional[List[str]] = None,
         sdgs=None,
         skills_v2: Optional[List[str]] = None,
@@ -859,10 +858,6 @@ class User(ModelWithUUID, AbstractUser):
             self.profile.pronouns = pronouns
         if engagement_level:
             self.profile.engagement_level = engagement_level
-        if interests is not None:
-            updated_interests = Topic.objects.filter(id__in=interests)
-            self.profile.interests.set(updated_interests)
-            self.profile.interests_v2 = topics_to_topic_v2_slugs(updated_interests)
         elif interests_v2 is not None:
             self.profile.interests_v2 = interests_v2
         if sdgs is not None:
@@ -5143,10 +5138,8 @@ class UserProfile(ModelWithUUID):
         blank=False,
         null=True,
     )
-    interests = models.ManyToManyField(Topic, blank=True)
     interests_v2 = ArrayField(models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH), blank=True, default=list)
     sdgs = models.ManyToManyField(SDG, blank=True)
-    skills = models.ManyToManyField(Skill, blank=True)
     skills_v2 = ArrayField(models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH), blank=True, default=list)
     is_of_legal_age = models.BooleanField(default=False)
     avatar = ProcessedImageField(

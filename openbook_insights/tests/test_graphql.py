@@ -242,6 +242,7 @@ class TestInsights:
             context_value=benedict({"request": {"user": AnonymousUser}}),
         )
 
+        assert response.errors is None
         insights = response.data["lastInsights"]["data"]
         assert len(insights) == 4
 
@@ -312,6 +313,7 @@ class TestInsights:
             """,
             context_value=benedict({"request": {"user": query_user}}),
         )
+        assert response.errors is None
         insights = response.data["lastInsights"]["data"]
         assert len(insights) == 1
         insight1_result = insights[0]

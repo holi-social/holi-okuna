@@ -15,7 +15,6 @@ class FeedPostAdminModel(admin.ModelAdmin):
         "description",
         "image",
         "visibility",
-        "display_topics",
         "display_topics_v2",
         "language_code",
         "creator",
@@ -32,9 +31,6 @@ class FeedPostAdminModel(admin.ModelAdmin):
 
     exclude = ["geolocation_geojson"]
 
-    def display_topics(self, obj):
-        return ", ".join([topic.title for topic in obj.topics.all()])
-
     def display_topics_v2(self, obj):
         return ", ".join(obj.topics_v2)
 
@@ -47,7 +43,6 @@ class FeedPostAdminModel(admin.ModelAdmin):
     def display_poll(self, obj):
         return obj.poll.question_text if obj.poll else ""
 
-    display_topics.short_description = "Topics"
     display_topics_v2.short_description = "Topics V2"
     display_category.short_description = "Category"
     display_is_co_founder.short_description = "Co-founder's Post"

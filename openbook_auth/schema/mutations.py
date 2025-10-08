@@ -99,7 +99,6 @@ class Mutation:
             geolocation=data.get("geolocation"),
             update_location=input.location is not strawberry.UNSET or input.geolocation is not strawberry.UNSET,
             engagement_level=data.get("engagement_level"),
-            interests=data.get("interests"),
             interests_v2=data.get("interests_v2"),
             sdgs=data.get("sdgs"),
             skills_v2=data.get("skills_v2"),

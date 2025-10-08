@@ -8,8 +8,6 @@ from openbook_auth.models import User, get_reactions, UserRole
 from openbook_common.enums import ReactionType
 from openbook_common.schema.types import GeolocationPointInput
 from openbook_common.utils.helpers import is_uuid
-from openbook_terms.helpers import topics_to_topic_v2_slugs
-from openbook_terms.models import Topic
 
 
 class FeedPostRepository:
@@ -18,7 +16,6 @@ class FeedPostRepository:
         title,
         visibility,
         description,
-        topic_ids,
         topics_v2,
         category,
         creator,
@@ -69,12 +66,6 @@ class FeedPostRepository:
             aspect_ratio=aspect_ratio,
         )
 
-        if topic_ids is not None:
-            topics = Topic.objects.filter(id__in=topic_ids)
-            feed_post.topics.set(topics)
-            feed_post.topics_v2 = topics_to_topic_v2_slugs(topics)
-            feed_post.save()
-
         # This code is required for backward compatibility. Remove it after version 1.30.x
         if image is not None:
             FeedPostImage.objects.create(feed_post=feed_post, image=image, order=0)
@@ -100,7 +91,6 @@ class FeedPostRepository:
         description=None,
         visibility=None,
         category=None,
-        topic_ids=None,
         topics_v2=None,
         image=None,
         remove_image=False,
@@ -129,12 +119,6 @@ class FeedPostRepository:
 
         if topics_v2 is not None:
             post.topics_v2 = topics_v2
-
-        if topic_ids is not None:
-            topics = Topic.objects.filter(id__in=topic_ids)
-            post.topics.set(topics)
-            post.topics_v2 = topics_to_topic_v2_slugs(topics)
-            post.save()
 
         if image_urls is not None:
             post.image_urls = image_urls
