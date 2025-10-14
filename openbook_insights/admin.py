@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.forms import Select
-from typing import get_args
-from openbook_common.topics import TopicV2, topic_v2_slugs
+from openbook_common.topics import topic_v2_slugs
 
 from openbook_insights.models import Discussion, Initiative, Insight, Quote, Recommendation
 
