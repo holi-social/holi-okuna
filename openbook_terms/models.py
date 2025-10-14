@@ -15,20 +15,6 @@ class Term(ModelWithUUID):
         return f"{self.__class__.__name__}: {self.title} ({self.id})"
 
 
-# Create your models here.
-class Topic(Term):
-    """
-    A topic is something that a user can be interested in and that categorizes
-    Insights, Posts and Spaces.
-    """
-
-    is_discover_spaces_default = models.BooleanField(_("is discover spaces default"), default=False)
-    """
-    Indicates if the topic is included in the list of default topics suggested
-    on the 'Discover spaces' page.
-    """
-
-
 class SDG(Term):
     """
     SDG == Sustainable Development Goals. The 17 goals defined by the UN.
@@ -36,12 +22,6 @@ class SDG(Term):
     """
 
     number = models.IntegerField(_("number"), null=False, blank=False, default=False)
-
-
-class Skill(Term):
-    """
-    A skill is something that a user is capable of and that a task can request.
-    """
 
 
 class FeedPostCategory(Term):
