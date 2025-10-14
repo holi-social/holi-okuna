@@ -49,9 +49,6 @@ from openbook_common.tests.helpers import (
     make_user,
     assert_paged_results_equal,
     assert_is_forbidden,
-    make_topic,
-    make_sdg,
-    make_skill,
 )
 from openbook_common.tracking import TrackingEvent
 from openbook_communities.enums import UpdateConnectionAction
@@ -472,7 +469,7 @@ class TestUsers:
         # GIVEN V2 topic slugs and V2 skill slugs
         topics_v2 = ["human-rights", "literacy-education"]
         skills_v2 = ["legal-assistance", "nursing-caregiving"]
-        user = make_user(interests=[], skills=[], interests_v2=[], skills_v2=[])
+        user = make_user(interests_v2=[], skills_v2=[])
 
         # WHEN updating topics and skills of a user using the V2 API
         self._update_user(
@@ -566,13 +563,9 @@ class TestUsers:
     ):
         response = self.create_response(200)
         mock_patch.return_value = response
-        topic = make_topic(slug="animal-welfare")
         topic_v2 = "arts-culture"
-
-        skill = make_skill(slug="animal-care")
         skill_v2 = "arts-crafts"
 
-        sdg = make_sdg()
         user = make_user(name="John", last_name="Doe", engagement_level=EngagementLevelChoice.ENGAGED.value)
 
         self._update_user(user, {})

@@ -43,12 +43,6 @@ class Query:
     @strawberry_django.field()
     def spaces(
         self,
-        topic_id: Annotated[
-            Optional[uuid.UUID],
-            strawberry.argument(
-                description="Deprecated since version 1.52, use topics_v2 instead",
-            ),
-        ] = None,
         location: Annotated[
             Optional[str],
             strawberry.argument(
@@ -57,30 +51,6 @@ class Query:
             ),
         ] = None,
         geolocation: Optional[GeoJSON] = None,
-        skill_ids: Annotated[
-            Optional[List[Optional[uuid.UUID]]],
-            strawberry.argument(
-                description="Deprecated since version 1.52, use skills_v2 instead",
-            ),
-        ] = None,
-        topic_slug: Annotated[
-            Optional[str],
-            strawberry.argument(
-                description="Deprecated since version 1.52, use topics_v2 instead",
-            ),
-        ] = None,
-        topic_slugs: Annotated[
-            Optional[List[Optional[str]]],
-            strawberry.argument(
-                description="Deprecated since version 1.52, use topics_v2 instead",
-            ),
-        ] = None,
-        skill_slugs: Annotated[
-            Optional[List[Optional[str]]],
-            strawberry.argument(
-                description="Deprecated since version 1.52, use skills_v2 instead",
-            ),
-        ] = None,
         topics_v2: Optional[List[str]] = None,
         skills_v2: Optional[List[str]] = None,
         member_id: Optional[uuid.UUID] = None,
@@ -88,12 +58,7 @@ class Query:
         limit: int = 10,
     ) -> Paged[Space]:
         spaces = async_to_sync(filtered_spaces)(
-            topic_id=topic_id,
             geolocation=geolocation,
-            skill_ids=skill_ids,
-            topic_slug=topic_slug,
-            topic_slugs=topic_slugs,
-            skill_slugs=skill_slugs,
             topics_v2=topics_v2,
             skills_v2=skills_v2,
             member_id=member_id,

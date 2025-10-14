@@ -361,7 +361,7 @@ python manage.py collectmedia
 Load the given data fixture file into the database
 
 ```bash
-python manage.py loaddata emoji-groups.json emojis.json badges.json categories.json languages.json topics.json skills.json sdgs.json moderation_categories.json
+python manage.py loaddata emoji-groups.json emojis.json badges.json categories.json languages.json sdgs.json moderation_categories.json
 ```
 
 ### Custom django commands

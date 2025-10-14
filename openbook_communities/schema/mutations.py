@@ -203,7 +203,6 @@ class Mutation:
                 description=data.get("description"),
                 cover=data.get("cover"),
                 invites_enabled=True,
-                topic_ids=data.get("topics"),
                 topics_v2=data.get("topics_v2"),
             )
 
@@ -229,7 +228,6 @@ class Mutation:
             community=space,
             title=data.get("title"),
             description=data.get("description"),
-            topic_ids=data.get("topics"),
             topics_v2=data.get("topics_v2"),
             cover=data.get("cover"),
             remove_cover=is_parameter_null(data, "cover"),
@@ -328,7 +326,6 @@ class Mutation:
                 timeframe_end_date=data.get("timeframe_end_date"),
                 contact_email=data.get("contact_email"),
                 contact_phone=data.get("contact_phone"),
-                skills=data.get("skills"),
                 skills_v2=data.get("skills_v2"),
                 thumbnail=data.get("thumbnail"),
                 interaction_signup_link=data.get("interaction_signup_link"),
@@ -380,7 +377,6 @@ class Mutation:
                 timeframe_end_date=data.get("timeframe_end_date"),
                 contact_email=data.get("contact_email"),
                 contact_phone=data.get("contact_phone"),
-                skill_ids=data.get("skills"),
                 skills_v2=data.get("skills_v2"),
                 thumbnail=data.get("thumbnail"),
                 remove_thumbnail=is_parameter_null(data, "thumbnail"),

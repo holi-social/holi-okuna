@@ -25,12 +25,12 @@ from openbook_common.tests.helpers import (
     assert_is_unauthorized,
     make_community,
     make_community_task,
-    make_skill,
-    make_skills,
     make_user,
     simple_jpeg_bytes,
     assert_is_forbidden,
     assert_is_404,
+    make_skills_v2,
+    make_skill_v2,
 )
 from openbook_communities.enums import UpdateConnectionAction
 from openbook_communities.models import SpaceUserConnectionType
@@ -57,7 +57,7 @@ class TestTasks:
         user = make_user()
         community = make_community()
 
-        skill = make_skill()
+        skill = make_skill_v2()
 
         create_task_mutation = """
             mutation test($input: CreateTaskInput!) {
@@ -78,7 +78,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skillsV2": [skill.slug],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -101,7 +101,7 @@ class TestTasks:
         community = make_community()
         community.add_member(user)
 
-        skill = make_skill()
+        skill = make_skill_v2()
 
         create_task_mutation = """
                 mutation test($input: CreateTaskInput!) {
@@ -122,7 +122,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skillsV2": [skill.slug],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -200,7 +200,7 @@ class TestTasks:
 
         community = make_community(creator=user)
         task = make_community_task(community)
-        skill = make_skill()
+        skill = make_skill_v2()
 
         update_task_mutation = """
             mutation test($input: UpdateTaskInput!) {
@@ -221,7 +221,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skillsV2": [skill.slug],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -266,8 +266,8 @@ class TestTasks:
 
         community = make_community(creator=user)
         task = make_community_task(community)
-        [skill, skill2] = make_skills(2)
-        expected_skills_v2 = [skill.slug]
+        [skill, skill2] = make_skills_v2(2)
+        expected_skills_v2 = [skill]
 
         update_task_mutation = """
             mutation test($input: UpdateTaskInput!) {
@@ -299,7 +299,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skillsV2": [skill.slug],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -340,7 +340,7 @@ class TestTasks:
             "contactEmail": "email@email.com",
             "thumbnail": None,
             "slotsAvailable": 1,
-            "skillsV2": [skill2.slug],
+            "skillsV2": [skill2],
         }
 
         mock_publish_task_updated_event.assert_called_once()
@@ -361,7 +361,7 @@ class TestTasks:
         assert valid_visibility == updateTask["visibility"]
         assert updateTask["thumbnail"] is None
         assert updateTask["thumbnailBlurhash"] is None
-        assert [skill2.slug] == updateTask["skillsV2"]
+        assert [skill2] == updateTask["skillsV2"]
 
         mock_publish_task_updated_event.assert_called_once()
 
@@ -372,7 +372,7 @@ class TestTasks:
         community = make_community()
         community.add_member(user=user)
         task = make_community_task(community)
-        skill = make_skill()
+        skill = make_skill_v2()
 
         update_task_mutation = """
             mutation test($input: UpdateTaskInput!) {
@@ -403,7 +403,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skillsV2": [skill.slug],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -470,7 +470,7 @@ class TestTasks:
     def test_can_not_update_task_if_not_logged_in(self, mock_publish_task_updated_event):
         community = make_community()
         task = make_community_task(community)
-        skill = make_skill()
+        skill = make_skill_v2()
 
         update_task_mutation = """
             mutation test($input: UpdateTaskInput!) {
@@ -492,7 +492,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skillsV2": [skill.slug],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -512,7 +512,7 @@ class TestTasks:
     def test_can_not_update_task_if_not_admin_or_member(self, mock_publish_task_updated_event):
         user = make_user()
         community = make_community()
-        skill = make_skill()
+        skill = make_skill_v2()
         task = make_community_task(community)
 
         update_task_mutation = """
@@ -535,7 +535,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skillsV2": [skill.slug],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -560,7 +560,7 @@ class TestTasks:
         user = make_user()
         community = make_community()
         community.add_member(user=user)
-        skill = make_skill()
+        skill = make_skill_v2()
         task = make_community_task(community, visibility=VisibilityType.PUBLIC)
 
         update_task_mutation = """
@@ -583,7 +583,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skillsV2": [skill.slug],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -735,7 +735,7 @@ class TestTasks:
         user = make_user()
 
         community = make_community(creator=user)
-        skill = make_skill()
+        skill = make_skill_v2()
 
         create_task_mutation = """
             mutation test($input: CreateTaskInput!) {
@@ -755,7 +755,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skillsV2": [skill.slug],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -798,8 +798,8 @@ class TestTasks:
         user = make_user()
 
         community = make_community(creator=user)
-        skill = make_skill()
-        expected_skills_v2 = [skill.slug]
+        skill = make_skill_v2()
+        expected_skills_v2 = [skill]
 
         create_task_mutation = """
             mutation test($input: CreateTaskInput!) {
@@ -827,7 +827,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skillsV2": [skill.slug],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -856,7 +856,7 @@ class TestTasks:
         user = make_user()
 
         community = make_community(creator=user)
-        skill = make_skill()
+        skill = make_skill_v2()
 
         create_task_mutation = """
             mutation test($input: CreateTaskInput!) {
@@ -881,7 +881,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             "contactEmail": "email@email.com",
-            "skillsV2": [skill.slug],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -902,7 +902,7 @@ class TestTasks:
         user = make_user()
 
         community = make_community(creator=user)
-        skills_v2 = [skill.slug for skill in make_skills(2)]
+        skills_v2 = make_skills_v2(2)
 
         create_task_mutation = """
             mutation test($input: CreateTaskInput!) {
@@ -953,7 +953,7 @@ class TestTasks:
         community = make_community()
         community.add_member(user=user)
 
-        skill = make_skill()
+        skill = make_skill_v2()
 
         create_task_mutation = """
             mutation test($input: CreateTaskInput!) {
@@ -980,7 +980,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skillsV2": [skill.slug],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -1005,7 +1005,7 @@ class TestTasks:
     @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
     def test_can_not_create_task_if_not_logged_in(self, mock_publish_task_created_event):
         community = make_community()
-        skill = make_skill()
+        skill = make_skill_v2()
 
         create_task_mutation = """
             mutation test($input: CreateTaskInput!) {
@@ -1026,7 +1026,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skillsV2": [skill.slug],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -1436,7 +1436,7 @@ class TestTaskFavorites:
 
         community = make_community(creator=user)
         task = make_community_task(community, visibility=VisibilityType.PUBLIC)
-        [skill] = make_skills(1)
+        [skill] = make_skills_v2(1)
         UserFavoriteModel.favorite(user=user, favoritable_id=task.id, favoritable_type=FavoritableType.TASK)
 
         assert favorites.models.UserFavorite.objects.filter(user=user).count() == 1
@@ -1460,7 +1460,7 @@ class TestTaskFavorites:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skillsV2": [skill.slug],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -1480,7 +1480,7 @@ class TestTaskFavorites:
 
         community = make_community(creator=user)
         task = make_community_task(community, visibility=VisibilityType.PUBLIC)
-        [skill] = make_skills(1)
+        [skill] = make_skills_v2(1)
         UserFavoriteModel.favorite(user=user, favoritable_id=task.id, favoritable_type=FavoritableType.TASK)
 
         assert favorites.models.UserFavorite.objects.filter(user=user).count() == 1
@@ -1504,7 +1504,7 @@ class TestTaskFavorites:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skillsV2": [skill.slug],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
