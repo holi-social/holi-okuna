@@ -1,7 +1,7 @@
 import logging
 import unittest
 
-from openbook_common.skills import skill_v2_slugs, slug_to_skill_v2, slugs_to_skill_v2_slugs
+from openbook_common.skills import skill_v2_slug_aliases, slug_to_skill_v2, slugs_to_skill_v2_slugs
 
 logger = logging.getLogger(__name__)
 
@@ -123,7 +123,7 @@ class TestSlugToSkillV2(unittest.TestCase):
 
     def test_all_implemented_slugs_are_tested(self):
         """Test that all slugs in the implementation have a corresponding test case."""
-        all_defined_slugs = [slug for slugs in skill_v2_slugs.values() for slug in slugs]
+        all_defined_slugs = [slug for slugs in skill_v2_slug_aliases.values() for slug in slugs]
         tested_slugs = [test_case[0] for test_case in self.test_cases]
 
         for slug in all_defined_slugs:

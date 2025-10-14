@@ -1,5 +1,4 @@
 import re
-from typing import get_args
 
 from graphql import GraphQLError
 from rest_framework.exceptions import ValidationError, NotFound
@@ -13,8 +12,8 @@ from openbook_common.utils.model_loaders import (
     get_emoji_group_model,
     get_language_model,
 )
-from openbook_common.topics import TopicV2
-from openbook_common.skills import SkillV2
+from openbook_common.topics import topic_v2_slugs
+from openbook_common.skills import skill_v2_slugs
 
 from openbook import settings
 
@@ -123,10 +122,10 @@ def sanitize_text(text: str):
 
 
 def topic_v2_exists(topic_v2_slug):
-    if topic_v2_slug not in get_args(TopicV2):
+    if topic_v2_slug not in topic_v2_slugs:
         raise NotFound(_(f"TopicV2 '{topic_v2_slug}' does not exist."))
 
 
 def skill_v2_exists(skill_v2_slug):
-    if skill_v2_slug not in get_args(SkillV2):
+    if skill_v2_slug not in skill_v2_slugs:
         raise NotFound(_(f"SkillV2 '{skill_v2_slug}' does not exist."))
