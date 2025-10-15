@@ -274,7 +274,7 @@ def make_sdg() -> SDG:
 
 
 def make_topics_v2(count: int) -> List[str]:
-    return [random.choice(topic_v2_slugs) for _ in range(count)]  # noqa: S311
+    return topic_v2_slugs[:count]
 
 
 def make_skill_v2() -> str:
@@ -282,7 +282,7 @@ def make_skill_v2() -> str:
 
 
 def make_skills_v2(count: int) -> List[str]:
-    return [random.choice(skill_v2_slugs) for _ in range(count)]  # noqa: S311
+    return skill_v2_slugs[:count]
 
 
 def make_community_invites_enabled():
