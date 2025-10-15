@@ -1,7 +1,34 @@
-from typing import Optional, Literal, List
+from typing import Optional, Literal, List, get_args
+
+TopicV2 = Literal[
+    "animal-welfare",
+    "arts-culture",
+    "climate-environment",
+    "democracy-politics",
+    "disability-inclusion",
+    "disaster-relief",
+    "elderly-care",
+    "family-kids",
+    "food-hunger-relief",
+    "gender-equality",
+    "housing",
+    "human-rights",
+    "lgbtqia-plus",
+    "lifestyle-consumption",
+    "literacy-education",
+    "mental-physical-health",
+    "migration-refugees",
+    "mobility-transport",
+    "other",
+    "peace-security",
+    "poverty-homelessness",
+    "sports-recreation",
+    "technology-innovation",
+    "youth-development",
+]
 
 # keys are the V2 topic slugs, values is a combined list of V1 and V2 topic slugs (for backwards-compatibility)
-topic_v2_slugs = {
+topic_v2_slug_aliases: dict[TopicV2, list[str]] = {
     "animal-welfare": ["animal-welfare", "biodiversity-animal-welfare"],
     "arts-culture": ["arts-culture", "culture-social-change"],
     "climate-environment": [
@@ -34,32 +61,8 @@ topic_v2_slugs = {
     "youth-development": ["youth-development", "children-youth"],
 }
 
-TopicV2 = Literal[
-    "animal-welfare",
-    "arts-culture",
-    "climate-environment",
-    "democracy-politics",
-    "disability-inclusion",
-    "disaster-relief",
-    "elderly-care",
-    "family-kids",
-    "food-hunger-relief",
-    "gender-equality",
-    "housing",
-    "human-rights",
-    "lgbtqia-plus",
-    "lifestyle-consumption",
-    "literacy-education",
-    "mental-physical-health",
-    "migration-refugees",
-    "mobility-transport",
-    "other",
-    "peace-security",
-    "poverty-homelessness",
-    "sports-recreation",
-    "technology-innovation",
-    "youth-development",
-]
+
+topic_v2_slugs: list[TopicV2] = list(get_args(TopicV2))
 
 
 def slug_to_topic_v2(slug: str) -> Optional[str]:
@@ -67,10 +70,10 @@ def slug_to_topic_v2(slug: str) -> Optional[str]:
     Convert a slug to its corresponding V2 topic.
     Returns None if no match is found.
     """
-    if slug in topic_v2_slugs:
+    if slug in topic_v2_slug_aliases:
         return slug
 
-    for topic, slugs in topic_v2_slugs.items():
+    for topic, slugs in topic_v2_slug_aliases.items():
         if slug in slugs:
             return topic
 

@@ -1,7 +1,42 @@
+import typing
 from typing import Optional, Literal
 
+SkillV2 = Literal[
+    "administration",
+    "animal-care",
+    "arts-crafts",
+    "building-handicraft",
+    "childcare",
+    "community-organizing",
+    "creativity-design",
+    "driving",
+    "emergency-care",
+    "event-planning",
+    "finances-taxes",
+    "food-service",
+    "fundraising",
+    "gardening-conservation",
+    "intercultural-competence",
+    "it-technology",
+    "legal-assistance",
+    "management-strategy",
+    "marketing-communications",
+    "moderation-facilitation",
+    "music-performance",
+    "nursing-caregiving",
+    "other",
+    "religious-spiritual-care",
+    "research-analysis",
+    "sales-distribution",
+    "team-leadership",
+    "translation",
+    "tutoring-coaching",
+]
+
+skill_v2_slugs: list[SkillV2] = list(typing.get_args(SkillV2))
+
 # keys are the V2 skill slugs, values is a combined list of V1 and V2 skill slugs (for backwards-compatibility)
-skill_v2_slugs = {
+skill_v2_slug_aliases: dict[SkillV2, list[str]] = {
     "administration": ["administration", "organizational-skills"],
     "animal-care": ["animal-care"],
     "arts-crafts": ["arts-crafts", "arts-music-culture"],
@@ -62,53 +97,21 @@ skill_v2_slugs = {
     "tutoring-coaching": ["tutoring-coaching", "teaching-education", "coaching & mentoring"],
 }
 
-SkillV2 = Literal[
-    "administration",
-    "animal-care",
-    "arts-crafts",
-    "building-handicraft",
-    "childcare",
-    "community-organizing",
-    "creativity-design",
-    "driving",
-    "emergency-care",
-    "event-planning",
-    "finances-taxes",
-    "food-service",
-    "fundraising",
-    "gardening-conservation",
-    "intercultural-competence",
-    "it-technology",
-    "legal-assistance",
-    "management-strategy",
-    "marketing-communications",
-    "moderation-facilitation",
-    "music-performance",
-    "nursing-caregiving",
-    "other",
-    "religious-spiritual-care",
-    "research-analysis",
-    "sales-distribution",
-    "team-leadership",
-    "translation",
-    "tutoring-coaching",
-]
-
 
 def slug_to_skill_v2(slug: str) -> Optional[str]:
     """
     Convert a slug to its corresponding V2 skill.
     Returns None if no match is found.
     """
-    if slug in skill_v2_slugs:
+    if slug in skill_v2_slug_aliases:
         return slug
 
-    for skill, slugs in skill_v2_slugs.items():
+    for skill, slugs in skill_v2_slug_aliases.items():
         if slug in slugs:
             return skill
 
     return None
 
 
-def slugs_to_skill_v2_slugs(slugs: [str]) -> [str]:
+def slugs_to_skill_v2_slugs(slugs: list[str]) -> list[str]:
     return list(set(filter(None, map(slug_to_skill_v2, slugs))))

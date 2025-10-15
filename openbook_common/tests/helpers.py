@@ -1,7 +1,7 @@
 import random
 import tempfile
 import uuid
-from typing import List, Optional, get_args
+from typing import List, Optional
 
 from PIL import Image
 from asgiref.sync import async_to_sync
@@ -19,8 +19,8 @@ from openbook_auth.models import EngagementLevelChoice, User, UserProfile, UserR
 from openbook_categories.models import Category
 from openbook_circles.models import Circle
 from openbook_common.enums import VisibilityType
-from openbook_common.topics import TopicV2
-from openbook_common.skills import SkillV2
+from openbook_common.topics import topic_v2_slugs
+from openbook_common.skills import skill_v2_slugs
 from openbook_common.models import (
     Badge,
     Emoji,
@@ -274,17 +274,15 @@ def make_sdg() -> SDG:
 
 
 def make_topics_v2(count: int) -> List[str]:
-    slugs = list(get_args(TopicV2))
-    return [slugs[index] for index in range(count)]
+    return topic_v2_slugs[:count]
 
 
 def make_skill_v2() -> str:
-    return random.choice(list(get_args(SkillV2)))  # noqa: S311
+    return random.choice(skill_v2_slugs)  # noqa: S311
 
 
 def make_skills_v2(count: int) -> List[str]:
-    slugs = list(get_args(SkillV2))
-    return [slugs[index] for index in range(count)]
+    return skill_v2_slugs[:count]
 
 
 def make_community_invites_enabled():

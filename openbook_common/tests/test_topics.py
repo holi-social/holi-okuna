@@ -1,6 +1,6 @@
 import unittest
 
-from openbook_common.topics import topic_v2_slugs, slug_to_topic_v2, slugs_to_topic_v2_slugs
+from openbook_common.topics import topic_v2_slug_aliases, slug_to_topic_v2, slugs_to_topic_v2_slugs
 
 
 class TestSlugToTopicV2(unittest.TestCase):
@@ -92,7 +92,7 @@ class TestSlugToTopicV2(unittest.TestCase):
 
     def test_all_implemented_slugs_are_tested(self):
         """Test that all slugs in the implementation have a corresponding test case."""
-        all_slugs = [slug for slugs in topic_v2_slugs.values() for slug in slugs]
+        all_slugs = [slug for slugs in topic_v2_slug_aliases.values() for slug in slugs]
         tested_slugs = [test_case[0] for test_case in self.test_cases]
 
         for slug in all_slugs:
