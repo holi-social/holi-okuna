@@ -18,7 +18,7 @@ dependencies = [
     "blurhash-python==1.2.2",
     "cachetools==6.2.1",
     "certifi==2025.10.5",
-    "cffi==1.17.1",
+    "cffi==2.0.0",
     "charset-normalizer==3.4.4",
     "colorama==0.4.6",
     "coverage==7.11.0",
