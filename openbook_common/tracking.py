@@ -44,7 +44,7 @@ def initialize_tracking(config: PostHogConfig):
     if config.api_key and config.host:
         global posthog
         posthog = Posthog(
-            api_key=config.api_key,
+            project_api_key=config.api_key,
             host=config.host,
             debug=settings.DEBUG,
             disabled=config.disable_for_testing,
