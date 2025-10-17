@@ -4,16 +4,16 @@ requires-python = ">=3.13.3"
 
 [[package]]
 name = "adrf"
-version = "0.1.9"
+version = "0.1.10"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "async-property" },
     { name = "django" },
     { name = "djangorestframework" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/adrf/adrf-0.1.9.tar.gz", hash = "sha256:e2f59fd84960a564b0385d9201c55531a30c6118eb40c86c5356c077f279af23" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/adrf/adrf-0.1.10.tar.gz", hash = "sha256:1f826f88570d45cfe7e40d8ecc8d939d32d562b51b162b6aea9c30e99c045ebd" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/adrf/adrf-0.1.9-py3-none-any.whl", hash = "sha256:fd6c45df908e042c91571fdcff1ea54180c871ec18659b639cf3217d67ce97d5" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/adrf/adrf-0.1.10-py3-none-any.whl", hash = "sha256:c31ba5be58fbf5e768ba9084447d821d057dbcfc9cb40f0851ad8909b61e2d46" },
 ]
 
 [[package]]
@@ -984,7 +984,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "adrf", specifier = "==0.1.9" },
+    { name = "adrf", specifier = "==0.1.10" },
     { name = "aiofiles", specifier = "==24.1.0" },
     { name = "aiohappyeyeballs", specifier = "==2.6.1" },
     { name = "aiohttp", specifier = "==3.12.13" },
@@ -1115,7 +1115,7 @@ requires-dist = [
     { name = "url-normalize", specifier = "==2.2.1" },
     { name = "urlextract", specifier = "==1.9.0" },
     { name = "urllib3", specifier = "==2.5.0" },
-    { name = "uvicorn", specifier = "==0.34.3" },
+    { name = "uvicorn", specifier = "==0.37.0" },
     { name = "wrapt", specifier = "==1.17.2" },
     { name = "yarl", specifier = "==1.20.1" },
     { name = "zipp", specifier = "==3.23.0" },
@@ -2175,15 +2175,15 @@ wheels = [
 
 [[package]]
 name = "uvicorn"
-version = "0.34.3"
+version = "0.37.0"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "click" },
     { name = "h11" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/uvicorn/uvicorn-0.34.3.tar.gz", hash = "sha256:35919a9a979d7a59334b6b10e05d77c1d0d574c50e0fc98b8b1a0f165708b55a" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/uvicorn/uvicorn-0.37.0.tar.gz", hash = "sha256:4115c8add6d3fd536c8ee77f0e14a7fd2ebba939fed9b02583a97f80648f9e13" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/uvicorn/uvicorn-0.34.3-py3-none-any.whl", hash = "sha256:16246631db62bdfbf069b0645177d6e8a77ba950cfedbfd093acef9444e4d885" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/uvicorn/uvicorn-0.37.0-py3-none-any.whl", hash = "sha256:913b2b88672343739927ce381ff9e2ad62541f9f8289664fa1d1d3803fa2ce6c" },
 ]
 
 [[package]]
