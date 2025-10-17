@@ -16,7 +16,7 @@ dependencies = [
     "beautifulsoup4==4.14.2",
     "black==25.9.0",
     "blurhash-python==1.2.2",
-    "cachetools==5.5.2",
+    "cachetools==6.2.1",
     "certifi==2025.10.5",
     "cffi==1.17.1",
     "charset-normalizer==3.4.4",

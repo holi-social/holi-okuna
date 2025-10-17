@@ -213,11 +213,11 @@ sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/bl
 
 [[package]]
 name = "cachetools"
-version = "5.5.2"
+version = "6.2.1"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/cachetools/cachetools-5.5.2.tar.gz", hash = "sha256:1a661caa9175d26759571b2e19580f9d6393969e5dfca11fdb1f947a23e640d4" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/cachetools/cachetools-6.2.1.tar.gz", hash = "sha256:3f391e4bd8f8bf0931169baf7456cc822705f4e2a31f840d218f445b9a854201" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/cachetools/cachetools-5.5.2-py3-none-any.whl", hash = "sha256:d26a22bcc62eb95c3beabd9f1ee5e820d3d2704fe2967cbe350e20c8ffcd3f0a" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/cachetools/cachetools-6.2.1-py3-none-any.whl", hash = "sha256:09868944b6dde876dfd44e1d47e18484541eaf12f26f29b7af91b26cc892d701" },
 ]
 
 [[package]]
@@ -1152,7 +1152,7 @@ requires-dist = [
     { name = "beautifulsoup4", specifier = "==4.14.2" },
     { name = "black", specifier = "==25.9.0" },
     { name = "blurhash-python", specifier = "==1.2.2" },
-    { name = "cachetools", specifier = "==5.5.2" },
+    { name = "cachetools", specifier = "==6.2.1" },
     { name = "certifi", specifier = "==2025.10.5" },
     { name = "cffi", specifier = "==1.17.1" },
     { name = "charset-normalizer", specifier = "==3.4.4" },
