@@ -1242,7 +1242,7 @@ requires-dist = [
     { name = "pytz", specifier = "==2025.2" },
     { name = "redis", specifier = "==6.4.0" },
     { name = "requests", specifier = "==2.32.5" },
-    { name = "requests-file", specifier = "==2.1.0" },
+    { name = "requests-file", specifier = "==3.0.0" },
     { name = "requests-toolbelt", specifier = "==1.0.0" },
     { name = "rest-framework-generic-relations", specifier = "==2.2.0" },
     { name = "rq", specifier = "==2.6.0" },
@@ -2074,14 +2074,14 @@ wheels = [
 
 [[package]]
 name = "requests-file"
-version = "2.1.0"
+version = "3.0.0"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "requests" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/requests-file/requests_file-2.1.0.tar.gz", hash = "sha256:0f549a3f3b0699415ac04d167e9cb39bccfb730cb832b4d20be3d9867356e658" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/requests-file/requests_file-3.0.0.tar.gz", hash = "sha256:68789589cfde7098e8933fe3e69bbd864f7f0c22f118937b424d94d0e1b7760f" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/requests-file/requests_file-2.1.0-py2.py3-none-any.whl", hash = "sha256:cf270de5a4c5874e84599fc5778303d496c10ae5e870bfa378818f35d21bda5c" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/requests-file/requests_file-3.0.0-py2.py3-none-any.whl", hash = "sha256:aca222ec94a19310be2a0ed6bdcdebb09058b0f6c3e984af56361c8fca59653c" },
 ]
 
 [[package]]
