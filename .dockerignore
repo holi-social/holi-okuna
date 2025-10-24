@@ -6,7 +6,7 @@
 .git
 .gitlab-ci-local
 .run
-.venv
+.venv*
 docs
 media
 smoketest

@@ -16,7 +16,7 @@ core
 /.docker-cache
 /.okuna-cli.json
 /.docker-compose.env*
-.venv
+.venv*
 
 # don't accidentally commit the .envrc.local file
 /.run/_*
