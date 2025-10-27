@@ -39,7 +39,8 @@ from openbook_communities.models.network_relationship import (
 from openbook_posts.enums import VisibilityFilter
 from openbook_posts.models import Post as PostModel
 from openbook_posts.schema.types import Post
-from openbook_terms.schema.types import SDG, Skill, Topic
+from openbook_terms.schema.types import Topic
+from django.utils.translation import get_language_from_request
 
 logger = logging.getLogger(__name__)
 
@@ -51,16 +52,8 @@ Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
 class ValidateSpaceInput:
     title: Optional[str] = strawberry.UNSET
     description: Optional[str] = strawberry.UNSET
-    topics: Annotated[
-        Optional[List[Optional[uuid.UUID]]],
-        strawberry.argument(description="Deprecated since 1.52. Use topics_v2 instead."),
-    ] = strawberry.UNSET
     topics_v2: Optional[List[str]] = strawberry.UNSET
     cover: Optional[Upload] = strawberry.UNSET
-    sdgs: Annotated[
-        Optional[List[Optional[uuid.UUID]]],
-        strawberry.argument(description="Deprecated since 1.53."),
-    ] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
 
 
@@ -68,10 +61,6 @@ class ValidateSpaceInput:
 class CreateSpaceInput:
     title: str
     description: str
-    topics: Annotated[
-        Optional[List[Optional[uuid.UUID]]],
-        strawberry.argument(description="Deprecated since 1.52. Use topics_v2 instead."),
-    ] = strawberry.UNSET
     topics_v2: Optional[List[str]] = strawberry.UNSET
     cover: Upload
 
@@ -93,10 +82,6 @@ class CreateTaskInput:
     contact_email: str
     slots_available: Optional[int] = strawberry.UNSET
     thumbnail: Optional[Upload] = strawberry.UNSET
-    skills: Annotated[
-        Optional[List[Optional[uuid.UUID]]],
-        strawberry.argument(description="Deprecated since 1.52. Use skills_v2 instead."),
-    ] = strawberry.UNSET
     skills_v2: Optional[List[str]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
@@ -122,10 +107,6 @@ class UpdateTaskInput:
     contact_email: str
     slots_available: Optional[int] = strawberry.UNSET
     thumbnail: Optional[Upload] = strawberry.UNSET
-    skills: Annotated[
-        Optional[List[Optional[uuid.UUID]]],
-        strawberry.argument(description="Deprecated since 1.52. Use skills_v2 instead."),
-    ] = strawberry.UNSET
     skills_v2: Optional[List[str]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
@@ -187,17 +168,9 @@ class UpdateSpaceInput:
     id: uuid.UUID
     title: Optional[str] = strawberry.UNSET
     description: Optional[str] = strawberry.UNSET
-    topics: Annotated[
-        Optional[List[Optional[uuid.UUID]]],
-        strawberry.argument(description="Deprecated since 1.52. Use topics_v2 instead."),
-    ] = strawberry.UNSET
     topics_v2: Optional[List[str]] = strawberry.UNSET
     cover: Optional[Upload] = strawberry.UNSET
     avatar: Optional[Upload] = strawberry.UNSET
-    sdgs: Annotated[
-        Optional[List[Optional[uuid.UUID]]],
-        strawberry.argument(description="Deprecated since 1.53."),
-    ] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     contact_description: Optional[str] = strawberry.UNSET
@@ -237,9 +210,6 @@ class Task:
     duration: Optional[TaskModel.Duration]
     timeframe_start_date: strawberry.auto
     timeframe_end_date: strawberry.auto
-    skills: List[Skill] = strawberry_django.field(
-        deprecation_reason="Deprecated since version 1.52, use skills_v2 instead.", default=None
-    )
     skills_v2: List[str]
     thumbnail: Optional[str]
     thumbnail_blurhash: Optional[str]
@@ -307,6 +277,62 @@ class Onboarding:
     steps: List[Optional[OnboardingStep]]
 
 
+topics = {
+    "de": {
+        "animal-welfare": "Tierschutz",
+        "arts-culture": "Kunst & Kultur",
+        "climate-environment": "Klima & Umwelt",
+        "democracy-politics": "Demokratie & Politik",
+        "disability-inclusion": "Behinderung & Inklusion",
+        "disaster-relief": "Katastrophenhilfe",
+        "elderly-care": "Altenpflege",
+        "family-kids": "Familie & Kinder",
+        "food-hunger-relief": "Ernährung & Hungerhilfe",
+        "gender-equality": "Geschlechtergerechtigkeit",
+        "housing": "Bauen & Wohnen",
+        "human-rights": "Menschenrechte",
+        "lgbtqia-plus": "LGBTQIA+",
+        "lifestyle-consumption": "Lebensstil & Konsum",
+        "literacy-education": "Bildung & Leseförderung",
+        "mental-physical-health": "Psychische & körperliche Gesundheit",
+        "migration-refugees": "Migration & Geflüchtete",
+        "mobility-transport": "Mobilität & Transport",
+        "other": "Sonstiges",
+        "peace-security": "Frieden & Sicherheit",
+        "poverty-homelessness": "Armut & Obdachlosigkeit",
+        "sports-recreation": "Sport & Freizeit",
+        "technology-innovation": "Technologie & Innovation",
+        "youth-development": "Jugendförderung",
+    },
+    "en": {
+        "animal-welfare": "Animal Welfare",
+        "arts-culture": "Arts & Culture",
+        "climate-environment": "Climate & Environment",
+        "democracy-politics": "Democracy & Politics",
+        "disability-inclusion": "Disability & Inclusion",
+        "disaster-relief": "Disaster Relief",
+        "elderly-care": "Elderly Care",
+        "family-kids": "Family & Kids",
+        "food-hunger-relief": "Food & Hunger Relief",
+        "gender-equality": "Gender Equality",
+        "housing": "Housing",
+        "human-rights": "Human Rights",
+        "lgbtqia-plus": "LGBTQIA+",
+        "lifestyle-consumption": "Lifestyle & Consumption",
+        "literacy-education": "Literacy & Education",
+        "mental-physical-health": "Mental & Physical Health",
+        "migration-refugees": "Migration & Refugees",
+        "mobility-transport": "Mobility & Transport",
+        "other": "Other",
+        "peace-security": "Peace & Security",
+        "poverty-homelessness": "Poverty & Homelessness",
+        "sports-recreation": "Sports & Recreation",
+        "technology-innovation": "Technology & Innovation",
+        "youth-development": "Youth Development",
+    },
+}
+
+
 @strawberry_django.type(CommunityModel)
 class Space:
     id: strawberry.auto
@@ -322,16 +348,19 @@ class Space:
     cover_blurhash: Optional[str]
     location: strawberry.auto
     links: List[Optional[ExternalLink]]
-    topics: List[Optional[Topic]] = strawberry_django.field(
-        deprecation_reason="Deprecated since version 1.52, use topics_v2 instead.", default=None
-    )
     topics_v2: List[str]
-    sdgs: List[Optional[SDG]] = strawberry_django.field(
-        deprecation_reason="Deprecated since version 1.53.", default=None
-    )
     contact_description: Optional[str]
     contact_email: Optional[str]
     contact_phone: Optional[str]
+
+    # This is still needed for backwards compatibility for "Wir sind der Osten"
+    @strawberry_django.field()
+    def topics(self, info) -> List[Optional[Topic]]:
+        lang = get_language_from_request(info.context.request)
+        topics_lang = topics.get(lang)
+        if not topics_lang:
+            return []
+        return [Topic(slug=slug, title=topics_lang.get(slug)) for slug in self.topics_v2]
 
     @strawberry_django.field()
     def geolocation(self) -> Optional[GeolocationPoint]:
@@ -506,19 +535,8 @@ class Space:
 @strawberry.type
 class DiscoverSpaces:
     spaces: Paged[Space]
-    topic_id: Optional[uuid.UUID] = strawberry.field(
-        deprecation_reason="Deprecated since version 1.52, use topic_v2 instead", default=None
-    )
     topic_v2: Optional[str] = None
-    location: Optional[str] = strawberry.field(
-        deprecation_reason="Deprecated since version 1.0.16, use location_id instead",
-        default=None,
-    )
     location_id: Optional[str] = None
-    skill_id: Optional[uuid.UUID] = strawberry.field(
-        deprecation_reason="Deprecated since version 1.52, use skill_v2 instead",
-        default=None,
-    )
     skill_v2: Optional[str] = None
 
 

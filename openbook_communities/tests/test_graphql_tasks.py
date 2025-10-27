@@ -10,7 +10,6 @@ import pytest
 from asgiref.sync import async_to_sync
 from benedict import benedict
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.gis import geos
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.test import AsyncClient
@@ -21,18 +20,17 @@ from strawberry.types import ExecutionResult
 import favorites
 from favorites.models import UserFavorite as UserFavoriteModel, FavoritableType
 from openbook.graphql_schema import schema
-from openbook.tests.test_data import geolocation_geometry
 from openbook_common.enums import VisibilityType
 from openbook_common.tests.helpers import (
     assert_is_unauthorized,
     make_community,
     make_community_task,
-    make_skill,
-    make_skills,
     make_user,
     simple_jpeg_bytes,
     assert_is_forbidden,
     assert_is_404,
+    make_skills_v2,
+    make_skill_v2,
 )
 from openbook_communities.enums import UpdateConnectionAction
 from openbook_communities.models import SpaceUserConnectionType
@@ -59,7 +57,7 @@ class TestTasks:
         user = make_user()
         community = make_community()
 
-        skill = make_skill()
+        skill = make_skill_v2()
 
         create_task_mutation = """
             mutation test($input: CreateTaskInput!) {
@@ -80,7 +78,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -103,7 +101,7 @@ class TestTasks:
         community = make_community()
         community.add_member(user)
 
-        skill = make_skill()
+        skill = make_skill_v2()
 
         create_task_mutation = """
                 mutation test($input: CreateTaskInput!) {
@@ -124,7 +122,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -202,7 +200,7 @@ class TestTasks:
 
         community = make_community(creator=user)
         task = make_community_task(community)
-        skill = make_skill()
+        skill = make_skill_v2()
 
         update_task_mutation = """
             mutation test($input: UpdateTaskInput!) {
@@ -211,8 +209,6 @@ class TestTasks:
                 }
             }
             """
-
-        non_existent_skill_id = str(uuid4())
 
         valid_input = {
             "taskId": str(task.id),
@@ -225,7 +221,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -241,11 +237,6 @@ class TestTasks:
             {"field": "regularity", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "contactEmail", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "contactPhone", "value": "c" * 500, "expected_code": "max_length"},
-            {
-                "field": "skills",
-                "value": [non_existent_skill_id],
-                "expected_error": f"No skill with the id '{non_existent_skill_id}' found.",
-            },
             {
                 "field": "skillsV2",
                 "value": ["unknown"],
@@ -275,8 +266,8 @@ class TestTasks:
 
         community = make_community(creator=user)
         task = make_community_task(community)
-        [skill, skill2] = make_skills(2)
-        expected_skills_v2 = [skill.slug]
+        [skill, skill2] = make_skills_v2(2)
+        expected_skills_v2 = [skill]
 
         update_task_mutation = """
             mutation test($input: UpdateTaskInput!) {
@@ -308,7 +299,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -349,7 +340,7 @@ class TestTasks:
             "contactEmail": "email@email.com",
             "thumbnail": None,
             "slotsAvailable": 1,
-            "skillsV2": [skill2.slug],
+            "skillsV2": [skill2],
         }
 
         mock_publish_task_updated_event.assert_called_once()
@@ -370,7 +361,7 @@ class TestTasks:
         assert valid_visibility == updateTask["visibility"]
         assert updateTask["thumbnail"] is None
         assert updateTask["thumbnailBlurhash"] is None
-        assert [skill2.slug] == updateTask["skillsV2"]
+        assert [skill2] == updateTask["skillsV2"]
 
         mock_publish_task_updated_event.assert_called_once()
 
@@ -381,7 +372,7 @@ class TestTasks:
         community = make_community()
         community.add_member(user=user)
         task = make_community_task(community)
-        skill = make_skill()
+        skill = make_skill_v2()
 
         update_task_mutation = """
             mutation test($input: UpdateTaskInput!) {
@@ -412,7 +403,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -479,7 +470,7 @@ class TestTasks:
     def test_can_not_update_task_if_not_logged_in(self, mock_publish_task_updated_event):
         community = make_community()
         task = make_community_task(community)
-        skill = make_skill()
+        skill = make_skill_v2()
 
         update_task_mutation = """
             mutation test($input: UpdateTaskInput!) {
@@ -501,7 +492,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -521,7 +512,7 @@ class TestTasks:
     def test_can_not_update_task_if_not_admin_or_member(self, mock_publish_task_updated_event):
         user = make_user()
         community = make_community()
-        skill = make_skill()
+        skill = make_skill_v2()
         task = make_community_task(community)
 
         update_task_mutation = """
@@ -544,7 +535,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -569,7 +560,7 @@ class TestTasks:
         user = make_user()
         community = make_community()
         community.add_member(user=user)
-        skill = make_skill()
+        skill = make_skill_v2()
         task = make_community_task(community, visibility=VisibilityType.PUBLIC)
 
         update_task_mutation = """
@@ -592,7 +583,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -744,7 +735,7 @@ class TestTasks:
         user = make_user()
 
         community = make_community(creator=user)
-        skill = make_skill()
+        skill = make_skill_v2()
 
         create_task_mutation = """
             mutation test($input: CreateTaskInput!) {
@@ -753,8 +744,6 @@ class TestTasks:
                 }
             }
             """
-
-        non_existent_skill_id = str(uuid4())
 
         valid_input = {
             "spaceId": str(community.id),
@@ -766,7 +755,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -781,11 +770,6 @@ class TestTasks:
             {"field": "regularity", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "contactEmail", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "contactPhone", "value": "c" * 500, "expected_code": "max_length"},
-            {
-                "field": "skills",
-                "value": [non_existent_skill_id],
-                "expected_error": f"No skill with the id '{non_existent_skill_id}' found.",
-            },
             {
                 "field": "skillsV2",
                 "value": ["unknown"],
@@ -814,8 +798,8 @@ class TestTasks:
         user = make_user()
 
         community = make_community(creator=user)
-        skill = make_skill()
-        expected_skills_v2 = [skill.slug]
+        skill = make_skill_v2()
+        expected_skills_v2 = [skill]
 
         create_task_mutation = """
             mutation test($input: CreateTaskInput!) {
@@ -843,7 +827,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -872,7 +856,7 @@ class TestTasks:
         user = make_user()
 
         community = make_community(creator=user)
-        skill = make_skill()
+        skill = make_skill_v2()
 
         create_task_mutation = """
             mutation test($input: CreateTaskInput!) {
@@ -897,7 +881,7 @@ class TestTasks:
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -918,7 +902,7 @@ class TestTasks:
         user = make_user()
 
         community = make_community(creator=user)
-        skills_v2 = [skill.slug for skill in make_skills(2)]
+        skills_v2 = make_skills_v2(2)
 
         create_task_mutation = """
             mutation test($input: CreateTaskInput!) {
@@ -969,7 +953,7 @@ class TestTasks:
         community = make_community()
         community.add_member(user=user)
 
-        skill = make_skill()
+        skill = make_skill_v2()
 
         create_task_mutation = """
             mutation test($input: CreateTaskInput!) {
@@ -996,7 +980,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -1021,7 +1005,7 @@ class TestTasks:
     @mock.patch("openbook_communities.schema.mutations.publish_task_created_event")
     def test_can_not_create_task_if_not_logged_in(self, mock_publish_task_created_event):
         community = make_community()
-        skill = make_skill()
+        skill = make_skill_v2()
 
         create_task_mutation = """
             mutation test($input: CreateTaskInput!) {
@@ -1042,7 +1026,7 @@ class TestTasks:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -1365,19 +1349,6 @@ class TestTasks:
             lambda resp: [task["id"] for task in resp.data["tasksBySpaceId"]["data"]],
         )
 
-        recommended_tasks = (
-            """
-                query RecommendedTasks {
-                    recommendedTasks {
-                        data {
-                            id
-                        }
-                    }
-                }
-            """,
-            lambda resp: [task["id"] for task in resp.data["recommendedTasks"]["data"]],
-        )
-
     @pytest.mark.parametrize(
         "query,task_ids_from_response,request_with,should_contain_expired",
         [
@@ -1397,24 +1368,6 @@ class TestTasks:
                 "ADMIN",
                 True,
                 id="tasks_by_space_id_admin_include_expired",
-            ),
-            pytest.param(
-                *FilterExpiredTasksTestData.recommended_tasks,
-                "ANON",
-                False,
-                id="recommended_tasks_anon_no_expired",
-            ),
-            pytest.param(
-                *FilterExpiredTasksTestData.recommended_tasks,
-                "USER",
-                False,
-                id="recommended_tasks_user_no_expired",
-            ),
-            pytest.param(
-                *FilterExpiredTasksTestData.recommended_tasks,
-                "ADMIN",
-                False,
-                id="recommended_tasks_admin_no_expired",
             ),
         ],
     )
@@ -1483,7 +1436,7 @@ class TestTaskFavorites:
 
         community = make_community(creator=user)
         task = make_community_task(community, visibility=VisibilityType.PUBLIC)
-        [skill] = make_skills(1)
+        [skill] = make_skills_v2(1)
         UserFavoriteModel.favorite(user=user, favoritable_id=task.id, favoritable_type=FavoritableType.TASK)
 
         assert favorites.models.UserFavorite.objects.filter(user=user).count() == 1
@@ -1507,7 +1460,7 @@ class TestTaskFavorites:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -1527,7 +1480,7 @@ class TestTaskFavorites:
 
         community = make_community(creator=user)
         task = make_community_task(community, visibility=VisibilityType.PUBLIC)
-        [skill] = make_skills(1)
+        [skill] = make_skills_v2(1)
         UserFavoriteModel.favorite(user=user, favoritable_id=task.id, favoritable_type=FavoritableType.TASK)
 
         assert favorites.models.UserFavorite.objects.filter(user=user).count() == 1
@@ -1551,7 +1504,7 @@ class TestTaskFavorites:
             "duration": "INDETERMINATE",
             "interactionType": "CHAT",
             "contactEmail": "email@email.com",
-            "skills": [str(skill.id)],
+            "skillsV2": [skill],
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
@@ -1652,12 +1605,12 @@ class TestTaskRecommendations:
         self.space_deleted_owner = make_user()
         self.space_deleted = make_community(creator=self.space_deleted_owner, is_deleted=True)
 
-    def create_task(self, skills, location_type, geolocation=None, visibility=VisibilityType.PUBLIC, space=None):
+    def create_task(self, skills_v2, location_type, geolocation=None, visibility=VisibilityType.PUBLIC, space=None):
         if space is None:
             space = self.space
         return space.creator.create_task(
             geolocation=geolocation,
-            skills=skills,
+            skills_v2=skills_v2,
             location_type=location_type,
             visibility=visibility,
             space_id=space.id,
@@ -1668,198 +1621,6 @@ class TestTaskRecommendations:
             regularity="ONE_TIME",
             duration="INDETERMINATE",
             interaction_type="CHAT",
-        )
-
-    def assert_filtered_tasks(self, filter_options, expected_spaces, total_results=None):
-        def transform_space(space):
-            return {"id": str(space.id)}
-
-        recommended_tasks_query = """
-            query MyQuery($limit: Int, $offset: Int) {
-                recommendedTasks(limit: $limit, offset: $offset) {
-                    data {
-                        id
-                    }
-                    totalResults
-                }
-            }
-        """
-
-        filter_response = async_to_sync(schema.execute)(
-            recommended_tasks_query,
-            variable_values=filter_options,
-            context_value=benedict({"request": {"user": self.user}}),
-        )
-        assert filter_response.errors is None
-        expected_data = list(map(transform_space, expected_spaces))
-        assert filter_response.data["recommendedTasks"]["data"] == expected_data
-        if total_results is not None:
-            assert filter_response.data["recommendedTasks"]["totalResults"] == total_results
-
-    def test_filters_for_recommended_tasks(self):
-        [skill1, skill2, other_skill] = make_skills(3)
-
-        # locations inside geolocation filter
-        geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
-        # location outside geolocation filter
-        geolocation3 = geos.Point(9.76302, 53.5586627, srid=4326)
-
-        task_remote_2_skills = self.create_task(skills=[skill1.id, skill2.id], location_type="REMOTE")
-        task_onsite_2_skills = self.create_task(
-            skills=[skill1.id, skill2.id], location_type="ONSITE", geolocation=geolocation1
-        )
-        task_onsite_skill_1 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation1)
-        task_remote_skill_2 = self.create_task(skills=[skill2.id], location_type="REMOTE")
-        task_outside_onsite_skill_2 = self.create_task(
-            skills=[skill2.id], location_type="ONSITE", geolocation=geolocation3
-        )
-        task_onsite_other_skill = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation1
-        )
-        task_onsite_skill_1_and_other_skill = self.create_task(
-            skills=[skill1.id, other_skill.id], location_type="ONSITE", geolocation=geolocation1
-        )
-        task_outside_onsite_other_skill = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation3
-        )
-        task_remote_other_skill = self.create_task(skills=[other_skill.id], location_type="REMOTE")
-
-        # tasks from moderated spaces are not shown
-        self.create_task(space=self.space_deleted, skills=[skill2.id], location_type="REMOTE")
-
-        # moderated tasks are not shown
-        moderated_task = self.create_task(skills=[skill2.id], location_type="REMOTE")
-        moderated_task.soft_delete()
-
-        # member only tasks are not visible to non-members
-        self.create_task(skills=[skill1.id], location_type="REMOTE", visibility=VisibilityType.MEMBERS)
-
-        # when the user has no profile information, the last five tasks are returned
-        self.assert_filtered_tasks(
-            {},
-            [
-                task_remote_other_skill,
-                task_outside_onsite_other_skill,
-                task_onsite_skill_1_and_other_skill,
-                task_onsite_other_skill,
-                task_outside_onsite_skill_2,
-            ],
-        )
-
-        self.user.profile.skills.add(skill1)
-        self.user.profile.skills.add(skill2)
-        self.user.profile.skills_v2 = [skill1.slug, skill2.slug]
-        self.user.profile.geolocation = geos.GEOSGeometry(json.dumps(geolocation_geometry))
-
-        self.assert_filtered_tasks(
-            {"limit": 10},
-            [
-                # skill matches and geo matches or remote
-                task_onsite_skill_1_and_other_skill,
-                task_remote_skill_2,
-                task_onsite_skill_1,
-                task_onsite_2_skills,
-                task_remote_2_skills,
-                # only skill matches
-                task_outside_onsite_skill_2,
-                # only geo matches
-                # NOT task_onsite_skill_1_and_other_skill, since it's already found in skill matches and geo matches and there should be no duplicates
-                task_onsite_other_skill,
-                # everything else
-                task_remote_other_skill,
-                task_outside_onsite_other_skill,
-            ],
-        )
-
-    def test_filters_for_recommended_tasks_paging(self):
-        [skill1, other_skill] = make_skills(2)
-        self.user.profile.skills.add(skill1)
-        self.user.profile.skills_v2 = [skill1.slug]
-        self.user.profile.geolocation = geos.GEOSGeometry(json.dumps(geolocation_geometry))
-
-        # locations inside geolocation filter
-        geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
-        # location outside geolocation filter
-        geolocation3 = geos.Point(9.76302, 53.5586627, srid=4326)
-        task_remote_skill1 = self.create_task(skills=[skill1.id], location_type="REMOTE")
-        task_onsite_skill1 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation1)
-        task_remote_skill2 = self.create_task(skills=[skill1.id], location_type="REMOTE")
-        task_onsite_skill2 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation1)
-        task_other_site_skill1 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation3)
-        task_other_site_skill2 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation3)
-        task_other_site_skill3 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation3)
-        task_onsite_other_skill1 = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation1
-        )
-        task_onsite_other_skill2 = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation1
-        )
-        task_onsite_other_skill3 = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation1
-        )
-        task_outside_onsite_other_skill1 = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation3
-        )
-        task_remote_other_skill1 = self.create_task(skills=[other_skill.id], location_type="REMOTE")
-        task_outside_onsite_other_skill2 = self.create_task(
-            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation3
-        )
-        task_remote_other_skill2 = self.create_task(skills=[other_skill.id], location_type="REMOTE")
-
-        self.assert_filtered_tasks(
-            {"limit": 20},
-            [
-                # skill matches and geo matches or remote
-                task_onsite_skill2,
-                task_remote_skill2,
-                task_onsite_skill1,
-                task_remote_skill1,
-                # only skill matches
-                task_other_site_skill3,
-                task_other_site_skill2,
-                task_other_site_skill1,
-                # only geo matches
-                task_onsite_other_skill3,
-                task_onsite_other_skill2,
-                task_onsite_other_skill1,
-                # everything else
-                task_remote_other_skill2,
-                task_outside_onsite_other_skill2,
-                task_remote_other_skill1,
-                task_outside_onsite_other_skill1,
-            ],
-            14,
-        )
-
-        self.assert_filtered_tasks(
-            {"limit": 6, "offset": 2},
-            [
-                # skill matches and geo matches or remote
-                task_onsite_skill1,
-                task_remote_skill1,
-                # only skill matches
-                task_other_site_skill3,
-                task_other_site_skill2,
-                task_other_site_skill1,
-                # only geo matches
-                task_onsite_other_skill3,
-            ],
-            14,
-        )
-
-        self.assert_filtered_tasks(
-            {"limit": 6, "offset": 5},
-            [
-                task_other_site_skill2,
-                task_other_site_skill1,
-                # only geo matches
-                task_onsite_other_skill3,
-                task_onsite_other_skill2,
-                task_onsite_other_skill1,
-                # everything else
-                task_remote_other_skill2,
-            ],
-            14,
         )
 
     def test_total_completions_field(self):

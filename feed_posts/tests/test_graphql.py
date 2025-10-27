@@ -33,8 +33,8 @@ from openbook_common.tests.helpers import (
     simple_jpeg_bytes,
     make_community,
     make_feed_post_founder_update_category,
-    make_topics,
     make_feed_post_good_deed_category,
+    make_topics_v2,
 )
 from openbook_notifications.notifications import PostReactionNotification
 
@@ -57,15 +57,14 @@ class TestFeedPosts(TestCase):
         cls.yet_another_user = make_user()
         cls.space = make_community(creator=cls.user)
         cls.space.add_member(cls.yet_another_user)
-        topics = make_topics(6)
-        cls.topics_v2 = [t.slug for t in topics]
+        cls.topics_v2 = make_topics_v2(6)
 
         cls.public_feed_post_input_data = {
             "title": fake.text(max_nb_chars=settings.FEED_POST_TITLE_MAX_LENGTH),
             "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
             "visibility": VisibilityLevel.PUBLIC,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(t.id) for t in topics],
+            "topicsV2": cls.topics_v2,
             "image": SimpleUploadedFile(name="image_1.jpg", content=simple_jpeg_bytes),
             "location": "Munich, Germany",
             "geolocation": {
@@ -93,7 +92,7 @@ class TestFeedPosts(TestCase):
             "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
             "visibility": VisibilityLevel.PUBLIC,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(t.id) for t in topics],
+            "topicsV2": cls.topics_v2,
             "image": SimpleUploadedFile(name="image_3.jpg", content=simple_jpeg_bytes),
             "location": "Munich, Germany",
             "geolocation": {
@@ -107,7 +106,7 @@ class TestFeedPosts(TestCase):
             "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
             "visibility": VisibilityLevel.REGISTERED_USERS_ONLY,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(t.id) for t in topics[:3]],
+            "topicsV2": cls.topics_v2[:3],
             "image": SimpleUploadedFile(name="image_4.jpg", content=simple_jpeg_bytes),
             "location": "Munich, Germany",
             "geolocation": {
@@ -121,7 +120,7 @@ class TestFeedPosts(TestCase):
             "description": f"@{cls.another_user.username} @{cls.yet_another_user.username} {fake.text(max_nb_chars=100)}",
             "visibility": VisibilityLevel.PUBLIC,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(t.id) for t in topics],
+            "topicsV2": cls.topics_v2,
             "image": SimpleUploadedFile(name="image_1.jpg", content=simple_jpeg_bytes),
             "location": "Munich, Germany",
             "geolocation": {
@@ -135,7 +134,7 @@ class TestFeedPosts(TestCase):
             "description": f"@{cls.another_user.username} {fake.text(max_nb_chars=100)}",
             "visibility": VisibilityLevel.PUBLIC,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(t.id) for t in topics],
+            "topicsV2": cls.topics_v2,
             "image": SimpleUploadedFile(name="image_1.jpg", content=simple_jpeg_bytes),
             "location": "Munich, Germany",
             "geolocation": {
@@ -149,7 +148,7 @@ class TestFeedPosts(TestCase):
             "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
             "visibility": VisibilityLevel.REGISTERED_USERS_ONLY,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(t.id) for t in topics[:3]],
+            "topicsV2": cls.topics_v2[:3],
             "newImages": [
                 {
                     "image": SimpleUploadedFile(name="image_2.jpg", content=simple_jpeg_bytes),
@@ -170,7 +169,7 @@ class TestFeedPosts(TestCase):
             "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
             "visibility": VisibilityLevel.PUBLIC,
             "categoryId": str(make_feed_post_category().id),
-            "topicIds": [str(t.id) for t in topics],
+            "topicsV2": cls.topics_v2,
             "image": SimpleUploadedFile(name="image_3.jpg", content=simple_jpeg_bytes),
             "images": [
                 {
@@ -219,7 +218,6 @@ class TestFeedPosts(TestCase):
         assert data["description"] == self.public_feed_post_input_data["description"]
         assert data["visibility"] == self.public_feed_post_input_data["visibility"]
         assert data["category"]["id"] == self.public_feed_post_input_data["categoryId"]
-        assert len(data["topics"]) == len(self.public_feed_post_input_data["topicIds"])
         assert data["creator"]["id"] == str(self.user.pk)
         assert data["image"]
         assert data["location"] == self.public_feed_post_input_data["location"]
@@ -347,7 +345,6 @@ class TestFeedPosts(TestCase):
         assert data["description"] == self.public_feed_post_input_data["description"]
         assert data["visibility"] == self.public_feed_post_input_data["visibility"]
         assert data["category"]["id"] == self.public_feed_post_input_data["categoryId"]
-        assert len(data["topics"]) == len(self.public_feed_post_input_data["topicIds"])
         assert sorted(data["topicsV2"]) == sorted(self.topics_v2)
         assert data["creator"]["id"] == str(self.user.pk)
         assert data["image"]
@@ -397,7 +394,6 @@ class TestFeedPosts(TestCase):
         assert data["description"] == self.public_feed_post_input_data["description"]
         assert data["visibility"] == self.public_feed_post_input_data["visibility"]
         assert data["category"]["id"] == self.public_feed_post_input_data["categoryId"]
-        assert len(data["topics"]) == len(self.public_feed_post_input_data["topicIds"])
         assert sorted(data["topicsV2"]) == sorted(self.topics_v2)
         assert data["creator"]["id"] == str(self.user.pk)
         assert data["image"]
@@ -463,7 +459,6 @@ class TestFeedPosts(TestCase):
         assert data["description"] == self.registered_users_only_feed_post_update_input_data["description"]
         assert data["visibility"] == self.registered_users_only_feed_post_update_input_data["visibility"]
         assert data["category"]["id"] == self.registered_users_only_feed_post_update_input_data["categoryId"]
-        assert len(data["topics"]) == len(self.registered_users_only_feed_post_update_input_data["topicIds"])
         assert sorted(data["topicsV2"]) == sorted(self.topics_v2[:3])
         assert data["creator"]["id"] == str(self.user.pk)
         assert data["image"]
@@ -882,7 +877,6 @@ class TestFeedPosts(TestCase):
             title=input_data["title"],
             visibility=input_data["visibility"],
             description=input_data["description"],
-            topic_ids=input_data["topicIds"],
             topics_v2=None,
             category=founder_update_category,
             creator=self.co_founder,
@@ -900,7 +894,6 @@ class TestFeedPosts(TestCase):
             title=input_data["title"],
             visibility=input_data["visibility"],
             description=input_data["description"],
-            topic_ids=input_data["topicIds"],
             topics_v2=None,
             category=regular_category,
             creator=self.user,
@@ -953,7 +946,6 @@ class TestFeedPosts(TestCase):
         assert data["description"] == input_data["description"]
         assert data["visibility"] == input_data["visibility"]
         assert data["category"]["id"] == input_data["categoryId"]
-        assert len(data["topics"]) == len(input_data["topicIds"])
         assert data["creator"]["id"] == str(self.user.pk)
         assert data["image"]
         assert data["location"] == input_data["location"]

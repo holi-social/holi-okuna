@@ -25,7 +25,7 @@ from openbook_common.models import ModelWithUUID, LinkPreview
 from openbook_common.types import LanguageCode
 from openbook_common.utils.helpers import delete_file_field
 from openbook_polls.models import Poll
-from openbook_terms.models import Topic, FeedPostCategory
+from openbook_terms.models import FeedPostCategory
 
 
 class FeedPost(CommentNotificationMixin, ModelWithUUID):
@@ -36,8 +36,6 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
     description = models.TextField(max_length=settings.FEED_POST_DESCRIPTION_MAX_LENGTH, blank=False, null=False)
 
     visibility = models.CharField(max_length=21, choices=VisibilityLevel.choices, default=VisibilityLevel.PUBLIC)
-
-    topics = models.ManyToManyField(Topic, related_name="feed_posts", blank=True, db_index=True)
 
     topics_v2 = ArrayField(models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH), blank=True, default=list)
 

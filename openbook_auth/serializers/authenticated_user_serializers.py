@@ -11,9 +11,6 @@ from openbook.settings import (
 from openbook_auth.models import User, EngagementLevelChoice
 from openbook_auth.validators import (
     username_characters_validator,
-    interest_with_id_exists,
-    skill_with_id_exists,
-    sdg_with_id_exists,
     identity_characters_validator,
 )
 from openbook_common.serializers import GeolocationFeatureSerializer
@@ -84,25 +81,10 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
     )
     engagement_level = serializers.ChoiceField(choices=EngagementLevelChoice.choices, required=False, allow_blank=True)
 
-    interests = serializers.ListField(
-        required=False,
-        allow_empty=True,
-        child=serializers.UUIDField(validators=[interest_with_id_exists]),
-    )
     interests_v2 = serializers.ListField(
         required=False,
         allow_empty=True,
         child=serializers.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH, validators=[topic_v2_exists]),
-    )
-    sdgs = serializers.ListField(
-        required=False,
-        allow_empty=True,
-        child=serializers.UUIDField(validators=[sdg_with_id_exists]),
-    )
-    skills = serializers.ListField(
-        required=False,
-        allow_empty=True,
-        child=serializers.UUIDField(validators=[skill_with_id_exists]),
     )
     skills_v2 = serializers.ListField(
         required=False,

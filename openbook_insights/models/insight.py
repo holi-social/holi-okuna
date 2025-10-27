@@ -12,7 +12,6 @@ from openbook_common.helpers import ExifRotate, generate_blurhash
 from openbook_common.models import ModelWithUUID
 from openbook_insights.helpers import upload_to_insight_directory
 from openbook_posts.models import Post
-from openbook_terms.models import Topic
 from openbook_polls.models import Poll
 
 insight_image_storage = default_storage
@@ -52,13 +51,6 @@ class Insight(ModelWithUUID):
     # keep post field for as long as we show legacy Post-based Insights in the app
     posts = models.ManyToManyField(Post, related_name="insights", blank=True)
     polls = models.ManyToManyField(Poll, related_name="insights", null=True, blank=True)
-    topic = models.ForeignKey(
-        Topic,
-        on_delete=models.SET_NULL,
-        related_name="insights",
-        blank=True,
-        null=True,
-    )
     topic_v2 = models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH, blank=True, null=True, db_index=True)
 
     class Meta:

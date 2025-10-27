@@ -113,7 +113,6 @@ class Query:
                     total_comments=Subquery(feed_post_comments_subquery, output_field=models.IntegerField()),
                 )
                 .select_related("creator")
-                .prefetch_related("topics")
                 .order_by("-created_at", "-reaction_count", "-total_comments")
             )
 
@@ -145,7 +144,6 @@ class Query:
                 total_comments=Coalesce(Subquery(feed_post_comments_subquery, output_field=models.IntegerField()), 0),
             )
             .select_related("creator")
-            .prefetch_related("topics")
             .order_by("-created_at", "-reaction_count", "-total_comments")
         )
 

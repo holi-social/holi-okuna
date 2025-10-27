@@ -100,8 +100,7 @@ from openbook_hashtags.queries import (
 from openbook_notifications.toggles import mute_notifications
 from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
 from openbook_posts.query_collections import get_posts_for_user_collection
-from openbook_terms.helpers import topics_to_topic_v2_slugs, skills_to_skill_v2_slugs
-from openbook_terms.models import Topic, SDG, Skill
+from openbook_terms.models import SDG
 
 if typing.TYPE_CHECKING:
     from comments.models import Comment
@@ -793,10 +792,8 @@ class User(ModelWithUUID, AbstractUser):
         last_name=None,
         pronouns=None,
         engagement_level=None,
-        interests: Optional[List[Topic]] = None,
         interests_v2: Optional[List[str]] = None,
         sdgs=None,
-        skills: Optional[List[Skill]] = None,
         skills_v2: Optional[List[str]] = None,
         save=True,
         update_location=False,
@@ -860,18 +857,10 @@ class User(ModelWithUUID, AbstractUser):
             self.profile.pronouns = pronouns
         if engagement_level:
             self.profile.engagement_level = engagement_level
-        if interests is not None:
-            updated_interests = Topic.objects.filter(id__in=interests)
-            self.profile.interests.set(updated_interests)
-            self.profile.interests_v2 = topics_to_topic_v2_slugs(updated_interests)
         elif interests_v2 is not None:
             self.profile.interests_v2 = interests_v2
         if sdgs is not None:
             self.profile.sdgs.set(sdgs)
-        if skills is not None:
-            updated_skills = Skill.objects.filter(id__in=skills)
-            self.profile.skills.set(updated_skills)
-            self.profile.skills_v2 = skills_to_skill_v2_slugs(updated_skills)
         elif skills_v2 is not None:
             self.profile.skills_v2 = skills_v2
 
@@ -1738,7 +1727,6 @@ class User(ModelWithUUID, AbstractUser):
         users_adjective=None,
         invites_enabled=None,
         location=None,
-        topic_ids=None,
         topics_v2=None,
     ):
         Community = get_community_model()
@@ -1756,7 +1744,6 @@ class User(ModelWithUUID, AbstractUser):
             categories_names=categories_names,
             invites_enabled=invites_enabled,
             location=location,
-            topic_ids=topic_ids,
             topics_v2=topics_v2,
         )
 
@@ -1778,114 +1765,6 @@ class User(ModelWithUUID, AbstractUser):
 
         community.delete()
 
-    def update_community_with_id(
-        self,
-        community_id,
-        title=None,
-        description=None,
-        color=None,
-        type=None,
-        user_adjective=None,
-        users_adjective=None,
-        rules=None,
-        categories_names=None,
-        invites_enabled=None,
-        topic_ids=None,
-        topics_v2=None,
-        cover=None,
-        remove_cover=False,
-        avatar=None,
-        remove_avatar=False,
-        sdg_ids=None,
-        location=None,
-        geolocation=None,
-        contact_description=None,
-        contact_email=None,
-        contact_phone=None,
-        onboarding_steps=None,
-    ):
-        Community = get_community_model()
-        community = Community.objects.get(id=community_id)
-        return self.update_community(
-            community,
-            title=title,
-            description=description,
-            color=color,
-            type=type,
-            user_adjective=user_adjective,
-            users_adjective=users_adjective,
-            rules=rules,
-            categories_names=categories_names,
-            invites_enabled=invites_enabled,
-            topic_ids=topic_ids,
-            topics_v2=topics_v2,
-            cover=cover,
-            remove_cover=remove_cover,
-            avatar=avatar,
-            remove_avatar=remove_avatar,
-            sdg_ids=sdg_ids,
-            location=location,
-            geolocation=geolocation,
-            contact_description=contact_description,
-            contact_email=contact_email,
-            contact_phone=contact_phone,
-            onboarding_steps=onboarding_steps,
-        )
-
-    def update_community_with_name(
-        self,
-        community_name,
-        title=None,
-        description=None,
-        color=None,
-        type=None,
-        user_adjective=None,
-        users_adjective=None,
-        rules=None,
-        categories_names=None,
-        invites_enabled=None,
-        topic_ids=None,
-        topics_v2=None,
-        cover=None,
-        remove_cover=False,
-        avatar=None,
-        remove_avatar=False,
-        sdg_ids=None,
-        location=None,
-        geolocation=None,
-        contact_description=None,
-        contact_email=None,
-        contact_phone=None,
-        onboarding_steps=None,
-    ):
-        Community = get_community_model()
-        community = Community.objects.get(name=community_name)
-        return self.update_community(
-            community=community,
-            title=title,
-            description=description,
-            color=color,
-            type=type,
-            user_adjective=user_adjective,
-            users_adjective=users_adjective,
-            rules=rules,
-            categories_names=categories_names,
-            invites_enabled=invites_enabled,
-            topic_ids=topic_ids,
-            topics_v2=topics_v2,
-            cover=cover,
-            remove_cover=remove_cover,
-            avatar=avatar,
-            remove_avatar=remove_avatar,
-            sdg_ids=sdg_ids,
-            location=location,
-            geolocation=geolocation,
-            contact_description=contact_description,
-            contact_email=contact_email,
-            contact_phone=contact_phone,
-            onboarding_steps=onboarding_steps,
-        )
-
     def update_community(
         self,
         community,
@@ -1898,7 +1777,6 @@ class User(ModelWithUUID, AbstractUser):
         rules=None,
         categories_names=None,
         invites_enabled=None,
-        topic_ids=None,
         topics_v2=None,
         cover=None,
         remove_cover=False,
@@ -1924,7 +1802,6 @@ class User(ModelWithUUID, AbstractUser):
             rules=rules,
             categories_names=categories_names,
             invites_enabled=invites_enabled,
-            topic_ids=topic_ids,
             topics_v2=topics_v2,
             cover=cover,
             remove_cover=remove_cover,
@@ -4981,7 +4858,6 @@ class User(ModelWithUUID, AbstractUser):
         timeframe_start_date=None,
         timeframe_end_date=None,
         contact_phone=None,
-        skills=None,
         skills_v2=None,
         thumbnail=None,
         interaction_signup_link=None,
@@ -5011,7 +4887,6 @@ class User(ModelWithUUID, AbstractUser):
             timeframe_start_date=timeframe_start_date,
             timeframe_end_date=timeframe_end_date,
             contact_phone=contact_phone,
-            skills=skills,
             skills_v2=skills_v2,
             thumbnail=thumbnail,
             interaction_signup_link=interaction_signup_link,
@@ -5036,7 +4911,6 @@ class User(ModelWithUUID, AbstractUser):
         timeframe_start_date=None,
         timeframe_end_date=None,
         contact_phone=None,
-        skill_ids=None,
         skills_v2=None,
         thumbnail=None,
         remove_thumbnail=False,
@@ -5065,7 +4939,6 @@ class User(ModelWithUUID, AbstractUser):
             timeframe_start_date=timeframe_start_date,
             timeframe_end_date=timeframe_end_date,
             contact_phone=contact_phone,
-            skill_ids=skill_ids,
             skills_v2=skills_v2,
             thumbnail=thumbnail,
             remove_thumbnail=remove_thumbnail,
@@ -5264,10 +5137,8 @@ class UserProfile(ModelWithUUID):
         blank=False,
         null=True,
     )
-    interests = models.ManyToManyField(Topic, blank=True)
     interests_v2 = ArrayField(models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH), blank=True, default=list)
     sdgs = models.ManyToManyField(SDG, blank=True)
-    skills = models.ManyToManyField(Skill, blank=True)
     skills_v2 = ArrayField(models.CharField(max_length=settings.TERM_SLUG_MAX_LENGTH), blank=True, default=list)
     is_of_legal_age = models.BooleanField(default=False)
     avatar = ProcessedImageField(

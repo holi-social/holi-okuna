@@ -33,7 +33,7 @@ from openbook_auth.utils import verify_authorized_user
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.helpers import is_parameter_null, to_input_dict
 from openbook_common.schema.types import Result
-from openbook_common.utils.model_loaders import get_insight_model, get_community_model, get_topic_model, get_task_model
+from openbook_common.utils.model_loaders import get_insight_model, get_community_model, get_task_model
 from openbook_communities.schema.helpers import create_filtered_spaces_query, DISCOVER_DEFAULT_SPACES_V2
 from openbook_notifications.api import NotificationApi
 from openbook_notifications.enums import NotificationProvider
@@ -54,9 +54,9 @@ def _capture_user_fields(user: UserModel) -> Dict[str, str]:
         "aboutMe": user.profile.about_me,
         "pronouns": user.profile.pronouns,
         "engagementLevel": user.profile.engagement_level,
-        "interests": set(user.profile.interests.values_list("id", flat=True)) | set(user.profile.interests_v2),
+        "interests": set(user.profile.interests_v2),
         "sdgs": set(user.profile.sdgs.values_list("id", flat=True)),
-        "skills": set(user.profile.skills.values_list("id", flat=True)) | set(user.profile.skills_v2),
+        "skills": set(user.profile.skills_v2),
         "avatar": user.profile.avatar.url if user.profile.avatar else None,
     }
 
@@ -67,11 +67,6 @@ def _get_updated_fields(o1: Dict[str, any], o2: Dict[str, any]) -> List[str]:
 
 @strawberry.type
 class Mutation:
-    # TODO HOLI-8088 remove once not used by the frontend anymore
-    @strawberry.mutation(deprecation_reason="Deprecated in favor of 'updateAuthenticatedUserV2'.")
-    def update_authenticated_user(self, info, input: UpdateAuthenticatedUserInput) -> User:
-        return Mutation().update_authenticated_user_v2(info, input)
-
     @strawberry.mutation
     @sync_to_async
     def update_authenticated_user_v2(self, info, input: UpdateAuthenticatedUserInput) -> AuthenticatedUser:
@@ -104,10 +99,8 @@ class Mutation:
             geolocation=data.get("geolocation"),
             update_location=input.location is not strawberry.UNSET or input.geolocation is not strawberry.UNSET,
             engagement_level=data.get("engagement_level"),
-            interests=data.get("interests"),
             interests_v2=data.get("interests_v2"),
             sdgs=data.get("sdgs"),
-            skills=data.get("skills"),
             skills_v2=data.get("skills_v2"),
             avatar=data.get("avatar"),
             remove_avatar=remove_avatar,
@@ -136,7 +129,6 @@ class Mutation:
         if user_current_name is None and user_updated_name is not None:
             community_model = get_community_model()
             insight_model = get_insight_model()
-            topic_model = get_topic_model()
 
             whens = []
             topics_v2 = list(current_user.profile.interests_v2)

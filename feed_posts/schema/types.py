@@ -18,7 +18,7 @@ from openbook_common.schema.types import ReactionCounts, Paged, GeolocationPoint
 from openbook_insights.schema.types import Insight
 from openbook_polls.schema.types import Poll
 from openbook_posts.schema.types import LinkPreview, Post
-from openbook_terms.schema.types import Topic, FeedPostCategory
+from openbook_terms.schema.types import FeedPostCategory
 from comments.models import Comment as CommentModel
 from openbook_auth.models import User as UserModel, UserBlock as UserBlockModel
 
@@ -50,10 +50,6 @@ class FeedPost:
         strawberry.argument(description="This field is deprecated. Please use the new images field instead."),
     ]  # Can be removed after version 1.30.x
     visibility: VisibilityLevel
-    topics: Annotated[
-        Optional[List[Topic]],
-        strawberry.argument(description="Deprecated since 1.52. Use topics_v2 instead."),
-    ]
     topics_v2: Optional[List[str]]
     category: Optional[FeedPostCategory]
     creator: Optional[User]
@@ -137,10 +133,6 @@ class CreateFeedPostInput:
         strawberry.UNSET
     )  # This field is deprecated. Please use the new images field instead. Remove it after version 1.30.x
     visibility: VisibilityLevel
-    topic_ids: Annotated[
-        Optional[List[Optional[uuid.UUID]]],
-        strawberry.argument(description="Deprecated since 1.52. Use topics_v2 instead."),
-    ] = strawberry.UNSET
     topics_v2: Optional[List[str]] = strawberry.UNSET
     category_id: Optional[uuid.UUID] = strawberry.UNSET
     language: Optional[str] = strawberry.UNSET
@@ -168,10 +160,6 @@ class UpdateFeedPostInput:
         strawberry.UNSET
     )  # This field is deprecated. Please use the new images field instead. Remove it after version 1.30.x
     visibility: Optional[VisibilityLevel] = strawberry.UNSET
-    topic_ids: Annotated[
-        Optional[List[Optional[uuid.UUID]]],
-        strawberry.argument(description="Deprecated since 1.52. Use topics_v2 instead."),
-    ] = strawberry.UNSET
     topics_v2: Optional[List[str]] = strawberry.UNSET
     category_id: Optional[uuid.UUID] = strawberry.UNSET
     language: Optional[str] = strawberry.UNSET

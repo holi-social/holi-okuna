@@ -6,7 +6,7 @@ import strawberry_django
 from asgiref.sync import async_to_sync
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
-from django.db.models import Count, Prefetch, Q, Case, When, Value, IntegerField
+from django.db.models import Prefetch, Q
 from django.utils.translation import gettext_lazy as _
 from strawberry.django.context import StrawberryDjangoContext
 from strawberry.types import Info as StrawberryInfo
@@ -21,7 +21,6 @@ from openbook_communities.models import SpaceUserConnectionType
 from openbook_communities.models import Task as TaskModel
 from openbook_communities.schema.helpers import (
     filtered_spaces,
-    create_filtered_spaces_query,
     DISCOVER_DEFAULT_SPACES_V2,
 )
 from openbook_communities.schema.types import (
@@ -44,12 +43,6 @@ class Query:
     @strawberry_django.field()
     def spaces(
         self,
-        topic_id: Annotated[
-            Optional[uuid.UUID],
-            strawberry.argument(
-                description="Deprecated since version 1.52, use topics_v2 instead",
-            ),
-        ] = None,
         location: Annotated[
             Optional[str],
             strawberry.argument(
@@ -58,30 +51,6 @@ class Query:
             ),
         ] = None,
         geolocation: Optional[GeoJSON] = None,
-        skill_ids: Annotated[
-            Optional[List[Optional[uuid.UUID]]],
-            strawberry.argument(
-                description="Deprecated since version 1.52, use skills_v2 instead",
-            ),
-        ] = None,
-        topic_slug: Annotated[
-            Optional[str],
-            strawberry.argument(
-                description="Deprecated since version 1.52, use topics_v2 instead",
-            ),
-        ] = None,
-        topic_slugs: Annotated[
-            Optional[List[Optional[str]]],
-            strawberry.argument(
-                description="Deprecated since version 1.52, use topics_v2 instead",
-            ),
-        ] = None,
-        skill_slugs: Annotated[
-            Optional[List[Optional[str]]],
-            strawberry.argument(
-                description="Deprecated since version 1.52, use skills_v2 instead",
-            ),
-        ] = None,
         topics_v2: Optional[List[str]] = None,
         skills_v2: Optional[List[str]] = None,
         member_id: Optional[uuid.UUID] = None,
@@ -89,12 +58,7 @@ class Query:
         limit: int = 10,
     ) -> Paged[Space]:
         spaces = async_to_sync(filtered_spaces)(
-            topic_id=topic_id,
             geolocation=geolocation,
-            skill_ids=skill_ids,
-            topic_slug=topic_slug,
-            topic_slugs=topic_slugs,
-            skill_slugs=skill_slugs,
             topics_v2=topics_v2,
             skills_v2=skills_v2,
             member_id=member_id,
@@ -103,70 +67,11 @@ class Query:
         return Paged.of(spaces, offset, limit)
 
     @strawberry_django.field()
-    def recommended_spaces(
-        self,
-        info,
-        offset: int = 0,
-        limit: int = 5,
-    ) -> Paged[Space]:
-        current_user = info.context.request.user
-
-        whens = []
-
-        if current_user and not current_user.is_anonymous:
-            topics_v2 = list(current_user.profile.interests_v2)
-            geolocation = current_user.geolocation
-
-            if topics_v2:
-                whens.append(
-                    When(create_filtered_spaces_query(topics_v2=topics_v2, geolocation=geolocation), then=Value(10))
-                )
-
-            if geolocation:
-                whens.append(When(create_filtered_spaces_query(geolocation=geolocation), then=Value(20)))
-
-        whens.append(When(create_filtered_spaces_query(topics_v2=DISCOVER_DEFAULT_SPACES_V2), then=Value(30)))
-
-        return Paged.of(
-            CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
-            .annotate(member_count=Count("memberships"))
-            .annotate(
-                custom_order=Case(
-                    *whens,
-                    output_field=IntegerField(),
-                )
-            )
-            .filter(custom_order__isnull=False, is_deleted=False)
-            .distinct()
-            .order_by("custom_order", "-created")
-            .cache(ops=["fetch", "count"], timeout=300),
-            offset,
-            limit,
-        )
-
-    @strawberry_django.field()
     def discover_spaces(
         self,
         info,
-        topic_ids: Annotated[
-            Optional[List[Optional[uuid.UUID]]],
-            strawberry.argument(
-                description="Deprecated since version 1.52, use topics_v2 instead",
-            ),
-        ] = None,
         topics_v2: Optional[List[str]] = None,
-        location: Annotated[
-            Optional[str],
-            # Using description instead of deprecation_reason as deprecated arguments are removed in GraphQL Mesh
-            strawberry.argument(description="Unsupported since version 1.0.16, use geolocation instead"),
-        ] = None,
         geolocation: Optional[GeoJSON] = None,
-        skill_ids: Annotated[
-            Optional[List[Optional[uuid.UUID]]],
-            strawberry.argument(
-                description="Deprecated since version 1.52, use skills_v2 instead",
-            ),
-        ] = None,
         skills_v2: Optional[List[str]] = None,
         offset: int = 0,
         limit: int = 10,
@@ -184,16 +89,6 @@ class Query:
             )
 
         # get all spaces by topic (independent of other filters)
-        if topic_ids is not None:
-            for topic_id in topic_ids:
-                spaces = async_to_sync(filtered_spaces)(topic_id=topic_id)
-                result.append(
-                    DiscoverSpaces(
-                        topic_id=topic_id,
-                        spaces=Paged.of(spaces, offset, limit),
-                    )
-                )
-
         if topics_v2 is not None:
             for topic_v2 in topics_v2:
                 spaces = async_to_sync(filtered_spaces)(topics_v2=[topic_v2])
@@ -205,17 +100,6 @@ class Query:
                 )
 
         # get all spaces by skill_id (including geolocation filter)
-        if skill_ids is not None:
-            for skill_id in skill_ids:
-                spaces = async_to_sync(filtered_spaces)(skill_ids=skill_ids, geolocation=geolocation)
-                result.append(
-                    DiscoverSpaces(
-                        skill_id=skill_id,
-                        location_id=geolocation.id if geolocation else None,
-                        spaces=Paged.of(spaces, offset, limit),
-                    )
-                )
-
         if skills_v2 is not None:
             for skill_v2 in skills_v2:
                 spaces = async_to_sync(filtered_spaces)(skills_v2=[skill_v2], geolocation=geolocation)
@@ -359,47 +243,6 @@ class Query:
             return task
 
         raise PermissionDenied()
-
-    @strawberry_django.field()
-    def recommended_tasks(self, info, offset: int = 0, limit: int = 5) -> Paged[Task]:
-        current_user = info.context.request.user
-        if not current_user or current_user.is_anonymous:
-            return Paged.of(
-                TaskModel.objects.filter(TaskModel.is_visible_query(current_user) & TaskModel.is_not_expired_query())
-                .distinct()
-                .order_by("-created"),
-                offset,
-                limit,
-            )
-
-        skills_v2 = list(current_user.profile.skills_v2)
-        whens = []
-
-        locations_match = Q(geolocation__within=current_user.profile.geolocation)
-
-        if skills_v2 and current_user.profile.geolocation:
-            whens.append(
-                When(Q(skills_v2__overlap=skills_v2) & (locations_match | Q(location_type="REMOTE")), then=Value(10))
-            )
-        if skills_v2:
-            whens.append(When(skills_v2__overlap=skills_v2, then=Value(20)))
-        if current_user.profile.geolocation:
-            whens.append(When(locations_match, then=Value(30)))
-
-        return Paged.of(
-            TaskModel.objects.annotate(
-                custom_order=Case(
-                    *whens,
-                    default=Value(100),
-                    output_field=IntegerField(),
-                )
-            )
-            .filter(TaskModel.is_visible_query(current_user) & TaskModel.is_not_expired_query())
-            .distinct()
-            .order_by("custom_order", "-created"),
-            offset,
-            limit,
-        )
 
     @strawberry_django.field()
     def collaboration_tools(

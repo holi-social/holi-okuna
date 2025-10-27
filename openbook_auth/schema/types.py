@@ -1,6 +1,6 @@
 import logging
 import uuid
-from typing import List, Optional, TYPE_CHECKING, Annotated
+from typing import List, Optional, TYPE_CHECKING
 
 import strawberry
 import strawberry_django
@@ -14,7 +14,6 @@ from openbook_communities.enums import UpdateConnectionAction
 from openbook_communities.models import Community as CommunityModel
 from openbook_communities.models import SpaceUserConnectionType
 
-from openbook_terms.schema.types import SDG, Skill, Topic
 from openbook_devices.models import Device
 
 if TYPE_CHECKING:
@@ -33,19 +32,7 @@ class UpdateAuthenticatedUserInput:
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeoJSONInput] = strawberry.UNSET
     engagement_level: Optional[str] = strawberry.UNSET
-    interests: Annotated[
-        Optional[List[Optional[uuid.UUID]]],
-        strawberry.argument(description="Deprecated since 1.52. Use interests_v2 instead."),
-    ] = strawberry.UNSET
     interests_v2: Optional[List[str]] = strawberry.UNSET
-    sdgs: Annotated[
-        Optional[List[Optional[uuid.UUID]]],
-        strawberry.argument(description="Deprecated since 1.53."),
-    ] = strawberry.UNSET
-    skills: Annotated[
-        Optional[List[Optional[uuid.UUID]]],
-        strawberry.argument(description="Deprecated since 1.52. Use skills_v2 instead."),
-    ] = strawberry.UNSET
     skills_v2: Optional[List[str]] = strawberry.UNSET
     tracking_consent_analytics: Optional[bool] = strawberry.UNSET
     tracking_consent_personalization: Optional[bool] = strawberry.UNSET
@@ -106,25 +93,9 @@ class User:
     def engagement_level(self) -> Optional[str]:
         return self.profile.engagement_level
 
-    @strawberry_django.field(
-        select_related=["profile__interests"], deprecation_reason="Deprecated since 1.52. Use interests_v2 instead."
-    )
-    def interests(self) -> List[Optional[Topic]]:
-        return self.profile.interests.all()
-
     @strawberry_django.field(select_related=["profile"])
     def interests_v2(self) -> List[Optional[str]]:
         return self.profile.interests_v2
-
-    @strawberry_django.field(select_related=["profile__sdgs"], deprecation_reason="Deprecated since 1.53.")
-    def sdgs(self) -> List[Optional[SDG]]:
-        return self.profile.sdgs.all().order_by("number")
-
-    @strawberry_django.field(
-        select_related=["profile__skills"], deprecation_reason="Deprecated since 1.52. Use skills_v2 instead."
-    )
-    def skills(self) -> List[Optional[Skill]]:
-        return self.profile.skills.all()
 
     @strawberry_django.field(select_related=["profile"])
     def skills_v2(self) -> List[Optional[str]]:
