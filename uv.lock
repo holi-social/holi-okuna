@@ -8,16 +8,16 @@ resolution-markers = [
 
 [[package]]
 name = "adrf"
-version = "0.1.10"
+version = "0.1.11"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "async-property" },
     { name = "django" },
     { name = "djangorestframework" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/adrf/adrf-0.1.10.tar.gz", hash = "sha256:1f826f88570d45cfe7e40d8ecc8d939d32d562b51b162b6aea9c30e99c045ebd" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/adrf/adrf-0.1.11.tar.gz", hash = "sha256:03bfb677f5001104ffcc1405d45297913e9e63534b938469e7aba69fd50ccfb5" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/adrf/adrf-0.1.10-py3-none-any.whl", hash = "sha256:c31ba5be58fbf5e768ba9084447d821d057dbcfc9cb40f0851ad8909b61e2d46" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/adrf/adrf-0.1.11-py3-none-any.whl", hash = "sha256:55665f582d8c9ad77ba012a442705a1c4dd556b733df7a987ad7b6a89432702f" },
 ]
 
 [[package]]
@@ -1162,7 +1162,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "adrf", specifier = "==0.1.10" },
+    { name = "adrf", specifier = "==0.1.11" },
     { name = "aiofiles", specifier = "==25.1.0" },
     { name = "aiohappyeyeballs", specifier = "==2.6.1" },
     { name = "aiohttp", specifier = "==3.13.1" },
