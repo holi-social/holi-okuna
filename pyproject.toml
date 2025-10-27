@@ -106,7 +106,7 @@ dependencies = [
     "pytz==2025.2",
     "redis==6.4.0",
     "requests==2.32.5",
-    "requests-file==3.0.0",
+    "requests-file==3.0.1",
     "requests-toolbelt==1.0.0",
     "rest-framework-generic-relations==2.2.0",
     "rq==2.6.0",
