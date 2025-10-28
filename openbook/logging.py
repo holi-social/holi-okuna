@@ -51,7 +51,7 @@ def holi_gcloud_serializer(event_dict, **kwargs):
     # - Add static applicationlevel fields (service & environment)
     if "exc_info" in event_dict:
         exc_info = event_dict["exc_info"]
-        print(f"exc_info: ${exc_info}")
+        print(f"exc_info: ${exc_info}")  # noqa: T201
         if isinstance(exc_info, Sequence) and len(exc_info) >= 3:
             event_dict["traceback"] = "".join(traceback.format_exception(exc_info[0], exc_info[1], exc_info[2]))
         elif exc_info:
