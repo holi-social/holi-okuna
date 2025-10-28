@@ -52,12 +52,15 @@ def holi_gcloud_serializer(event_dict, **kwargs):
     if "exc_info" in event_dict:
         exc_info = event_dict["exc_info"]
         print(f"exc_info: ${exc_info}")  # noqa: T201
-        if isinstance(exc_info, Sequence) and len(exc_info) >= 3:
-            event_dict["traceback"] = "".join(traceback.format_exception(exc_info[0], exc_info[1], exc_info[2]))
-        elif exc_info:
-            result = sys.exc_info()
-            if result and isinstance(result, Sequence) and len(result) >= 3 and result != (None, None, None):
-                event_dict["traceback"] = "".join(traceback.format_exception(result[0], result[1], result[2]))
+        try:
+            if isinstance(exc_info, Sequence) and len(exc_info) >= 3:
+                event_dict["traceback"] = "".join(traceback.format_exception(exc_info[0], exc_info[1], exc_info[2]))
+            elif exc_info:
+                result = sys.exc_info()
+                if result and isinstance(result, Sequence) and len(result) >= 3 and result != (None, None, None):
+                    event_dict["traceback"] = "".join(traceback.format_exception(result[0], result[1], result[2]))
+        except:
+            pass  # ensure that exceptions here don't break logging
     event_dict["message"] = event_dict.pop("event")
     event_dict["severity"] = normalize_severity_from_loglevel(event_dict.pop("level"))
     event_dict["logging.googleapis.com/labels"] = LABELS
