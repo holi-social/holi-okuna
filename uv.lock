@@ -1283,7 +1283,7 @@ requires-dist = [
     { name = "sqlparse", specifier = "==0.5.3" },
     { name = "strawberry-graphql", specifier = "==0.248.1" },
     { name = "strawberry-graphql-django", specifier = "==0.53.3" },
-    { name = "structlog", specifier = "==25.4.0" },
+    { name = "structlog", specifier = "==25.5.0" },
     { name = "termcolor", specifier = "==3.1.0" },
     { name = "text-unidecode", specifier = "==1.3" },
     { name = "tldextract", specifier = "==5.3.0" },
@@ -2319,11 +2319,11 @@ wheels = [
 
 [[package]]
 name = "structlog"
-version = "25.4.0"
+version = "25.5.0"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/structlog/structlog-25.4.0.tar.gz", hash = "sha256:186cd1b0a8ae762e29417095664adf1d6a31702160a46dacb7796ea82f7409e4" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/structlog/structlog-25.5.0.tar.gz", hash = "sha256:098522a3bebed9153d4570c6d0288abf80a031dfdb2048d59a49e9dc2190fc98" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/structlog/structlog-25.4.0-py3-none-any.whl", hash = "sha256:fe809ff5c27e557d14e613f45ca441aabda051d119ee5a0102aaba6ce40eed2c" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/structlog/structlog-25.5.0-py3-none-any.whl", hash = "sha256:a8453e9b9e636ec59bd9e79bbd4a72f025981b3ba0f5837aebf48f02f37a7f9f" },
 ]
 
 [[package]]
