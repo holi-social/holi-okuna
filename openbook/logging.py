@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import sys
+from collections.abc import Sequence
 from logging import config as logging_config
 
 import structlog
@@ -49,9 +50,14 @@ def holi_gcloud_serializer(event_dict, **kwargs):
     # - Use Google fields for severity & other
     # - Add static applicationlevel fields (service & environment)
     if "exc_info" in event_dict:
-        event_dict["traceback"] = "".join(
-            traceback.format_exception(event_dict["exc_info"][0], event_dict["exc_info"][1], event_dict["exc_info"][2])
-        )
+        exc_info = event_dict["exc_info"]
+        print(f"exc_info: ${exc_info}")
+        if isinstance(exc_info, Sequence) and len(exc_info) >= 3:
+            event_dict["traceback"] = "".join(traceback.format_exception(exc_info[0], exc_info[1], exc_info[2]))
+        elif exc_info:
+            result = sys.exc_info()
+            if result and isinstance(result, Sequence) and len(result) >= 3 and result != (None, None, None):
+                event_dict["traceback"] = "".join(traceback.format_exception(result[0], result[1], result[2]))
     event_dict["message"] = event_dict.pop("event")
     event_dict["severity"] = normalize_severity_from_loglevel(event_dict.pop("level"))
     event_dict["logging.googleapis.com/labels"] = LABELS
