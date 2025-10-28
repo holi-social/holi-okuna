@@ -931,16 +931,16 @@ wheels = [
 
 [[package]]
 name = "grpcio-status"
-version = "1.75.1"
+version = "1.76.0"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "googleapis-common-protos" },
     { name = "grpcio" },
     { name = "protobuf" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio-status/grpcio_status-1.75.1.tar.gz", hash = "sha256:8162afa21833a2085c91089cc395ad880fac1378a1d60233d976649ed724cbf8" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio-status/grpcio_status-1.76.0.tar.gz", hash = "sha256:25fcbfec74c15d1a1cb5da3fab8ee9672852dc16a5a9eeb5baf7d7a9952943cd" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio-status/grpcio_status-1.75.1-py3-none-any.whl", hash = "sha256:f681b301be26dcf7abf5c765d4a22e4098765e1a65cbdfa3efca384edf8e4e3c" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/grpcio-status/grpcio_status-1.76.0-py3-none-any.whl", hash = "sha256:380568794055a8efbbd8871162df92012e0228a5f6dffaf57f2a00c534103b18" },
 ]
 
 [[package]]
@@ -1215,7 +1215,7 @@ requires-dist = [
     { name = "graphql-core", specifier = "==3.2.6" },
     { name = "grpc-google-iam-v1", specifier = "==0.14.3" },
     { name = "grpcio", specifier = "==1.76.0" },
-    { name = "grpcio-status", specifier = "==1.75.1" },
+    { name = "grpcio-status", specifier = "==1.76.0" },
     { name = "h11", specifier = "==0.16.0" },
     { name = "hiredis", specifier = "==3.3.0" },
     { name = "icalendar", specifier = "==6.3.1" },
