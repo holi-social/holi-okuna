@@ -55,7 +55,7 @@ dependencies = [
     "graphql-core==3.2.6",
     "grpc-google-iam-v1==0.14.3",
     "grpcio==1.76.0",
-    "grpcio-status==1.75.1",
+    "grpcio-status==1.76.0",
     "h11==0.16.0",
     "hiredis==3.3.0",
     "icalendar==6.3.1",
