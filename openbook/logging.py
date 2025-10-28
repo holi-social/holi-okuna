@@ -59,8 +59,9 @@ def holi_gcloud_serializer(event_dict, **kwargs):
                 result = sys.exc_info()
                 if result and isinstance(result, Sequence) and len(result) >= 3 and result != (None, None, None):
                     event_dict["traceback"] = "".join(traceback.format_exception(result[0], result[1], result[2]))
-        except:  # noqa: E722
-            pass  # noqa: S110 ensure that exceptions here don't break logging
+        except Exception as ex:
+            print(f"Exception during log serialization of exc_info ignored: ${ex}")  # noqa: T201
+
     event_dict["message"] = event_dict.pop("event")
     event_dict["severity"] = normalize_severity_from_loglevel(event_dict.pop("level"))
     event_dict["logging.googleapis.com/labels"] = LABELS
