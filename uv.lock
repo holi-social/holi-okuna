@@ -648,15 +648,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-tree-queries"
-version = "0.19.0"
-source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/django-tree-queries/django_tree_queries-0.19.0.tar.gz", hash = "sha256:d1325e75f96e90b86c4316a3d63498101ec05703f4e629786b561e8aaab0e4a7" }
-wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/django-tree-queries/django_tree_queries-0.19.0-py3-none-any.whl", hash = "sha256:05b9e3158e31612528f136b4704a8d807e14edc0b4a607a45377e6132517ba2c" },
-]
-
-[[package]]
 name = "djangorestframework"
 version = "3.16.1"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
@@ -1281,8 +1272,8 @@ requires-dist = [
     { name = "soupsieve", specifier = "==2.8" },
     { name = "spinners", specifier = "==0.0.24" },
     { name = "sqlparse", specifier = "==0.5.3" },
-    { name = "strawberry-graphql", specifier = "==0.248.1" },
-    { name = "strawberry-graphql-django", specifier = "==0.53.3" },
+    { name = "strawberry-graphql", specifier = "==0.281.0" },
+    { name = "strawberry-graphql-django", specifier = "==0.65.1" },
     { name = "structlog", specifier = "==25.4.0" },
     { name = "termcolor", specifier = "==3.1.0" },
     { name = "text-unidecode", specifier = "==1.3" },
@@ -1382,6 +1373,18 @@ dependencies = [
     { name = "six" },
 ]
 sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/langdetect/langdetect-1.0.9.tar.gz", hash = "sha256:cbc1fef89f8d062739774bd51eda3da3274006b3661d199c2655f6b3f6d605a0" }
+
+[[package]]
+name = "lia-web"
+version = "0.2.3"
+source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/lia-web/lia_web-0.2.3.tar.gz", hash = "sha256:ccc9d24cdc200806ea96a20b22fb68f4759e6becdb901bd36024df7921e848d7" }
+wheels = [
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/lia-web/lia_web-0.2.3-py3-none-any.whl", hash = "sha256:237c779c943cd4341527fc0adfcc3d8068f992ee051f4ef059b8474ee087f641" },
+]
 
 [[package]]
 name = "log-symbols"
@@ -2290,31 +2293,32 @@ wheels = [
 
 [[package]]
 name = "strawberry-graphql"
-version = "0.248.1"
+version = "0.281.0"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "graphql-core" },
+    { name = "lia-web" },
+    { name = "packaging" },
     { name = "python-dateutil" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/strawberry-graphql/strawberry_graphql-0.248.1.tar.gz", hash = "sha256:d05870ada9f0ff3d536813834e7deb14f3b93a97f551d88be887c301b0c000ab" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/strawberry-graphql/strawberry_graphql-0.281.0.tar.gz", hash = "sha256:fc83c3d1482276969cef3693c58ab8d4c229a2b8a859f202a4ddaa93d74f645f" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/strawberry-graphql/strawberry_graphql-0.248.1-py3-none-any.whl", hash = "sha256:04e0b966ff7972e668095824358766496d432fa61b38833bcb8d1b3115d88753" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/strawberry-graphql/strawberry_graphql-0.281.0-py3-none-any.whl", hash = "sha256:acd81bb22a111fca6cd753c329cdb6b46f10271dbd47c20c28b36d813f6df654" },
 ]
 
 [[package]]
 name = "strawberry-graphql-django"
-version = "0.53.3"
+version = "0.65.1"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "asgiref" },
     { name = "django" },
-    { name = "django-tree-queries" },
     { name = "strawberry-graphql" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/strawberry-graphql-django/strawberry_graphql_django-0.53.3.tar.gz", hash = "sha256:5b27712211b9b71aa123b5f595d8d00e032a9d7f8f0ba11e5a99b70c1d9d7b9b" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/strawberry-graphql-django/strawberry_graphql_django-0.65.1.tar.gz", hash = "sha256:de312b77d83ab475b875f76f44161e8c5d9d284f349df61cebc83b4362b57a17" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/strawberry-graphql-django/strawberry_graphql_django-0.53.3-py3-none-any.whl", hash = "sha256:b521a9534d7818cc91b93d576cf25a6ce52ad24c5d4cea60e0e67e1f393e60d1" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/strawberry-graphql-django/strawberry_graphql_django-0.65.1-py3-none-any.whl", hash = "sha256:e0a69af97c50deb07197641cd0b7320e25b5a3148a05ae6006d1bf5103530e85" },
 ]
 
 [[package]]

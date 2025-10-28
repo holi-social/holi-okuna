@@ -15,7 +15,6 @@ from favorites.schema import mutations as favorites_mutations
 from favorites.schema import queries as favorites_queries
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook.middleware.graphql_error_extension import GraphQLErrorExtension
-from openbook.settings.sentry_config import HoliSentryTracingExtension
 from openbook_appointments.schema import mutations as appointments_mutations
 from openbook_appointments.schema import queries as appointments_queries
 from anon_stats.schema import mutations as anon_stats
@@ -146,7 +145,6 @@ schema = HoliSchema(
     extensions=[
         DjangoOptimizerExtension,
         GraphQLErrorExtension,
-        HoliSentryTracingExtension,
         QueryDepthLimiter(max_depth=6),
     ],
 )
