@@ -94,11 +94,7 @@ class Paged(Generic[T]):
         data = [item async for item in query[offset : offset + limit]]
         return Paged(data=data, total_results=total_results)
 
-    @staticmethod
-    def empty():
-        return Paged(data=None, total_results=0)
-
-    def __init__(self, data=None, total_results=0):
+    def __init__(self, data=[], total_results=0):
         if data is None:
             data = []
         self.data = data

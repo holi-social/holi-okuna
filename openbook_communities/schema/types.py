@@ -388,7 +388,7 @@ class Space:
         current_user: UserModel = info.context.request.user
 
         if current_user.is_anonymous or not current_user.is_administrator_of_community_with_id(self.id):
-            return Paged([], 0)
+            return Paged()
 
         return Paged(
             self.membership_requests.all()[offset : offset + limit],
@@ -402,7 +402,7 @@ class Space:
         current_user: UserModel = info.context.request.user
 
         if current_user.is_anonymous or not current_user.is_administrator_of_community_with_id(self.id):
-            return Paged([], 0)
+            return Paged()
 
         return Paged(
             self.invites.all()[offset : offset + limit],

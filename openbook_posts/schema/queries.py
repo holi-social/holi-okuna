@@ -17,4 +17,4 @@ class Query:
 
     @strawberry_django.field()
     def inspiration_posts(self, info, offset: int = 0, limit: int = 10) -> Paged[Post]:
-        return Paged.empty()
+        return Paged()

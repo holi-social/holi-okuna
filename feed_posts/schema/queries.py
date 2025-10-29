@@ -21,7 +21,7 @@ class Query:
         user = info.context.request.user
 
         if user.is_anonymous:
-            return Paged.empty()
+            return Paged()
 
         return Paged.of(
             FeedPostService().get_feed_posts_by_user_id(user_id=user.username),
