@@ -1220,7 +1220,7 @@ requires-dist = [
     { name = "icalendar", specifier = "==6.3.1" },
     { name = "idna", specifier = "==3.11" },
     { name = "imagekitio", specifier = "==2.2.8" },
-    { name = "importlib-metadata", specifier = "==8.6.1" },
+    { name = "importlib-metadata", specifier = "==8.7.0" },
     { name = "iniconfig", specifier = "==2.3.0" },
     { name = "jinja2", specifier = "==3.1.6" },
     { name = "langdetect", specifier = "==1.0.9" },
@@ -1342,14 +1342,14 @@ wheels = [
 
 [[package]]
 name = "importlib-metadata"
-version = "8.6.1"
+version = "8.7.0"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "zipp" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/importlib-metadata/importlib_metadata-8.6.1.tar.gz", hash = "sha256:310b41d755445d74569f993ccfc22838295d9fe005425094fad953d7f15c8580" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/importlib-metadata/importlib_metadata-8.7.0.tar.gz", hash = "sha256:d13b81ad223b890aa16c5471f2ac3056cf76c5f10f82d6f9292f0b415f389000" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/importlib-metadata/importlib_metadata-8.6.1-py3-none-any.whl", hash = "sha256:02a89390c1e15fdfdc0d7c6b25cb3e62650d0494005c97d6f148bf5b9787525e" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/importlib-metadata/importlib_metadata-8.7.0-py3-none-any.whl", hash = "sha256:e5dd1551894c77868a30651cef00984d50e1002d06942a7101d34870c5f02afd" },
 ]
 
 [[package]]
