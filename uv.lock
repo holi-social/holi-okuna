@@ -810,16 +810,16 @@ grpc = [
 
 [[package]]
 name = "google-auth"
-version = "2.42.0"
+version = "2.42.1"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "cachetools" },
     { name = "pyasn1-modules" },
     { name = "rsa" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/google-auth/google_auth-2.42.0.tar.gz", hash = "sha256:9bbbeef3442586effb124d1ca032cfb8fb7acd8754ab79b55facd2b8f3ab2802" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/google-auth/google_auth-2.42.1.tar.gz", hash = "sha256:30178b7a21aa50bffbdc1ffcb34ff770a2f65c712170ecd5446c4bef4dc2b94e" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/google-auth/google_auth-2.42.0-py2.py3-none-any.whl", hash = "sha256:f8f944bcb9723339b0ef58a73840f3c61bc91b69bf7368464906120b55804473" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/google-auth/google_auth-2.42.1-py2.py3-none-any.whl", hash = "sha256:eb73d71c91fc95dbd221a2eb87477c278a355e7367a35c0d84e6b0e5f9b4ad11" },
 ]
 
 [[package]]
@@ -1208,7 +1208,7 @@ requires-dist = [
     { name = "frozenlist", specifier = "==1.8.0" },
     { name = "funcy", specifier = "==2.0" },
     { name = "google-api-core", specifier = "==2.28.1" },
-    { name = "google-auth", specifier = "==2.42.0" },
+    { name = "google-auth", specifier = "==2.42.1" },
     { name = "google-cloud-pubsub", specifier = "==2.32.0" },
     { name = "google-cloud-webrisk", specifier = "==1.19.0" },
     { name = "googleapis-common-protos", specifier = "==1.71.0" },
