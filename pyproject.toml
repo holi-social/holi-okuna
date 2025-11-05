@@ -58,7 +58,7 @@ dependencies = [
     "grpcio-status==1.76.0",
     "h11==0.16.0",
     "hiredis==3.3.0",
-    "icalendar==6.3.1",
+    "icalendar==6.3.2",
     "idna==3.11",
     "imagekitio==2.2.8", # version 3 contains many breaking changes
     "importlib_metadata==8.7.0",
