@@ -64,7 +64,7 @@ class TestPreGoodDeedEmailJob(TestCase):
             return u
 
         # In-window eligible
-        eligible = joined(start_utc + timedelta(hours=3))
+        joined(start_utc + timedelta(hours=3))
 
         # In-window with good-deed post
         has_good_deed = joined(start_utc + timedelta(hours=4))
@@ -99,7 +99,7 @@ class TestPreGoodDeedEmailJob(TestCase):
         CompletedTask.objects.create(task=task, user=has_completed_task)
 
         # Outside window (future)
-        outside = joined(end_utc + timedelta(hours=1))
+        joined(end_utc + timedelta(hours=1))
 
         with patch.object(EventApi, "trigger") as trigger_mock:
             msg = send_pre_good_deed_email_series_to_eligible_users()
