@@ -40,6 +40,9 @@ class NotificationType(Enum):
     WELCOME_EMAIL_SERIES = "WELCOME_EMAIL_SERIES"
     FEEDBACK_INTERVIEW = "FEEDBACK_INTERVIEW"
     POLL_CLOSURE = "POLL_CLOSURE"
+    PRE_GOOD_DEED_EMAIL_SERIES = "PRE_GOOD_DEED_EMAIL_SERIES"
+    PRE_GOOD_DEED_WELCOME_EMAIL = "PRE_GOOD_DEED_WELCOME_EMAIL"
+    POST_GOOD_DEED_EMAIL_SERIES = "POST_GOOD_DEED_EMAIL_SERIES"
 
 
 app_url = settings.APP_URL
@@ -669,4 +672,44 @@ class FeedbackInterviewPayload(Payload):
             },
             notification_type=NotificationType.FEEDBACK_INTERVIEW.value,
             notification_version=FeedbackInterviewPayload.NOTIFICATION_VERSION,
+        )
+
+
+class PreGoodDeedEmailSeriesPayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, user: User, token: str):
+        super().__init__(
+            data={
+                "user": UserData.from_user(user).to_dict(),
+                "unsubscribeUrl": f"{app_url}/unsubscribe?series=pre-good-deed&email={user.email}&token={token}",
+            },
+            notification_type=NotificationType.PRE_GOOD_DEED_EMAIL_SERIES.value,
+            notification_version=PreGoodDeedEmailSeriesPayload.NOTIFICATION_VERSION,
+        )
+
+
+class PreGoodDeedWelcomeEmailPayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, user: User):
+        super().__init__(
+            data={
+                "user": UserData.from_user(user).to_dict(),
+            },
+            notification_type=NotificationType.PRE_GOOD_DEED_WELCOME_EMAIL.value,
+            notification_version=PreGoodDeedWelcomeEmailPayload.NOTIFICATION_VERSION,
+        )
+
+
+class PostGoodDeedEmailSeriesPayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, user: User, token: str):
+        super().__init__(
+            data={
+                "user": UserData.from_user(user).to_dict(),
+            },
+            notification_type=NotificationType.POST_GOOD_DEED_EMAIL_SERIES.value,
+            notification_version=PostGoodDeedEmailSeriesPayload.NOTIFICATION_VERSION,
         )

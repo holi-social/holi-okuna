@@ -30,6 +30,9 @@ from openbook_notifications.notifications import (
     WelcomeEmailSeriesNotification,
     FeedbackInterviewNotification,
     PollClosureNotification,
+    PreGoodDeedEmailSeriesNotification,
+    PreGoodDeedWelcomeEmailNotification,
+    PostGoodDeedEmailSeriesNotification,
 )
 from openbook_notifications.payloads import (
     SpaceMembershipRequestPayload,
@@ -52,6 +55,9 @@ from openbook_notifications.payloads import (
     WelcomeEmailSeriesPayload,
     FeedbackInterviewPayload,
     PollClosurePayload,
+    PreGoodDeedEmailSeriesPayload,
+    PreGoodDeedWelcomeEmailPayload,
+    PostGoodDeedEmailSeriesPayload,
 )
 
 from openbook_notifications.wrappers import skip_e2e_notifications
@@ -394,6 +400,35 @@ class NotificationsService:
         notification = FeedbackInterviewNotification(
             user=str(user.username),
             payload=FeedbackInterviewPayload(user=user, token=token),
+            token=token,
+        )
+        notification.send()
+
+    @staticmethod
+    @skip_e2e_notifications
+    def send_pre_good_deed_email_series_notification(user: User, token):
+        notification = PreGoodDeedEmailSeriesNotification(
+            user=str(user.username),
+            payload=PreGoodDeedEmailSeriesPayload(user=user, token=token),
+            token=token,
+        )
+        notification.send()
+
+    @staticmethod
+    @skip_e2e_notifications
+    def send_pre_good_deed_welcome_email_notification(user: User):
+        notification = PreGoodDeedWelcomeEmailNotification(
+            user=str(user.username),
+            payload=PreGoodDeedWelcomeEmailPayload(user=user),
+        )
+        notification.send()
+
+    @staticmethod
+    @skip_e2e_notifications
+    def send_post_good_deed_email_series_notification(user: User, token):
+        notification = PostGoodDeedEmailSeriesNotification(
+            user=str(user.username),
+            payload=PostGoodDeedEmailSeriesPayload(user=user, token=token),
             token=token,
         )
         notification.send()
