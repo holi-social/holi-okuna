@@ -125,46 +125,22 @@ class Mutation:
         user_updated_name = current_user.profile.name
 
         # send welcome email only for newly created users
-        # include recommended spaces and latest insights in the welcome email
         if user_current_name is None and user_updated_name is not None:
-            community_model = get_community_model()
-            insight_model = get_insight_model()
-
-            whens = []
-            topics_v2 = list(current_user.profile.interests_v2)
-            geolocation = current_user.geolocation
-
-            if topics_v2:
-                whens.append(
-                    When(create_filtered_spaces_query(topics_v2=topics_v2, geolocation=geolocation), then=Value(10))
-                )
-
-            if geolocation:
-                whens.append(When(create_filtered_spaces_query(geolocation=geolocation), then=Value(20)))
-
-            whens.append(When(create_filtered_spaces_query(topics_v2=DISCOVER_DEFAULT_SPACES_V2), then=Value(30)))
-
-            spaces = (
-                community_model.objects.prefetch_related("links", "memberships__user__profile")
-                .annotate(member_count=Count("memberships"))
-                .annotate(
-                    custom_order=Case(
-                        *whens,
-                        output_field=IntegerField(),
-                    )
-                )
-                .filter(custom_order__isnull=False, is_deleted=False)
-                .distinct()
-                .order_by("custom_order", "-created")[:4]
+            # Check eligibility: exclude users who already created a good deed,
+            # committed to volunteering opportunities, or completed tasks
+            is_eligible = (
+                not current_user.created_feed_posts.filter(category__slug="good-deed").exists()
+                and not current_user.volunteeringopportunitystatus_set.exists()
+                and not current_user.completed_tasks.exists()
             )
 
-            insights = insight_model.objects.order_by("-date_published")[:3]
-
-            welcome_email_subscription_token = str(uuid.uuid4())
-
-            NotificationsService.send_welcome_email_series_notification(
-                user=current_user, spaces=spaces, insights=insights, token=welcome_email_subscription_token
-            )
+            if is_eligible:
+                NotificationsService.send_pre_good_deed_welcome_email_notification(user=current_user)
+            else:
+                post_good_deed_email_series_token = str(uuid.uuid4())
+                NotificationsService.send_post_good_deed_email_series_notification(
+                    user=current_user, token=post_good_deed_email_series_token
+                )
 
             feedback_interview_token = str(uuid.uuid4())
 
