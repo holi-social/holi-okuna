@@ -33,6 +33,9 @@ from openbook_notifications.payloads import (
     WelcomeEmailSeriesPayload,
     FeedbackInterviewPayload,
     PollClosurePayload,
+    PreGoodDeedEmailSeriesPayload,
+    PreGoodDeedWelcomeEmailPayload,
+    PostGoodDeedEmailSeriesPayload,
 )
 
 environment_id = settings.ENVIRONMENT_ID
@@ -68,6 +71,9 @@ class Workflow(Enum):
     WELCOME_EMAIL_SERIES = "welcome-email-series"
     FEEDBACK_INTERVIEW = "feedback-interview"
     POLL_CLOSURE = "poll-closure"
+    PRE_GOOD_DEED_EMAIL_SERIES = "pre-good-deed-email-series"
+    PRE_GOOD_DEED_WELCOME_EMAIL = "pre-good-deed-welcome-email"
+    POST_GOOD_DEED_EMAIL_SERIES = "post-good-deed-email-series"
 
 
 # INTERNAL USE ONLY, use NotificationsService  to trigger notifications
@@ -460,4 +466,56 @@ class FeedbackInterviewNotification(Notification):
             email_identifier=EmailIdentifier.PROD_FEEDBACK_EMAIL
             if environment_id == "production"
             else EmailIdentifier.DEV_FEEDBACK_EMAIL,
+        )
+
+
+class PreGoodDeedEmailSeriesNotification(Notification):
+    def __init__(
+        self,
+        user: str,
+        payload: PreGoodDeedEmailSeriesPayload,
+        token: str,
+    ):
+        super().__init__(
+            workflow=Workflow.PRE_GOOD_DEED_EMAIL_SERIES.value,
+            recipients=user,
+            payload=payload.to_dict(),
+            transaction_id=token,  # token is used as transaction_id to cancel the workflow and unsubscribe the user from newsletter
+            email_identifier=EmailIdentifier.PROD_SUPPORT_EMAIL
+            if environment_id == "production"
+            else EmailIdentifier.DEV_SUPPORT_EMAIL,
+        )
+
+
+class PreGoodDeedWelcomeEmailNotification(Notification):
+    def __init__(
+        self,
+        user: str,
+        payload: PreGoodDeedWelcomeEmailPayload,
+    ):
+        super().__init__(
+            workflow=Workflow.PRE_GOOD_DEED_WELCOME_EMAIL.value,
+            recipients=user,
+            payload=payload.to_dict(),
+            email_identifier=EmailIdentifier.PROD_SUPPORT_EMAIL
+            if environment_id == "production"
+            else EmailIdentifier.DEV_SUPPORT_EMAIL,
+        )
+
+
+class PostGoodDeedEmailSeriesNotification(Notification):
+    def __init__(
+        self,
+        user: str,
+        payload: PostGoodDeedEmailSeriesPayload,
+        token: str,
+    ):
+        super().__init__(
+            workflow=Workflow.POST_GOOD_DEED_EMAIL_SERIES.value,
+            recipients=user,
+            payload=payload.to_dict(),
+            transaction_id=token,  # token is used as transaction_id to cancel the workflow and unsubscribe the user from newsletter
+            email_identifier=EmailIdentifier.PROD_SUPPORT_EMAIL
+            if environment_id == "production"
+            else EmailIdentifier.DEV_SUPPORT_EMAIL,
         )
