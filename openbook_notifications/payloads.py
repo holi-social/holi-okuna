@@ -3,11 +3,16 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import TYPE_CHECKING, Optional
+import logging
+
+import requests
 
 from django.conf import settings
 
 from openbook_common.utils.model_loaders import get_feed_post_model
 from openbook_notifications.helpers import replace_mentions_with_full_names
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from openbook_auth.models import User
@@ -705,10 +710,54 @@ class PreGoodDeedWelcomeEmailPayload(Payload):
 class PostGoodDeedEmailSeriesPayload(Payload):
     NOTIFICATION_VERSION = "1.0.0"
 
+    @staticmethod
+    def _get_global_good_deed_counter() -> int:
+        if settings.IS_PRODUCTION:
+            graphql_url = "https://production.unified.apis.holi.social/graphql"
+        elif settings.IS_STAGING:
+            graphql_url = "https://staging.unified.apis.holi.social/graphql"
+        else:
+            # For local/dev environments, default to staging
+            graphql_url = "https://staging.unified.apis.holi.social/graphql"
+        query = """
+        query GlobalRewardsCounter {
+          rewards_globalCounter {
+            counter
+            __typename
+          }
+        }
+        """
+
+        try:
+            response = requests.post(
+                graphql_url,
+                json={"operationName": "GlobalRewardsCounter", "variables": {}, "query": query},
+                headers={"Content-Type": "application/json"},
+                timeout=5,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            if "errors" in data:
+                logger.error(f"GraphQL errors when fetching global counter: {data['errors']}")
+                return 0
+
+            counter = data.get("data", {}).get("rewards_globalCounter", {}).get("counter", 0)
+            return int(counter) if counter is not None else 0
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to fetch global good deed counter: {e}")
+            return 0
+        except (KeyError, ValueError, TypeError) as e:
+            logger.error(f"Error parsing global good deed counter response: {e}")
+            return 0
+
     def __init__(self, user: User, token: str):
+        global_counter = self._get_global_good_deed_counter()
         super().__init__(
             data={
                 "user": UserData.from_user(user).to_dict(),
+                "unsubscribeUrl": f"{app_url}/unsubscribe?series=post-good-deed&email={user.email}&token={token}",
+                "globalGoodDeedCounter": global_counter,
             },
             notification_type=NotificationType.POST_GOOD_DEED_EMAIL_SERIES.value,
             notification_version=PostGoodDeedEmailSeriesPayload.NOTIFICATION_VERSION,
