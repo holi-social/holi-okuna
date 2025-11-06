@@ -492,11 +492,13 @@ class PreGoodDeedWelcomeEmailNotification(Notification):
         self,
         user: str,
         payload: PreGoodDeedWelcomeEmailPayload,
+        transaction_id: Optional[str] = None,
     ):
         super().__init__(
             workflow=Workflow.PRE_GOOD_DEED_WELCOME_EMAIL.value,
             recipients=user,
             payload=payload.to_dict(),
+            transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
             email_identifier=EmailIdentifier.PROD_SUPPORT_EMAIL
             if environment_id == "production"
             else EmailIdentifier.DEV_SUPPORT_EMAIL,
