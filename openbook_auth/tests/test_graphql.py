@@ -526,7 +526,7 @@ class TestUsers:
 
         # Pre-good-deed welcome email should be sent (eligible user)
         mock_send_pre_good_deed_welcome_email.assert_called_once_with(user=user)
-        # Post-good-deed email series should NOT be sent
+        # Post-good-deed email series should NOT be sent (no items created within 1 minute of join)
         mock_send_post_good_deed_email_series.assert_not_called()
         # Feedback interview should always be sent
         mock_send_feedback_interview.assert_called_once()
@@ -552,7 +552,7 @@ class TestUsers:
         mock_send_post_good_deed_email_series,
         mock_send_feedback_interview,
     ):
-        # GIVEN a user with no name who has already created a good deed
+        # GIVEN a user with no name who has already created a good deed within 1 minute of joining
         response = self.create_response(200)
         mock_patch.return_value = response
         user = make_user()
@@ -560,13 +560,17 @@ class TestUsers:
         user.profile.last_name = None
         user.profile.save()
         good_deed_category = make_feed_post_good_deed_category()
-        FeedPost.objects.create(
+        # Create good deed within 1 minute of user's join date
+        good_deed = FeedPost.objects.create(
             title="Test Good Deed",
             description="A good deed",
             creator=user,
             category=good_deed_category,
             visibility=VisibilityLevel.PUBLIC,
         )
+        # Set created_at to be within 1 minute of user's date_joined
+        good_deed.created_at = user.date_joined + timedelta(seconds=30)
+        good_deed.save(update_fields=["created_at"])
 
         first_name = "Peter"
         last_name = "Shaw"
@@ -628,18 +632,21 @@ class TestUsers:
         mock_send_post_good_deed_email_series,
         mock_send_feedback_interview,
     ):
-        # GIVEN a user with no name who has committed to a volunteering opportunity
+        # GIVEN a user with no name who has committed to a volunteering opportunity within 1 minute of joining
         response = self.create_response(200)
         mock_patch.return_value = response
         user = make_user()
         user.profile.name = None
         user.profile.last_name = None
         user.profile.save()
-        VolunteeringOpportunityStatus.objects.create(
+        volunteering_status = VolunteeringOpportunityStatus.objects.create(
             user=user,
             external_volunteering_opportunity_id=str(uuid.uuid4()),
             status="TO_DO",
         )
+        # Set created_at to be within 1 minute of user's date_joined
+        volunteering_status.created_at = user.date_joined + timedelta(seconds=30)
+        volunteering_status.save(update_fields=["created_at"])
 
         first_name = "Peter"
         last_name = "Shaw"
@@ -701,7 +708,7 @@ class TestUsers:
         mock_send_post_good_deed_email_series,
         mock_send_feedback_interview,
     ):
-        # GIVEN a user with no name who has completed a task
+        # GIVEN a user with no name who has completed a task within 1 minute of joining
         response = self.create_response(200)
         mock_patch.return_value = response
         user = make_user()
@@ -710,7 +717,10 @@ class TestUsers:
         user.profile.save()
         community = make_community()
         task = make_community_task(community=community, creator=user)
-        CompletedTask.objects.create(user=user, task=task)
+        completed_task = CompletedTask.objects.create(user=user, task=task)
+        # Set completed_at to be within 1 minute of user's date_joined
+        completed_task.completed_at = user.date_joined + timedelta(seconds=30)
+        completed_task.save(update_fields=["completed_at"])
 
         first_name = "Peter"
         last_name = "Shaw"
@@ -746,8 +756,88 @@ class TestUsers:
 
         # Pre-good-deed welcome email should NOT be sent (not eligible)
         mock_send_pre_good_deed_welcome_email.assert_not_called()
-        # Post-good-deed email series should be sent instead
+        # Post-good-deed email series should be sent (item created within 1 minute of join)
         mock_send_post_good_deed_email_series.assert_called_once()
+        # Feedback interview should always be sent
+        mock_send_feedback_interview.assert_called_once()
+
+    @mock.patch("openbook_notifications.services.NotificationsService.send_feedback_interview_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_post_good_deed_email_series_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_pre_good_deed_welcome_email_notification")
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_updated_event")
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
+    @mock.patch("openbook_auth.schema.mutations.track")
+    def test_update_authenticated_user_v2_does_not_send_post_good_deed_email_if_item_created_after_minute_window(
+        self,
+        mock_track,
+        mock_create_or_update_subscriber,
+        mock_get_language_from_request,
+        mock_publish_user_name_updated_event,
+        mock_publish_user_updated_event,
+        mock_patch,
+        mock_send_pre_good_deed_welcome_email,
+        mock_send_post_good_deed_email_series,
+        mock_send_feedback_interview,
+    ):
+        # GIVEN a user with no name who has created a good deed, but more than 1 minute after joining
+        response = self.create_response(200)
+        mock_patch.return_value = response
+        user = make_user()
+        user.profile.name = None
+        user.profile.last_name = None
+        user.profile.save()
+        good_deed_category = make_feed_post_good_deed_category()
+        # Create good deed more than 1 minute after user's join date
+        good_deed = FeedPost.objects.create(
+            title="Test Good Deed",
+            description="A good deed",
+            creator=user,
+            category=good_deed_category,
+            visibility=VisibilityLevel.PUBLIC,
+        )
+        # Set created_at to be more than 1 minute after user's date_joined
+        good_deed.created_at = user.date_joined + timedelta(minutes=2)
+        good_deed.save(update_fields=["created_at"])
+
+        first_name = "Peter"
+        last_name = "Shaw"
+
+        request = HttpRequest()
+        request.COOKIES = {}
+        request.user = user
+
+        # WHEN updating the user with a name for the first time
+        executed = async_to_sync(schema.execute)(
+            """
+            mutation test($input: UpdateAuthenticatedUserInput!) {
+                updateAuthenticatedUserV2(input: $input) {
+                    id
+                    firstName
+                    lastName
+                }
+            }
+            """,
+            context_value=benedict({"request": request}),
+            variable_values={
+                "input": {
+                    "firstName": first_name,
+                    "lastName": last_name,
+                }
+            },
+        )
+
+        # THEN
+        assert executed.errors is None
+        persisted_user = User.objects.get(username=user.username)
+        assert persisted_user.profile.name == first_name
+
+        # Pre-good-deed welcome email should NOT be sent (not eligible - has good deed)
+        mock_send_pre_good_deed_welcome_email.assert_not_called()
+        # Post-good-deed email series should NOT be sent (good deed created outside 1 minute window)
+        mock_send_post_good_deed_email_series.assert_not_called()
         # Feedback interview should always be sent
         mock_send_feedback_interview.assert_called_once()
 
