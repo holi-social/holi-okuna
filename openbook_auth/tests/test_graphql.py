@@ -385,6 +385,7 @@ class TestUsers:
         engagement_level = EngagementLevelChoice.INITIATOR
         tracking_consent_analytics = True
         tracking_consent_personalization = False
+        tracking_consent_ad_partners = False
 
         json_body = [
             {"op": "add", "path": "/traits/given_name", "value": f"{first_name}"},
@@ -421,6 +422,7 @@ class TestUsers:
                     "engagementLevel": engagement_level,
                     "trackingConsentAnalytics": tracking_consent_analytics,
                     "trackingConsentPersonalization": tracking_consent_personalization,
+                    "trackingConsentAdPartners": tracking_consent_ad_partners,
                 }
             },
         )
@@ -456,6 +458,7 @@ class TestUsers:
             user=user, locale=mock_get_language_from_request.return_value
         )
         self._validate_tracking_event_user_updated(mock_track)
+        self._validate_tracking_event_user_consent_updated(mock_track, True, False, False)
 
     @mock.patch("openbook_notifications.services.NotificationsService.send_feedback_interview_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_post_good_deed_email_series_notification")
@@ -866,12 +869,22 @@ class TestUsers:
         user = make_user(name="John", last_name="Doe", engagement_level=EngagementLevelChoice.ENGAGED.value)
 
         self._update_user(user, {})
-        mock_track.assert_not_called()
+        self._validate_tracking_event_user_consent_updated(
+            mock_track,
+            user.tracking_consent_analytics,
+            user.tracking_consent_personalization,
+            user.tracking_consent_ad_partners,
+        )
         mock_track.reset_mock()
 
         # should not contain updated_fields if field values didn't change
         self._update_user(user, {"firstName": "John", "lastName": "Doe"})
-        mock_track.assert_not_called()
+        self._validate_tracking_event_user_consent_updated(
+            mock_track,
+            user.tracking_consent_analytics,
+            user.tracking_consent_personalization,
+            user.tracking_consent_ad_partners,
+        )
         mock_track.reset_mock()
 
         self._update_user(user, {"firstName": "Johnny", "lastName": "Doey", "aboutMe": "All about me"})
@@ -901,15 +914,28 @@ class TestUsers:
 
     @staticmethod
     def _validate_tracking_event_user_updated(mock_track, expected_updated_fields=None):
-        mock_track.assert_called_once()
-        user_arg, event_arg = mock_track.call_args.args
+        mock_track.assert_called()
+        found_call = next(call for call in mock_track.call_args_list if call[0][1].name == "userUpdated")
+        user_arg, event_arg = found_call.args
         assert isinstance(event_arg, TrackingEvent)
-        assert event_arg.name == "userUpdated"
         assert isinstance(event_arg.properties, dict)
         assert isinstance(event_arg.properties["updatedFields"], list)
         if expected_updated_fields:
             assert set(event_arg.properties["updatedFields"]) == expected_updated_fields
             assert event_arg.properties["accountType"] == AccountType.EMAIL
+
+    @staticmethod
+    def _validate_tracking_event_user_consent_updated(
+        mock_track, tracking_consent_analytics, tracking_consent_personalization, tracking_consent_ad_partners
+    ):
+        mock_track.assert_called()
+        found_call = next(call for call in mock_track.call_args_list if call[0][1].name == "trackingConsentUpdated")
+        user_arg, event_arg = found_call.args
+        assert isinstance(event_arg, TrackingEvent)
+        assert isinstance(event_arg.properties, dict)
+        assert event_arg.properties["tracking_consent_analytics"] == tracking_consent_analytics
+        assert event_arg.properties["tracking_consent_personalization"] == tracking_consent_personalization
+        assert event_arg.properties["tracking_consent_ad_partners"] == tracking_consent_ad_partners
 
     @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")
