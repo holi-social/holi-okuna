@@ -157,6 +157,12 @@ class Mutation:
                 ),
             )
 
+        if any(key.startswith("tracking_consent_") for key in data):
+            track(
+                current_user,
+                TrackingEvent("trackingConsentUpdated"),
+            )
+
         cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
 
         return current_user
