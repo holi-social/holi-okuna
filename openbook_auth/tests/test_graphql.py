@@ -458,7 +458,7 @@ class TestUsers:
             user=user, locale=mock_get_language_from_request.return_value
         )
         self._validate_tracking_event_user_updated(mock_track)
-        self._validate_tracking_event_user_consent_updated(mock_track, True, False, False)
+        self._validate_tracking_event_user_consent_updated(mock_track)
 
     @mock.patch("openbook_notifications.services.NotificationsService.send_feedback_interview_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_post_good_deed_email_series_notification")
@@ -869,22 +869,12 @@ class TestUsers:
         user = make_user(name="John", last_name="Doe", engagement_level=EngagementLevelChoice.ENGAGED.value)
 
         self._update_user(user, {})
-        self._validate_tracking_event_user_consent_updated(
-            mock_track,
-            user.tracking_consent_analytics,
-            user.tracking_consent_personalization,
-            user.tracking_consent_ad_partners,
-        )
+        self._validate_tracking_event_user_consent_updated(mock_track)
         mock_track.reset_mock()
 
         # should not contain updated_fields if field values didn't change
         self._update_user(user, {"firstName": "John", "lastName": "Doe"})
-        self._validate_tracking_event_user_consent_updated(
-            mock_track,
-            user.tracking_consent_analytics,
-            user.tracking_consent_personalization,
-            user.tracking_consent_ad_partners,
-        )
+        self._validate_tracking_event_user_consent_updated(mock_track)
         mock_track.reset_mock()
 
         self._update_user(user, {"firstName": "Johnny", "lastName": "Doey", "aboutMe": "All about me"})
@@ -925,17 +915,12 @@ class TestUsers:
             assert event_arg.properties["accountType"] == AccountType.EMAIL
 
     @staticmethod
-    def _validate_tracking_event_user_consent_updated(
-        mock_track, tracking_consent_analytics, tracking_consent_personalization, tracking_consent_ad_partners
-    ):
+    def _validate_tracking_event_user_consent_updated(mock_track):
         mock_track.assert_called()
         found_call = next(call for call in mock_track.call_args_list if call[0][1].name == "trackingConsentUpdated")
         user_arg, event_arg = found_call.args
         assert isinstance(event_arg, TrackingEvent)
         assert isinstance(event_arg.properties, dict)
-        assert event_arg.properties["tracking_consent_analytics"] == tracking_consent_analytics
-        assert event_arg.properties["tracking_consent_personalization"] == tracking_consent_personalization
-        assert event_arg.properties["tracking_consent_ad_partners"] == tracking_consent_ad_partners
 
     @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")

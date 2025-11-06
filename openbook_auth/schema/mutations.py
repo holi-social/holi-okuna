@@ -160,14 +160,7 @@ class Mutation:
         if any(key.startswith("tracking_consent_") for key in data):
             track(
                 current_user,
-                TrackingEvent(
-                    "trackingConsentUpdated",
-                    {
-                        "tracking_consent_analytics": current_user.tracking_consent_analytics,
-                        "tracking_consent_personalization": current_user.tracking_consent_personalization,
-                        "tracking_consent_ad_partners": current_user.tracking_consent_ad_partners,
-                    },
-                ),
+                TrackingEvent("trackingConsentUpdated"),
             )
 
         cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
