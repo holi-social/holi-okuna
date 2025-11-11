@@ -1,6 +1,7 @@
 from favorites.events import logger, VolunteeringDeletedEvent
 from openbook_common.pubsub.incoming_event import IncomingEvent
 from favorites.models import UserFavorite
+from volunteering.models import VolunteeringOpportunityStatus
 
 
 class ExternalDataEventHandler:
@@ -10,6 +11,7 @@ class ExternalDataEventHandler:
             logger.info("Processing VolunteeringDeleted event")
             event = VolunteeringDeletedEvent.of(incoming_event)
             UserFavorite.delete_all_favorites_for_external_volunteering_opportunity(event.record_id)
+            VolunteeringOpportunityStatus.delete_all_for_external_volunteering_opportunity(event.record_id)
             return True
 
         logger.warning(f"Ignoring unhandled event type: {incoming_event.event_type}")

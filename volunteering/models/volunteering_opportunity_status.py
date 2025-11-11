@@ -39,6 +39,14 @@ class VolunteeringOpportunityStatus(ModelWithUUID):
     created_at = DateTimeField(auto_now_add=True, editable=False)
     updated_at = DateTimeField(auto_now=True, editable=False)
 
+    @classmethod
+    def delete_multiple_of_user(cls, volunteering_opportunity_ids: list[str], user: User) -> None:
+        cls.objects.filter(external_volunteering_opportunity_id__in=volunteering_opportunity_ids, user=user).delete()
+
+    @classmethod
+    def delete_all_for_external_volunteering_opportunity(cls, external_id: str) -> None:
+        cls.objects.filter(external_volunteering_opportunity_id=external_id).delete()
+
     class Meta:
         indexes = [
             Index(fields=["user"]),
