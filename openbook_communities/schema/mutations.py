@@ -9,6 +9,7 @@ from graphql import GraphQLError
 
 from django.contrib.contenttypes.models import ContentType as ContentTypeModel
 from favorites.models import UserFavorite as UserFavoriteModel, FavoritableType
+from volunteering.models import VolunteeringOpportunityStatus as VolunteeringOpportunityStatusModel
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.enums import VisibilityType
 from openbook_common.utils.model_loaders import get_community_model
@@ -92,6 +93,7 @@ class Mutation:
         ConnectionType = SpaceUserConnectionType
         Action = UpdateConnectionAction
         UserFavorite = UserFavoriteModel
+        VolunteeringOpportunityStatus = VolunteeringOpportunityStatusModel
         Task = TaskModel
 
         invalidate_discover_spaces_query_cache()
@@ -127,6 +129,10 @@ class Mutation:
                     community_to_leave.delete_pending_notifications_for_user(current_user.username)
                     UserFavorite.delete_multiple_favorites_of_user(
                         Task.private_task_ids_of_community(community=community_to_leave), current_user
+                    )
+                    VolunteeringOpportunityStatusModel.delete_multiple_of_user(
+                        Task.private_task_ids_of_community(community=community_to_leave),
+                        current_user,
                     )
                     publish_space_user_left_event(user=current_user, community=community_to_leave)
                     return community_to_leave
@@ -168,6 +174,10 @@ class Mutation:
                     user_to_remove = UserModel.objects.get(username=user_id)
                     UserFavorite.delete_multiple_favorites_of_user(
                         Task.private_task_ids_of_community(community=community), user_to_remove
+                    )
+                    VolunteeringOpportunityStatus.delete_multiple_of_user(
+                        Task.private_task_ids_of_community(community=community),
+                        user_to_remove,
                     )
                     publish_space_user_removed_event(user=user_to_remove, community=community)
                     return community
@@ -392,6 +402,7 @@ class Mutation:
         if update_makes_task_private:
             task_content_type = ContentTypeModel.objects.filter(model=FavoritableType.TASK).first()
             UserFavoriteModel.objects.filter(favoritable_id=task_id, favoritable_type=task_content_type.id).delete()
+            VolunteeringOpportunityStatusModel.delete_all_for_external_volunteering_opportunity(str(task_id))
 
         return task
 
@@ -408,6 +419,8 @@ class Mutation:
             current_user,
             TrackingEvent("taskDeleted", {"spaceId": str(task.community_id), "taskId": str(task.id)}),
         )
+
+        VolunteeringOpportunityStatusModel.delete_all_for_external_volunteering_opportunity(str(task.id))
 
         return Result(success=True)
 
