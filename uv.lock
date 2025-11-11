@@ -2073,11 +2073,11 @@ wheels = [
 
 [[package]]
 name = "pytokens"
-version = "0.2.0"
+version = "0.3.0"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/pytokens/pytokens-0.2.0.tar.gz", hash = "sha256:532d6421364e5869ea57a9523bf385f02586d4662acbcc0342afd69511b4dd43" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/pytokens/pytokens-0.3.0.tar.gz", hash = "sha256:2f932b14ed08de5fcf0b391ace2642f858f1394c0857202959000b68ed7a458a" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/pytokens/pytokens-0.2.0-py3-none-any.whl", hash = "sha256:74d4b318c67f4295c13782ddd9abcb7e297ec5630ad060eb90abf7ebbefe59f8" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/pytokens/pytokens-0.3.0-py3-none-any.whl", hash = "sha256:95b2b5eaf832e469d141a378872480ede3f251a5a5041b8ec6e581d3ac71bbf3" },
 ]
 
 [[package]]
