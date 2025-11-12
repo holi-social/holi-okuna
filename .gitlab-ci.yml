@@ -81,11 +81,11 @@ alert_matching_on_migrations:
     - scripts/notify-matching-on-migrations.sh
 
 build_docker:
-  image: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:28'
+  image: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:29'
   cache: !reference [ .uv_cache_ro ]
   stage: 'build'
   services:
-    - name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:28-dind'
+    - name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:29-dind'
       alias: 'docker'
   variables:
     # this could be fetched via terraform output ("gcr_location" in infra project), but then we would need an extra job for terraform
