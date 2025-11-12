@@ -132,14 +132,14 @@ wheels = [
 
 [[package]]
 name = "asgimiddlewarestaticfile"
-version = "0.6.1"
+version = "0.6.2"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "aiofiles" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/asgimiddlewarestaticfile/ASGIMiddlewareStaticFile-0.6.1.tar.gz", hash = "sha256:3bd2c8cfce4bdcb00ef570cd84d072e9f004d159568e6d1bbc72438d9936ca2a" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/asgimiddlewarestaticfile/asgimiddlewarestaticfile-0.6.2.tar.gz", hash = "sha256:7486ca3771edbb7f345584fc412c50612cbd56277b549a3b1ac1a3ee0bba00a9" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/asgimiddlewarestaticfile/ASGIMiddlewareStaticFile-0.6.1-py3-none-any.whl", hash = "sha256:8a604766c7bc63cce4359a62af2701ba0721b446f9ca27c807829e1886f4eec5" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/asgimiddlewarestaticfile/asgimiddlewarestaticfile-0.6.2-py3-none-any.whl", hash = "sha256:6b6861cce11c0b7eb7141796ee1cae1a6c32ac2683f81dc004e066d6517272c7" },
 ]
 
 [[package]]
@@ -1182,7 +1182,7 @@ requires-dist = [
     { name = "aiohttp", specifier = "==3.13.2" },
     { name = "aiosignal", specifier = "==1.4.0" },
     { name = "apscheduler", specifier = "==3.11.1" },
-    { name = "asgimiddlewarestaticfile", specifier = "==0.6.1" },
+    { name = "asgimiddlewarestaticfile", specifier = "==0.6.2" },
     { name = "asgiref", specifier = "==3.10.0" },
     { name = "async-property", specifier = "==0.2.2" },
     { name = "attrs", specifier = "==25.4.0" },
