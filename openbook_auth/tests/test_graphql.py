@@ -459,6 +459,8 @@ class TestUsers:
         )
         self._validate_tracking_event_user_updated(mock_track)
         self._validate_tracking_event_user_consent_updated(mock_track)
+        # accountCreated was tracked
+        next(call for call in mock_track.call_args_list if call[0][1].name == "accountCreated")
 
     @mock.patch("openbook_notifications.services.NotificationsService.send_feedback_interview_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_post_good_deed_email_series_notification")
