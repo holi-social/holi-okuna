@@ -187,13 +187,15 @@ class Mutation:
                 current_user,
                 TrackingEvent("trackingConsentUpdated"),
             )
-            if not current_user.is_account_creation_tracked and current_user.tracking_consent_analytics:
-                track(
-                    current_user,
-                    TrackingEvent("accountCreated", {"dateJoined": current_user.date_joined.isoformat()}),
-                )
-                current_user.is_account_creation_tracked = True
-                current_user.save()
+        if not current_user.is_account_creation_tracked and current_user.tracking_consent_analytics:
+            track(
+                current_user,
+                TrackingEvent(
+                    "userAccountCreated", {"dateJoined": current_user.date_joined.strftime("%Y-%m-%d %H:%M:%S")}
+                ),
+            )
+            current_user.is_account_creation_tracked = True
+            current_user.save()
 
         cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
 
