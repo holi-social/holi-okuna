@@ -7,6 +7,7 @@ if typing.TYPE_CHECKING:
     from feed_posts.models import FeedPost
     from openbook_appointments.models import Appointment
     from volunteering.models import VolunteeringOpportunityStatus
+    from petitions.models import PetitionStatus
     from openbook_communities.models.completed_task import CompletedTask
 
 
@@ -345,6 +346,10 @@ def get_appointment_model() -> Type["Appointment"]:
 
 def get_volunteering_opportunity_status_model() -> Type["VolunteeringOpportunityStatus"]:
     return apps.get_model("volunteering.VolunteeringOpportunityStatus")
+
+
+def get_petition_status_model() -> Type["PetitionStatus"]:
+    return apps.get_model("petitions.PetitionStatus")
 
 
 def get_completed_task_model() -> Type["CompletedTask"]:
