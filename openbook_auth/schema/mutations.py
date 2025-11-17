@@ -191,7 +191,11 @@ class Mutation:
             track(
                 current_user,
                 TrackingEvent(
-                    "userAccountCreated", {"dateJoined": current_user.date_joined.strftime("%Y-%m-%d %H:%M:%S")}
+                    "userAccountCreated",
+                    {
+                        "dateJoined": current_user.date_joined.strftime("%Y-%m-%d"),
+                        "timeJoined": current_user.date_joined.strftime("%H:%M:%S"),
+                    },
                 ),
             )
             current_user.is_account_creation_tracked = True
