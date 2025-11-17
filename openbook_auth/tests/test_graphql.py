@@ -460,6 +460,79 @@ class TestUsers:
         self._validate_tracking_event_user_updated(mock_track)
         self._validate_tracking_event_user_consent_updated(mock_track)
 
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_updated_event")
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
+    @mock.patch("openbook_auth.schema.mutations.track")
+    def test_update_authenticated_user_triggers_account_created_event_once(
+        self,
+        mock_track,
+        mock_create_or_update_subscriber,
+        mock_get_language_from_request,
+        mock_publish_user_name_updated_event,
+        mock_publish_user_updated_event,
+        mock_patch,
+    ):
+        user = make_user(name="Fritz", last_name="Meier", identity="fritz")
+        tracking_consent_analytics = True
+        tracking_consent_personalization = False
+        tracking_consent_ad_partners = False
+
+        request = HttpRequest()
+        request.COOKIES = {}
+        request.user = user
+
+        executed = async_to_sync(schema.execute)(
+            """
+            mutation test($input: UpdateAuthenticatedUserInput!) {
+                updateAuthenticatedUserV2(input: $input) {
+                    id
+                }
+            }
+            """,
+            context_value=benedict({"request": request}),
+            variable_values={
+                "input": {
+                    "trackingConsentAnalytics": tracking_consent_analytics,
+                    "trackingConsentPersonalization": tracking_consent_personalization,
+                    "trackingConsentAdPartners": tracking_consent_ad_partners,
+                }
+            },
+        )
+
+        assert executed.errors is None
+
+        # accountCreated was tracked
+        account_created_calls = [call for call in mock_track.call_args_list if call[0][1].name == "userAccountCreated"]
+        assert len(account_created_calls) == 1
+
+        mock_track.reset_mock()
+
+        executed = async_to_sync(schema.execute)(
+            """
+            mutation test($input: UpdateAuthenticatedUserInput!) {
+                updateAuthenticatedUserV2(input: $input) {
+                    id
+                }
+            }
+            """,
+            context_value=benedict({"request": request}),
+            variable_values={
+                "input": {
+                    "trackingConsentAnalytics": tracking_consent_analytics,
+                    "trackingConsentPersonalization": tracking_consent_personalization,
+                    "trackingConsentAdPartners": tracking_consent_ad_partners,
+                }
+            },
+        )
+
+        assert executed.errors is None
+        # accountCreated was not tracked again
+        account_created_calls = [call for call in mock_track.call_args_list if call[0][1].name == "userAccountCreated"]
+        assert len(account_created_calls) == 0
+
     @mock.patch("openbook_notifications.services.NotificationsService.send_feedback_interview_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_post_good_deed_email_series_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_pre_good_deed_welcome_email_notification")

@@ -288,6 +288,7 @@ class User(ModelWithUUID, AbstractUser):
     invite_count = models.SmallIntegerField(default=0)
 
     is_moderator = models.BooleanField(default=False)
+    is_account_creation_tracked = models.BooleanField(default=False)
     is_oidc = models.BooleanField(null=False, blank=False, default=False)
     account_type = models.CharField(
         max_length=16, choices=AccountType.choices, blank=False, null=False, default=AccountType.EMAIL
