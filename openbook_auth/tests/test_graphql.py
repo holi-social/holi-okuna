@@ -529,7 +529,7 @@ class TestUsers:
         )
 
         assert executed.errors is None
-        # accountCreated was tracked
+        # accountCreated was not tracked again
         account_created_calls = [call for call in mock_track.call_args_list if call[0][1].name == "userAccountCreated"]
         assert len(account_created_calls) == 0
 
