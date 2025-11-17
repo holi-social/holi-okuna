@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_auth", "0046_remove_userprofile_interests_and_more"),
     ]
@@ -13,6 +12,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="user",
             name="is_account_creation_tracked",
-            field=models.BooleanField(default=False),
+            field=models.BooleanField(default=True),
+            preserve_default=False,
         ),
     ]
