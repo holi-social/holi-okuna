@@ -876,14 +876,14 @@ wheels = [
 
 [[package]]
 name = "googleapis-common-protos"
-version = "1.71.0"
+version = "1.72.0"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "protobuf" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/googleapis-common-protos/googleapis_common_protos-1.71.0.tar.gz", hash = "sha256:1aec01e574e29da63c80ba9f7bbf1ccfaacf1da877f23609fe236ca7c72a2e2e" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/googleapis-common-protos/googleapis_common_protos-1.72.0.tar.gz", hash = "sha256:e55a601c1b32b52d7a3e65f43563e2aa61bcd737998ee672ac9b951cd49319f5" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/googleapis-common-protos/googleapis_common_protos-1.71.0-py3-none-any.whl", hash = "sha256:59034a1d849dc4d18971997a72ac56246570afdd17f9369a0ff68218d50ab78c" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/googleapis-common-protos/googleapis_common_protos-1.72.0-py3-none-any.whl", hash = "sha256:4299c5a82d5ae1a9702ada957347726b167f9f8d1fc352477702a1e851ff4038" },
 ]
 
 [package.optional-dependencies]
@@ -1229,7 +1229,7 @@ requires-dist = [
     { name = "google-auth", specifier = "==2.43.0" },
     { name = "google-cloud-pubsub", specifier = "==2.33.0" },
     { name = "google-cloud-webrisk", specifier = "==1.19.0" },
-    { name = "googleapis-common-protos", specifier = "==1.71.0" },
+    { name = "googleapis-common-protos", specifier = "==1.72.0" },
     { name = "graphql-core", specifier = "==3.2.7" },
     { name = "grpc-google-iam-v1", specifier = "==0.14.3" },
     { name = "grpcio", specifier = "==1.76.0" },
