@@ -85,7 +85,7 @@ dependencies = [
     "posthog==7.0.1",
     "propcache==0.4.1",
     "proto-plus==1.26.1",
-    "protobuf==6.33.0",
+    "protobuf==6.33.1",
     "psycopg==3.2.12",
     "psycopg-binary==3.2.12",
     "pyasn1==0.6.1",
