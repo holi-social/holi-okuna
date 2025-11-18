@@ -1259,7 +1259,7 @@ requires-dist = [
     { name = "pillow", specifier = "==12.0.0" },
     { name = "platformdirs", specifier = "==4.5.0" },
     { name = "pluggy", specifier = "==1.6.0" },
-    { name = "posthog", specifier = "==6.8.0" },
+    { name = "posthog", specifier = "==7.0.0" },
     { name = "propcache", specifier = "==0.4.1" },
     { name = "proto-plus", specifier = "==1.26.1" },
     { name = "protobuf", specifier = "==6.33.0" },
@@ -1736,7 +1736,7 @@ wheels = [
 
 [[package]]
 name = "posthog"
-version = "6.8.0"
+version = "7.0.0"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "backoff" },
@@ -1746,9 +1746,9 @@ dependencies = [
     { name = "six" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/posthog/posthog-6.8.0.tar.gz", hash = "sha256:40bc3bffe4818d37de63a4f4f13d2e90a78efe14f0d808c962f0ffebc3b15256" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/posthog/posthog-7.0.0.tar.gz", hash = "sha256:94973227f5fe5e7d656d305ff48c8bff3d505fd1e78b6fcd7ccc9dfe8d3401c2" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/posthog/posthog-6.8.0-py3-none-any.whl", hash = "sha256:b30b3cb06234d9177cecabe6f3e04e34e1e15fe7b60428771a67be57920a6308" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/posthog/posthog-7.0.0-py3-none-any.whl", hash = "sha256:676d8a5197a17bf7bd00e31020a5f232988f249f57aab532f0d01c6243835934" },
 ]
 
 [[package]]
