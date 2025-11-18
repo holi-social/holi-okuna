@@ -1293,7 +1293,7 @@ requires-dist = [
     { name = "ruamel-yaml-clib", specifier = "==0.2.14" },
     { name = "ruff", specifier = "==0.14.5" },
     { name = "semver", specifier = ">=3.0.4" },
-    { name = "sentry-sdk", specifier = "==2.43.0" },
+    { name = "sentry-sdk", specifier = "==2.44.0" },
     { name = "setuptools", specifier = "==80.9.0" },
     { name = "six", specifier = "==1.17.0" },
     { name = "soupsieve", specifier = "==2.8" },
@@ -2252,15 +2252,15 @@ wheels = [
 
 [[package]]
 name = "sentry-sdk"
-version = "2.43.0"
+version = "2.44.0"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "certifi" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/sentry-sdk/sentry_sdk-2.43.0.tar.gz", hash = "sha256:52ed6e251c5d2c084224d73efee56b007ef5c2d408a4a071270e82131d336e20" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/sentry-sdk/sentry_sdk-2.44.0.tar.gz", hash = "sha256:5b1fe54dfafa332e900b07dd8f4dfe35753b64e78e7d9b1655a28fd3065e2493" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/sentry-sdk/sentry_sdk-2.43.0-py2.py3-none-any.whl", hash = "sha256:4aacafcf1756ef066d359ae35030881917160ba7f6fc3ae11e0e58b09edc2d5d" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/sentry-sdk/sentry_sdk-2.44.0-py2.py3-none-any.whl", hash = "sha256:9e36a0372b881e8f92fdbff4564764ce6cec4b7f25424d0a3a8d609c9e4651a7" },
 ]
 
 [[package]]
