@@ -138,12 +138,6 @@ class Mutation:
             if is_eligible:
                 NotificationsService.send_pre_good_deed_welcome_email_notification(user=current_user)
 
-            feedback_interview_token = str(uuid.uuid4())
-
-            NotificationsService.send_feedback_interview_notification(
-                user=current_user, token=feedback_interview_token
-            )
-
         user_joined = current_user.date_joined
 
         one_minute_after_join = user_joined + timedelta(minutes=1)
