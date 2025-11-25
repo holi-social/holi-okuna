@@ -42,6 +42,8 @@ from openbook.storage_imagekit_io import ImagekitIoStorage
 from feed_posts.schema import feed_queries
 from volunteering.schema import queries as volunteering_queries
 from volunteering.schema import mutations as volunteering_mutations
+from petitions.schema import queries as petitions_queries
+from petitions.schema import mutations as petitions_mutations
 
 logger = structlog.get_logger(__name__)
 
@@ -91,6 +93,7 @@ Query = merge_types(
         feed_posts_queries.Query,
         feed_queries.Query,
         volunteering_queries.Query,
+        petitions_queries.Query,
     ),
 )
 
@@ -136,6 +139,7 @@ Mutation = merge_types(
         comments_mutations.Mutation,
         feed_posts_mutations.Mutation,
         volunteering_mutations.Mutation,
+        petitions_mutations.Mutation,
         ImageKitMutations,
     ),
 )

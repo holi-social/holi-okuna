@@ -115,6 +115,7 @@ INSTALLED_APPS = [
     "comments",
     "feed_posts",
     "volunteering",
+    "petitions",
 ]
 
 MODELTRANSLATION_FALLBACK_LANGUAGES = ("en",)
