@@ -533,7 +533,6 @@ class TestUsers:
         account_created_calls = [call for call in mock_track.call_args_list if call[0][1].name == "userAccountCreated"]
         assert len(account_created_calls) == 0
 
-    @mock.patch("openbook_notifications.services.NotificationsService.send_feedback_interview_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_post_good_deed_email_series_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_pre_good_deed_welcome_email_notification")
     @mock.patch("openbook_auth.tasks.requests.patch")
@@ -552,7 +551,6 @@ class TestUsers:
         mock_patch,
         mock_send_pre_good_deed_welcome_email,
         mock_send_post_good_deed_email_series,
-        mock_send_feedback_interview,
     ):
         # GIVEN a user with no name (newly created) who is eligible
         # (no good deeds, no volunteering opportunities, no completed tasks)
@@ -601,10 +599,7 @@ class TestUsers:
         mock_send_pre_good_deed_welcome_email.assert_called_once_with(user=user)
         # Post-good-deed email series should NOT be sent (no items created within 1 minute of join)
         mock_send_post_good_deed_email_series.assert_not_called()
-        # Feedback interview should always be sent
-        mock_send_feedback_interview.assert_called_once()
 
-    @mock.patch("openbook_notifications.services.NotificationsService.send_feedback_interview_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_post_good_deed_email_series_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_pre_good_deed_welcome_email_notification")
     @mock.patch("openbook_auth.tasks.requests.patch")
@@ -623,7 +618,6 @@ class TestUsers:
         mock_patch,
         mock_send_pre_good_deed_welcome_email,
         mock_send_post_good_deed_email_series,
-        mock_send_feedback_interview,
     ):
         # GIVEN a user with no name who has already created a good deed within 1 minute of joining
         response = self.create_response(200)
@@ -681,10 +675,7 @@ class TestUsers:
         mock_send_pre_good_deed_welcome_email.assert_not_called()
         # Post-good-deed email series should be sent instead
         mock_send_post_good_deed_email_series.assert_called_once()
-        # Feedback interview should always be sent
-        mock_send_feedback_interview.assert_called_once()
 
-    @mock.patch("openbook_notifications.services.NotificationsService.send_feedback_interview_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_post_good_deed_email_series_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_pre_good_deed_welcome_email_notification")
     @mock.patch("openbook_auth.tasks.requests.patch")
@@ -703,7 +694,6 @@ class TestUsers:
         mock_patch,
         mock_send_pre_good_deed_welcome_email,
         mock_send_post_good_deed_email_series,
-        mock_send_feedback_interview,
     ):
         # GIVEN a user with no name who has committed to a volunteering opportunity within 1 minute of joining
         response = self.create_response(200)
@@ -757,10 +747,7 @@ class TestUsers:
         mock_send_pre_good_deed_welcome_email.assert_not_called()
         # Post-good-deed email series should be sent instead
         mock_send_post_good_deed_email_series.assert_called_once()
-        # Feedback interview should always be sent
-        mock_send_feedback_interview.assert_called_once()
 
-    @mock.patch("openbook_notifications.services.NotificationsService.send_feedback_interview_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_post_good_deed_email_series_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_pre_good_deed_welcome_email_notification")
     @mock.patch("openbook_auth.tasks.requests.patch")
@@ -779,7 +766,6 @@ class TestUsers:
         mock_patch,
         mock_send_pre_good_deed_welcome_email,
         mock_send_post_good_deed_email_series,
-        mock_send_feedback_interview,
     ):
         # GIVEN a user with no name who has completed a task within 1 minute of joining
         response = self.create_response(200)
@@ -831,10 +817,7 @@ class TestUsers:
         mock_send_pre_good_deed_welcome_email.assert_not_called()
         # Post-good-deed email series should be sent (item created within 1 minute of join)
         mock_send_post_good_deed_email_series.assert_called_once()
-        # Feedback interview should always be sent
-        mock_send_feedback_interview.assert_called_once()
 
-    @mock.patch("openbook_notifications.services.NotificationsService.send_feedback_interview_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_post_good_deed_email_series_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_pre_good_deed_welcome_email_notification")
     @mock.patch("openbook_auth.tasks.requests.patch")
@@ -853,7 +836,6 @@ class TestUsers:
         mock_patch,
         mock_send_pre_good_deed_welcome_email,
         mock_send_post_good_deed_email_series,
-        mock_send_feedback_interview,
     ):
         # GIVEN a user with no name who has created a good deed, but more than 1 minute after joining
         response = self.create_response(200)
@@ -911,8 +893,6 @@ class TestUsers:
         mock_send_pre_good_deed_welcome_email.assert_not_called()
         # Post-good-deed email series should NOT be sent (good deed created outside 1 minute window)
         mock_send_post_good_deed_email_series.assert_not_called()
-        # Feedback interview should always be sent
-        mock_send_feedback_interview.assert_called_once()
 
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Optional
 import logging
@@ -43,7 +43,6 @@ class NotificationType(Enum):
     POST_REACTION = "POST_REACTION"
     COMMENT_REACTION = "COMMENT_REACTION"
     WELCOME_EMAIL_SERIES = "WELCOME_EMAIL_SERIES"
-    FEEDBACK_INTERVIEW = "FEEDBACK_INTERVIEW"
     POLL_CLOSURE = "POLL_CLOSURE"
     PRE_GOOD_DEED_EMAIL_SERIES = "PRE_GOOD_DEED_EMAIL_SERIES"
     PRE_GOOD_DEED_WELCOME_EMAIL = "PRE_GOOD_DEED_WELCOME_EMAIL"
@@ -662,21 +661,6 @@ class WelcomeEmailSeriesPayload(Payload):
             },
             notification_type=NotificationType.WELCOME_EMAIL_SERIES.value,
             notification_version=WelcomeEmailSeriesPayload.NOTIFICATION_VERSION,
-        )
-
-
-class FeedbackInterviewPayload(Payload):
-    NOTIFICATION_VERSION = "1.0.0"
-    send_at = datetime.now().replace(hour=16, minute=0, second=0, microsecond=0) + timedelta(days=1)
-
-    def __init__(self, user: User, token: str):
-        super().__init__(
-            data={
-                "sendAt": FeedbackInterviewPayload.send_at.isoformat(),
-                "unsubscribeUrl": f"{app_url}/unsubscribe?series=feedback-interview&email={user.email}&token={token}",
-            },
-            notification_type=NotificationType.FEEDBACK_INTERVIEW.value,
-            notification_version=FeedbackInterviewPayload.NOTIFICATION_VERSION,
         )
 
 

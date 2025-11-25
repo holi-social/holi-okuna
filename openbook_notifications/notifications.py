@@ -31,7 +31,6 @@ from openbook_notifications.payloads import (
     PostReactionPayload,
     CommentReactionPayload,
     WelcomeEmailSeriesPayload,
-    FeedbackInterviewPayload,
     PollClosurePayload,
     PreGoodDeedEmailSeriesPayload,
     PreGoodDeedWelcomeEmailPayload,
@@ -44,8 +43,6 @@ environment_id = settings.ENVIRONMENT_ID
 class EmailIdentifier(Enum):
     DEV_SUPPORT_EMAIL = "DEV_SUPPORT_EMAIL"
     PROD_SUPPORT_EMAIL = "PROD_SUPPORT_EMAIL"
-    DEV_FEEDBACK_EMAIL = "DEV_FEEDBACK_EMAIL"
-    PROD_FEEDBACK_EMAIL = "PROD_FEEDBACK_EMAIL"
 
 
 class Workflow(Enum):
@@ -69,7 +66,6 @@ class Workflow(Enum):
     POST_REACTIONS = "post-reactions"
     COMMENT_REACTIONS = "comment-reactions"
     WELCOME_EMAIL_SERIES = "welcome-email-series"
-    FEEDBACK_INTERVIEW = "feedback-interview"
     POLL_CLOSURE = "poll-closure"
     PRE_GOOD_DEED_EMAIL_SERIES = "pre-good-deed-email-series"
     PRE_GOOD_DEED_WELCOME_EMAIL = "pre-good-deed-welcome-email"
@@ -448,24 +444,6 @@ class WelcomeEmailSeriesNotification(Notification):
             email_identifier=EmailIdentifier.PROD_SUPPORT_EMAIL
             if environment_id == "production"
             else EmailIdentifier.DEV_SUPPORT_EMAIL,
-        )
-
-
-class FeedbackInterviewNotification(Notification):
-    def __init__(
-        self,
-        user: str,
-        payload: FeedbackInterviewPayload,
-        token: str,
-    ):
-        super().__init__(
-            workflow=Workflow.FEEDBACK_INTERVIEW.value,
-            recipients=user,
-            payload=payload.to_dict(),
-            transaction_id=token,  # token is used as transaction_id to cancel the workflow and unsubscribe the user from newsletter
-            email_identifier=EmailIdentifier.PROD_FEEDBACK_EMAIL
-            if environment_id == "production"
-            else EmailIdentifier.DEV_FEEDBACK_EMAIL,
         )
 
 
