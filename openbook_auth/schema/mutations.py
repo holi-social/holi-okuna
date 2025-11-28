@@ -123,6 +123,12 @@ class Mutation:
         locale = get_language_from_request(info.context.request)
         NotificationApi.create_or_update_subscriber(user=current_user, locale=locale)
 
+        user_updated_name = current_user.profile.name
+
+        # send welcome email only for newly created users
+        if user_current_name is None and user_updated_name is not None:
+            NotificationsService.send_welcome_email_series_notification(user=current_user, token=str(uuid.uuid4()))
+
         updated_fields = _get_updated_fields(current_user_fields_before, current_user_fields_after)
         if updated_fields:
             track(
