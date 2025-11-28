@@ -45,7 +45,6 @@ class NotificationType(Enum):
     WELCOME_EMAIL_SERIES = "WELCOME_EMAIL_SERIES"
     POLL_CLOSURE = "POLL_CLOSURE"
     PRE_GOOD_DEED_EMAIL_SERIES = "PRE_GOOD_DEED_EMAIL_SERIES"
-    PRE_GOOD_DEED_WELCOME_EMAIL = "PRE_GOOD_DEED_WELCOME_EMAIL"
 
 
 app_url = settings.APP_URL
@@ -674,17 +673,4 @@ class PreGoodDeedEmailSeriesPayload(Payload):
             },
             notification_type=NotificationType.PRE_GOOD_DEED_EMAIL_SERIES.value,
             notification_version=PreGoodDeedEmailSeriesPayload.NOTIFICATION_VERSION,
-        )
-
-
-class PreGoodDeedWelcomeEmailPayload(Payload):
-    NOTIFICATION_VERSION = "1.0.0"
-
-    def __init__(self, user: User):
-        super().__init__(
-            data={
-                "user": UserData.from_user(user).to_dict(),
-            },
-            notification_type=NotificationType.PRE_GOOD_DEED_WELCOME_EMAIL.value,
-            notification_version=PreGoodDeedWelcomeEmailPayload.NOTIFICATION_VERSION,
         )

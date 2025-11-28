@@ -33,7 +33,6 @@ from openbook_notifications.payloads import (
     WelcomeEmailSeriesPayload,
     PollClosurePayload,
     PreGoodDeedEmailSeriesPayload,
-    PreGoodDeedWelcomeEmailPayload,
 )
 
 environment_id = settings.ENVIRONMENT_ID
@@ -67,7 +66,6 @@ class Workflow(Enum):
     WELCOME_EMAIL_SERIES = "welcome-email-series"
     POLL_CLOSURE = "poll-closure"
     PRE_GOOD_DEED_EMAIL_SERIES = "pre-good-deed-email-series"
-    PRE_GOOD_DEED_WELCOME_EMAIL = "pre-good-deed-welcome-email"
 
 
 # INTERNAL USE ONLY, use NotificationsService  to trigger notifications
@@ -457,24 +455,6 @@ class PreGoodDeedEmailSeriesNotification(Notification):
             recipients=user,
             payload=payload.to_dict(),
             transaction_id=token,  # token is used as transaction_id to cancel the workflow and unsubscribe the user from newsletter
-            email_identifier=EmailIdentifier.PROD_SUPPORT_EMAIL
-            if environment_id == "production"
-            else EmailIdentifier.DEV_SUPPORT_EMAIL,
-        )
-
-
-class PreGoodDeedWelcomeEmailNotification(Notification):
-    def __init__(
-        self,
-        user: str,
-        payload: PreGoodDeedWelcomeEmailPayload,
-        transaction_id: Optional[str] = None,
-    ):
-        super().__init__(
-            workflow=Workflow.PRE_GOOD_DEED_WELCOME_EMAIL.value,
-            recipients=user,
-            payload=payload.to_dict(),
-            transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
             email_identifier=EmailIdentifier.PROD_SUPPORT_EMAIL
             if environment_id == "production"
             else EmailIdentifier.DEV_SUPPORT_EMAIL,

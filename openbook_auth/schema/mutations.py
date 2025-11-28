@@ -123,21 +123,6 @@ class Mutation:
         locale = get_language_from_request(info.context.request)
         NotificationApi.create_or_update_subscriber(user=current_user, locale=locale)
 
-        user_updated_name = current_user.profile.name
-
-        # send welcome email only for newly created users
-        if user_current_name is None and user_updated_name is not None:
-            # Check eligibility: exclude users who already created a good deed,
-            # committed to volunteering opportunities, or completed tasks
-            is_eligible = (
-                not current_user.created_feed_posts.filter(category__slug="good-deed").exists()
-                and not current_user.volunteeringopportunitystatus_set.exists()
-                and not current_user.completed_tasks.exists()
-            )
-
-            if is_eligible:
-                NotificationsService.send_pre_good_deed_welcome_email_notification(user=current_user)
-
         updated_fields = _get_updated_fields(current_user_fields_before, current_user_fields_after)
         if updated_fields:
             track(
