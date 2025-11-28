@@ -5,8 +5,6 @@ from enum import Enum
 from typing import TYPE_CHECKING, Optional
 import logging
 
-import requests
-
 from django.conf import settings
 
 from openbook_common.utils.model_loaders import get_feed_post_model
