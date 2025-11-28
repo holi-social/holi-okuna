@@ -30,7 +30,6 @@ from openbook_notifications.payloads import (
     PollUpdatesPayload,
     PostReactionPayload,
     CommentReactionPayload,
-    WelcomeEmailSeriesPayload,
     PollClosurePayload,
     PreGoodDeedEmailSeriesPayload,
 )
@@ -63,7 +62,6 @@ class Workflow(Enum):
     POLL_UPDATES = "poll-updates"
     POST_REACTIONS = "post-reactions"
     COMMENT_REACTIONS = "comment-reactions"
-    WELCOME_EMAIL_SERIES = "welcome-email-series"
     POLL_CLOSURE = "poll-closure"
     PRE_GOOD_DEED_EMAIL_SERIES = "pre-good-deed-email-series"
 
@@ -422,24 +420,6 @@ class CommentReactionNotification(Notification):
             recipients=commenter,
             payload=payload.to_dict(),
             transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
-        )
-
-
-class WelcomeEmailSeriesNotification(Notification):
-    def __init__(
-        self,
-        user: str,
-        payload: WelcomeEmailSeriesPayload,
-        token: str,
-    ):
-        super().__init__(
-            workflow=Workflow.WELCOME_EMAIL_SERIES.value,
-            recipients=user,
-            payload=payload.to_dict(),
-            transaction_id=token,  # token is used as transaction_id to cancel the workflow and unsubscribe the user from newsletter
-            email_identifier=EmailIdentifier.PROD_SUPPORT_EMAIL
-            if environment_id == "production"
-            else EmailIdentifier.DEV_SUPPORT_EMAIL,
         )
 
 

@@ -27,7 +27,6 @@ from openbook_notifications.notifications import (
     PollUpdatesNotification,
     CommentReactionNotification,
     PostReactionNotification,
-    WelcomeEmailSeriesNotification,
     PollClosureNotification,
     PreGoodDeedEmailSeriesNotification,
 )
@@ -49,7 +48,6 @@ from openbook_notifications.payloads import (
     PollUpdatesPayload,
     PostReactionPayload,
     CommentReactionPayload,
-    WelcomeEmailSeriesPayload,
     PollClosurePayload,
     PreGoodDeedEmailSeriesPayload,
 )
@@ -375,16 +373,6 @@ class NotificationsService:
         notification = CommentReactionNotification(
             commenter=str(recipient.username),
             payload=CommentReactionPayload(reactor=reactor, comment=comment, context_id=context_id),
-        )
-        notification.send()
-
-    @staticmethod
-    @skip_e2e_notifications
-    def send_welcome_email_series_notification(user: User, spaces, insights, token):
-        notification = WelcomeEmailSeriesNotification(
-            user=str(user.username),
-            payload=WelcomeEmailSeriesPayload(user=user, spaces=spaces, insights=insights, token=token),
-            token=token,
         )
         notification.send()
 

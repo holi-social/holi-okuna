@@ -42,7 +42,6 @@ class NotificationType(Enum):
     POLL_UPDATES = "POLL_UPDATES"
     POST_REACTION = "POST_REACTION"
     COMMENT_REACTION = "COMMENT_REACTION"
-    WELCOME_EMAIL_SERIES = "WELCOME_EMAIL_SERIES"
     POLL_CLOSURE = "POLL_CLOSURE"
     PRE_GOOD_DEED_EMAIL_SERIES = "PRE_GOOD_DEED_EMAIL_SERIES"
 
@@ -643,22 +642,6 @@ class CommentReactionPayload(Payload):
             },
             notification_type=NotificationType.COMMENT_REACTION.value,
             notification_version=CommentReactionPayload.NOTIFICATION_VERSION,
-        )
-
-
-class WelcomeEmailSeriesPayload(Payload):
-    NOTIFICATION_VERSION = "1.0.0"
-
-    def __init__(self, user: User, spaces, insights, token: str):
-        super().__init__(
-            data={
-                "user": UserData.from_user(user).to_dict(),
-                "recommendedSpaces": [SpaceData.from_community(space).to_dict() for space in spaces],
-                "recommendedInsights": [InsightData.from_insight(insight).to_dict() for insight in insights],
-                "unsubscribeUrl": f"{app_url}/unsubscribe?series=welcome&email={user.email}&token={token}",
-            },
-            notification_type=NotificationType.WELCOME_EMAIL_SERIES.value,
-            notification_version=WelcomeEmailSeriesPayload.NOTIFICATION_VERSION,
         )
 
 
