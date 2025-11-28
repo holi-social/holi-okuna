@@ -28,7 +28,7 @@ from openbook_notifications.notifications import (
     CommentReactionNotification,
     PostReactionNotification,
     PollClosureNotification,
-    PreGoodDeedEmailSeriesNotification,
+    WelcomeEmailSeriesNotification,
 )
 from openbook_notifications.payloads import (
     SpaceMembershipRequestPayload,
@@ -49,7 +49,7 @@ from openbook_notifications.payloads import (
     PostReactionPayload,
     CommentReactionPayload,
     PollClosurePayload,
-    PreGoodDeedEmailSeriesPayload,
+    WelcomeEmailSeriesPayload,
 )
 
 from openbook_notifications.wrappers import skip_e2e_notifications
@@ -378,10 +378,10 @@ class NotificationsService:
 
     @staticmethod
     @skip_e2e_notifications
-    def send_pre_good_deed_email_series_notification(user: User, token):
-        notification = PreGoodDeedEmailSeriesNotification(
+    def send_welcome_email_series_notification(user: User, token):
+        notification = WelcomeEmailSeriesNotification(
             user=str(user.username),
-            payload=PreGoodDeedEmailSeriesPayload(user=user, token=token),
+            payload=WelcomeEmailSeriesPayload(user=user, token=token),
             token=token,
         )
         notification.send()

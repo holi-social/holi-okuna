@@ -43,7 +43,7 @@ class NotificationType(Enum):
     POST_REACTION = "POST_REACTION"
     COMMENT_REACTION = "COMMENT_REACTION"
     POLL_CLOSURE = "POLL_CLOSURE"
-    PRE_GOOD_DEED_EMAIL_SERIES = "PRE_GOOD_DEED_EMAIL_SERIES"
+    WELCOME_EMAIL_SERIES = "WELCOME_EMAIL_SERIES"
 
 
 app_url = settings.APP_URL
@@ -645,15 +645,15 @@ class CommentReactionPayload(Payload):
         )
 
 
-class PreGoodDeedEmailSeriesPayload(Payload):
+class WelcomeEmailSeriesPayload(Payload):
     NOTIFICATION_VERSION = "1.0.0"
 
     def __init__(self, user: User, token: str):
         super().__init__(
             data={
                 "user": UserData.from_user(user).to_dict(),
-                "unsubscribeUrl": f"{app_url}/unsubscribe?series=pre-good-deed&email={user.email}&token={token}",
+                "unsubscribeUrl": f"{app_url}/unsubscribe?series=welcome&email={user.email}&token={token}",
             },
-            notification_type=NotificationType.PRE_GOOD_DEED_EMAIL_SERIES.value,
-            notification_version=PreGoodDeedEmailSeriesPayload.NOTIFICATION_VERSION,
+            notification_type=NotificationType.WELCOME_EMAIL_SERIES.value,
+            notification_version=WelcomeEmailSeriesPayload.NOTIFICATION_VERSION,
         )
