@@ -27,11 +27,8 @@ from openbook_notifications.notifications import (
     PollUpdatesNotification,
     CommentReactionNotification,
     PostReactionNotification,
-    WelcomeEmailSeriesNotification,
     PollClosureNotification,
-    PreGoodDeedEmailSeriesNotification,
-    PreGoodDeedWelcomeEmailNotification,
-    PostGoodDeedEmailSeriesNotification,
+    WelcomeEmailSeriesNotification,
 )
 from openbook_notifications.payloads import (
     SpaceMembershipRequestPayload,
@@ -51,11 +48,8 @@ from openbook_notifications.payloads import (
     PollUpdatesPayload,
     PostReactionPayload,
     CommentReactionPayload,
-    WelcomeEmailSeriesPayload,
     PollClosurePayload,
-    PreGoodDeedEmailSeriesPayload,
-    PreGoodDeedWelcomeEmailPayload,
-    PostGoodDeedEmailSeriesPayload,
+    WelcomeEmailSeriesPayload,
 )
 
 from openbook_notifications.wrappers import skip_e2e_notifications
@@ -384,39 +378,10 @@ class NotificationsService:
 
     @staticmethod
     @skip_e2e_notifications
-    def send_welcome_email_series_notification(user: User, spaces, insights, token):
+    def send_welcome_email_series_notification(user: User, token):
         notification = WelcomeEmailSeriesNotification(
             user=str(user.username),
-            payload=WelcomeEmailSeriesPayload(user=user, spaces=spaces, insights=insights, token=token),
-            token=token,
-        )
-        notification.send()
-
-    @staticmethod
-    @skip_e2e_notifications
-    def send_pre_good_deed_email_series_notification(user: User, token):
-        notification = PreGoodDeedEmailSeriesNotification(
-            user=str(user.username),
-            payload=PreGoodDeedEmailSeriesPayload(user=user, token=token),
-            token=token,
-        )
-        notification.send()
-
-    @staticmethod
-    @skip_e2e_notifications
-    def send_pre_good_deed_welcome_email_notification(user: User):
-        notification = PreGoodDeedWelcomeEmailNotification(
-            user=str(user.username),
-            payload=PreGoodDeedWelcomeEmailPayload(user=user),
-        )
-        notification.send()
-
-    @staticmethod
-    @skip_e2e_notifications
-    def send_post_good_deed_email_series_notification(user: User, token):
-        notification = PostGoodDeedEmailSeriesNotification(
-            user=str(user.username),
-            payload=PostGoodDeedEmailSeriesPayload(user=user, token=token),
+            payload=WelcomeEmailSeriesPayload(user=user, token=token),
             token=token,
         )
         notification.send()
