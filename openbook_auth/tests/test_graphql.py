@@ -533,7 +533,6 @@ class TestUsers:
         account_created_calls = [call for call in mock_track.call_args_list if call[0][1].name == "userAccountCreated"]
         assert len(account_created_calls) == 0
 
-    @mock.patch("openbook_notifications.services.NotificationsService.send_post_good_deed_email_series_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_pre_good_deed_welcome_email_notification")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
@@ -550,7 +549,6 @@ class TestUsers:
         mock_publish_user_updated_event,
         mock_patch,
         mock_send_pre_good_deed_welcome_email,
-        mock_send_post_good_deed_email_series,
     ):
         # GIVEN a user with no name (newly created) who is eligible
         # (no good deeds, no volunteering opportunities, no completed tasks)
@@ -597,10 +595,7 @@ class TestUsers:
 
         # Pre-good-deed welcome email should be sent (eligible user)
         mock_send_pre_good_deed_welcome_email.assert_called_once_with(user=user)
-        # Post-good-deed email series should NOT be sent (no items created within 1 minute of join)
-        mock_send_post_good_deed_email_series.assert_not_called()
 
-    @mock.patch("openbook_notifications.services.NotificationsService.send_post_good_deed_email_series_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_pre_good_deed_welcome_email_notification")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
@@ -608,7 +603,7 @@ class TestUsers:
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     @mock.patch("openbook_auth.schema.mutations.track")
-    def test_update_authenticated_user_v2_sends_post_good_deed_email_for_user_with_good_deed(
+    def test_update_authenticated_user_v2_does_not_send_pre_good_deed_welcome_email_for_user_with_good_deed(
         self,
         mock_track,
         mock_create_or_update_subscriber,
@@ -617,7 +612,6 @@ class TestUsers:
         mock_publish_user_updated_event,
         mock_patch,
         mock_send_pre_good_deed_welcome_email,
-        mock_send_post_good_deed_email_series,
     ):
         # GIVEN a user with no name who has already created a good deed within 1 minute of joining
         response = self.create_response(200)
@@ -673,10 +667,7 @@ class TestUsers:
 
         # Pre-good-deed welcome email should NOT be sent (not eligible)
         mock_send_pre_good_deed_welcome_email.assert_not_called()
-        # Post-good-deed email series should be sent instead
-        mock_send_post_good_deed_email_series.assert_called_once()
 
-    @mock.patch("openbook_notifications.services.NotificationsService.send_post_good_deed_email_series_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_pre_good_deed_welcome_email_notification")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
@@ -684,7 +675,7 @@ class TestUsers:
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     @mock.patch("openbook_auth.schema.mutations.track")
-    def test_update_authenticated_user_v2_sends_post_good_deed_email_for_user_with_volunteering(
+    def test_update_authenticated_user_v2_does_not_send_pre_good_deed_welcome_email_for_user_with_volunteering(
         self,
         mock_track,
         mock_create_or_update_subscriber,
@@ -693,7 +684,6 @@ class TestUsers:
         mock_publish_user_updated_event,
         mock_patch,
         mock_send_pre_good_deed_welcome_email,
-        mock_send_post_good_deed_email_series,
     ):
         # GIVEN a user with no name who has committed to a volunteering opportunity within 1 minute of joining
         response = self.create_response(200)
@@ -745,10 +735,7 @@ class TestUsers:
 
         # Pre-good-deed welcome email should NOT be sent (not eligible)
         mock_send_pre_good_deed_welcome_email.assert_not_called()
-        # Post-good-deed email series should be sent instead
-        mock_send_post_good_deed_email_series.assert_called_once()
 
-    @mock.patch("openbook_notifications.services.NotificationsService.send_post_good_deed_email_series_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_pre_good_deed_welcome_email_notification")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
@@ -756,7 +743,7 @@ class TestUsers:
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     @mock.patch("openbook_auth.schema.mutations.track")
-    def test_update_authenticated_user_v2_sends_post_good_deed_email_for_user_with_completed_task(
+    def test_update_authenticated_user_v2_does_not_send_pre_good_deed_welcome_email_for_user_with_completed_task(
         self,
         mock_track,
         mock_create_or_update_subscriber,
@@ -765,7 +752,6 @@ class TestUsers:
         mock_publish_user_updated_event,
         mock_patch,
         mock_send_pre_good_deed_welcome_email,
-        mock_send_post_good_deed_email_series,
     ):
         # GIVEN a user with no name who has completed a task within 1 minute of joining
         response = self.create_response(200)
@@ -815,10 +801,7 @@ class TestUsers:
 
         # Pre-good-deed welcome email should NOT be sent (not eligible)
         mock_send_pre_good_deed_welcome_email.assert_not_called()
-        # Post-good-deed email series should be sent (item created within 1 minute of join)
-        mock_send_post_good_deed_email_series.assert_called_once()
 
-    @mock.patch("openbook_notifications.services.NotificationsService.send_post_good_deed_email_series_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_pre_good_deed_welcome_email_notification")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
@@ -826,7 +809,7 @@ class TestUsers:
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     @mock.patch("openbook_auth.schema.mutations.track")
-    def test_update_authenticated_user_v2_does_not_send_post_good_deed_email_if_item_created_after_minute_window(
+    def test_update_authenticated_user_v2_does_not_send_pre_good_deed_welcome_email_if_item_created_after_minute_window(
         self,
         mock_track,
         mock_create_or_update_subscriber,
@@ -835,7 +818,6 @@ class TestUsers:
         mock_publish_user_updated_event,
         mock_patch,
         mock_send_pre_good_deed_welcome_email,
-        mock_send_post_good_deed_email_series,
     ):
         # GIVEN a user with no name who has created a good deed, but more than 1 minute after joining
         response = self.create_response(200)
@@ -891,8 +873,6 @@ class TestUsers:
 
         # Pre-good-deed welcome email should NOT be sent (not eligible - has good deed)
         mock_send_pre_good_deed_welcome_email.assert_not_called()
-        # Post-good-deed email series should NOT be sent (good deed created outside 1 minute window)
-        mock_send_post_good_deed_email_series.assert_not_called()
 
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")

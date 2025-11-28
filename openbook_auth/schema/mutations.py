@@ -138,35 +138,6 @@ class Mutation:
             if is_eligible:
                 NotificationsService.send_pre_good_deed_welcome_email_notification(user=current_user)
 
-        user_joined = current_user.date_joined
-
-        one_minute_after_join = user_joined + timedelta(minutes=1)
-
-        good_deed_in_same_minute = current_user.created_feed_posts.filter(
-            category__slug="good-deed",
-            created_at__gte=user_joined,
-            created_at__lte=one_minute_after_join,
-        ).exists()
-
-        volunteering_in_same_minute = current_user.volunteeringopportunitystatus_set.filter(
-            created_at__gte=user_joined,
-            created_at__lte=one_minute_after_join,
-        ).exists()
-
-        completed_task_in_same_minute = current_user.completed_tasks.filter(
-            completed_at__gte=user_joined,
-            completed_at__lte=one_minute_after_join,
-        ).exists()
-
-        # User is eligible if at least one of these was created within the same minute window
-        is_eligible = good_deed_in_same_minute or volunteering_in_same_minute or completed_task_in_same_minute
-
-        if is_eligible:
-            post_good_deed_email_series_token = str(uuid.uuid4())
-            NotificationsService.send_post_good_deed_email_series_notification(
-                user=current_user, token=post_good_deed_email_series_token
-            )
-
         updated_fields = _get_updated_fields(current_user_fields_before, current_user_fields_after)
         if updated_fields:
             track(
