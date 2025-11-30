@@ -14,7 +14,7 @@ dependencies = [
     "async-property==0.2.2",
     "attrs==25.4.0",
     "backoff==2.2.1",
-    "beautifulsoup4==4.14.2",
+    "beautifulsoup4==4.14.3",
     "black==25.11.0",
     "blurhash-python==1.2.2",
     "cachetools==6.2.2",
