@@ -144,7 +144,7 @@ In addition, there is also a users.json you can load if you want.
 You can generate more test data with a custom command:
 
 ```bash
-./manage.py generate_dummy_data --users 10 --spaces 5 --space_updates 3 --feed_posts 2 --insights 5
+./manage.py generate_dummy_data --users 10 --spaces 5 --space_updates 3 --feed_posts 5
 ```
 Be aware, you need users to create the other entities with. The script uses them randomly.
 

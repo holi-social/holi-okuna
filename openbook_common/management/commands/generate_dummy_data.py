@@ -8,7 +8,6 @@ from urllib import request
 from django.contrib.auth.backends import UserModel
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.management import BaseCommand, CommandError
-from django.utils.timezone import now
 from faker import Faker
 
 from feed_posts.enums import VisibilityLevel
@@ -25,9 +24,6 @@ from openbook_common.tests.helpers import (
 from openbook_common.enums import ReactionType, VisibilityType
 from openbook_common.topics import topic_v2_slugs
 from openbook_communities.models import Community, Task
-from openbook_insights.models import Insight, Discussion
-from openbook_polls.models import Poll, Choice
-from openbook_posts.models import Post
 from openbook_terms.models import FeedPostCategory
 
 from unittest import mock
@@ -141,30 +137,6 @@ class Command(BaseCommand):
                     if random.random() < 0.2:
                         self._generate_reactions(post_comment, users)
 
-    def generate_insights(self, nr):
-        print(f"generate {nr} insights with poll and discussion")
-        users = self._get_random_users(int(nr / 1.5))
-        if not users:
-            raise CommandError(NO_USERS_AVAILABLE)
-        posts = Post.objects.filter(is_public=True).all()[: int(nr * 4)]
-        if not posts:
-            raise CommandError(NO_POSTS_AVAILABLE)
-        for _ in range(nr):
-            with image_fetcher() as image_file:
-                creator = random.choice(users)
-                insight = Insight.objects.create(
-                    creator=creator,
-                    title=make_fake_post_title(),
-                    description=fake.text(max_nb_chars=300),
-                    date_published=now(),
-                    header_image=image_file,
-                )
-                poll = Poll.create_poll(question_text="How are you feeling?", creator=creator, is_public=True)
-                Choice.objects.create(poll_id=poll.id, choice_text="Great")
-                insight.polls.set([poll])
-                discussion = Discussion.objects.create(insight_id=insight.id, question="What do you think?")
-                insight.discussions.set([discussion])
-
     def generate_spaces(self, nr):
         print(f"generate {nr} spaces with task")
         users = self._get_random_users(int(nr / 1.5))
@@ -191,6 +163,7 @@ class Command(BaseCommand):
                     visibility=VisibilityType.PUBLIC,
                     duration=Task.Duration.HOURS_2to4,
                     location_type="REMOTE",
+                    interaction_type="READY",
                     contact_email=fake.email(),
                     slots_available=10,
                     regularity="REGULARLY",
