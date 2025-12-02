@@ -31,6 +31,7 @@ def for_every_ory_user(function: Callable[[dict], None]):
             )
 
         if response.status_code != http.HTTPStatus.OK:
+            print(f"Ory HTTP Status: {response.status_code}")
             message = get_ory_error_str(response)
             if retry_count < 3:
                 print(f"Error getting users from Ory: {message} - Retry #{retry_count}")
