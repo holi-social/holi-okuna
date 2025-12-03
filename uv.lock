@@ -532,15 +532,15 @@ wheels = [
 
 [[package]]
 name = "django-debug-toolbar"
-version = "5.0.1"
+version = "5.2.0"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "django" },
     { name = "sqlparse" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/django-debug-toolbar/django_debug_toolbar-5.0.1.tar.gz", hash = "sha256:296f6f18a80710e84fbb8361538ae5ec522a75ebe9ab67db34bcf1026cbeb420" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/django-debug-toolbar/django_debug_toolbar-5.2.0.tar.gz", hash = "sha256:9e7f0145e1a1b7d78fcc3b53798686170a5b472d9cf085d88121ff823e900821" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/django-debug-toolbar/django_debug_toolbar-5.0.1-py3-none-any.whl", hash = "sha256:7456cc2e951db37dab335686db7803c4a0ecb6736d120705f6668db9548bf49f" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/django-debug-toolbar/django_debug_toolbar-5.2.0-py3-none-any.whl", hash = "sha256:15627f4c2836a9099d795e271e38e8cf5204ccd79d5dbcd748f8a6c284dcd195" },
 ]
 
 [[package]]
@@ -1207,7 +1207,7 @@ requires-dist = [
     { name = "django-cacheops", specifier = "==7.2" },
     { name = "django-cors-headers", specifier = "==4.9.0" },
     { name = "django-cursor-pagination", specifier = "==0.3.0" },
-    { name = "django-debug-toolbar", specifier = "==5.0.1" },
+    { name = "django-debug-toolbar", specifier = "==5.2.0" },
     { name = "django-extensions", specifier = "==4.1" },
     { name = "django-imagekit", specifier = "==6.0.0" },
     { name = "django-ipware", specifier = "==7.0.1" },
