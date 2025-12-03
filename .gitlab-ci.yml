@@ -104,7 +104,7 @@ build_docker:
   stage: 'deploy'
   image:
     name: 'europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/terraform-gcloud'
-    # default entrypoint is terraform command, but we want to run shell scripts
+    # the default entrypoint is the terraform command, but we want to run shell scripts
     # entrypoint: ["/bin/sh", "-c"]
   variables:
     ENVIRONMENT_ID: $CI_ENVIRONMENT_SLUG
