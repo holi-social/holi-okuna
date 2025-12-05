@@ -1311,7 +1311,7 @@ requires-dist = [
     { name = "uritools", specifier = "==5.0.0" },
     { name = "url-normalize", specifier = "==2.2.1" },
     { name = "urlextract", specifier = "==1.9.0" },
-    { name = "urllib3", specifier = "==2.5.0" },
+    { name = "urllib3", specifier = "==2.6.0" },
     { name = "uvicorn", specifier = "==0.38.0" },
     { name = "wrapt", specifier = "==2.0.1" },
     { name = "yarl", specifier = "==1.22.0" },
@@ -2460,11 +2460,11 @@ wheels = [
 
 [[package]]
 name = "urllib3"
-version = "2.5.0"
+version = "2.6.0"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/urllib3/urllib3-2.5.0.tar.gz", hash = "sha256:3fc47733c7e419d4bc3f6b3dc2b4f890bb743906a30d56ba4a5bfa4bbff92760" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/urllib3/urllib3-2.6.0.tar.gz", hash = "sha256:cb9bcef5a4b345d5da5d145dc3e30834f58e8018828cbc724d30b4cb7d4d49f1" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/urllib3/urllib3-2.5.0-py3-none-any.whl", hash = "sha256:e6b01673c0fa6a13e374b50871808eb3bf7046c4b125b216f6bf1cc604cff0dc" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/urllib3/urllib3-2.6.0-py3-none-any.whl", hash = "sha256:c90f7a39f716c572c4e3e58509581ebd83f9b59cced005b7db7ad2d22b0db99f" },
 ]
 
 [[package]]
