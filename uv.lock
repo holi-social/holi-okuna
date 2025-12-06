@@ -1264,7 +1264,7 @@ requires-dist = [
     { name = "proto-plus", specifier = "==1.26.1" },
     { name = "protobuf", specifier = "==6.33.1" },
     { name = "psycopg", specifier = "==3.2.12" },
-    { name = "psycopg-binary", specifier = "==3.2.12" },
+    { name = "psycopg-binary", specifier = "==3.3.2" },
     { name = "pyasn1", specifier = "==0.6.1" },
     { name = "pyasn1-modules", specifier = "==0.4.2" },
     { name = "pycparser", specifier = "==2.23" },
@@ -1861,27 +1861,31 @@ wheels = [
 
 [[package]]
 name = "psycopg-binary"
-version = "3.2.12"
+version = "3.3.2"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.2.12-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:442f20153415f374ae5753ca618637611a41a3c58c56d16ce55f845d76a3cf7b" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.2.12-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:79de3cc5adbf51677009a8fda35ac9e9e3686d5595ab4b0c43ec7099ece6aeb5" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.2.12-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:095ccda59042a1239ac2fefe693a336cb5cecf8944a8d9e98b07f07e94e2b78d" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.2.12-cp313-cp313-manylinux2014_ppc64le.manylinux_2_17_ppc64le.whl", hash = "sha256:efab679a2c7d1bf7d0ec0e1ecb47fe764945eff75bb4321f2e699b30a12db9b3" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.2.12-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:d369e79ad9647fc8217cbb51bbbf11f9a1ffca450be31d005340157ffe8e91b3" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.2.12-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:eedc410f82007038030650aa58f620f9fe0009b9d6b04c3dc71cbd3bae5b2675" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.2.12-cp313-cp313-musllinux_1_2_ppc64le.whl", hash = "sha256:f3bae4be7f6781bf6c9576eedcd5e1bb74468126fa6de991e47cdb1a8ea3a42a" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.2.12-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:8ffe75fe6be902dadd439adf4228c98138a992088e073ede6dd34e7235f4e03e" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.2.12-cp313-cp313-win_amd64.whl", hash = "sha256:2598d0e4f2f258da13df0560187b3f1dfc9b8688c46b9d90176360ae5212c3fc" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.2.12-cp314-cp314-macosx_10_13_x86_64.whl", hash = "sha256:dc68094e00a5a7e8c20de1d3a0d5e404a27f522e18f8eb62bbbc9f865c3c81ef" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.2.12-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:2d55009eeddbef54c711093c986daaf361d2c4210aaa1ee905075a3b97a62441" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.2.12-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:66a031f22e4418016990446d3e38143826f03ad811b9f78f58e2afbc1d343f7a" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.2.12-cp314-cp314-manylinux2014_ppc64le.manylinux_2_17_ppc64le.whl", hash = "sha256:58ed30d33c25d7dc8d2f06285e88493147c2a660cc94713e4b563a99efb80a1f" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.2.12-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:e0b5ccd03ca4749b8f66f38608ccbcb415cbd130d02de5eda80d042b83bee90e" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.2.12-cp314-cp314-musllinux_1_2_aarch64.whl", hash = "sha256:909de94de7dd4d6086098a5755562207114c9638ec42c52d84c8a440c45fe084" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.2.12-cp314-cp314-musllinux_1_2_ppc64le.whl", hash = "sha256:7130effd0517881f3a852eff98729d51034128f0737f64f0d1c7ea8343d77bd7" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.2.12-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:89b3c5201ca616d69ca0c3c0003ca18f7170a679c445c7e386ebfb4f29aa738e" },
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.2.12-cp314-cp314-win_amd64.whl", hash = "sha256:48a8e29f3e38fcf8d393b8fe460d83e39c107ad7e5e61cd3858a7569e0554a39" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:fc5a189e89cbfff174588665bb18d28d2d0428366cc9dae5864afcaa2e57380b" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:083c2e182be433f290dc2c516fd72b9b47054fcd305cce791e0a50d9e93e06f2" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp313-cp313-manylinux2014_ppc64le.manylinux_2_17_ppc64le.whl", hash = "sha256:ac230e3643d1c436a2dfb59ca84357dfc6862c9f372fc5dbd96bafecae581f9f" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:d8c899a540f6c7585cee53cddc929dd4d2db90fd828e37f5d4017b63acbc1a5d" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp313-cp313-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:50ff10ab8c0abdb5a5451b9315538865b50ba64c907742a1385fdf5f5772b73e" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp313-cp313-manylinux_2_38_riscv64.manylinux_2_39_riscv64.whl", hash = "sha256:23d2594af848c1fd3d874a9364bef50730124e72df7bb145a20cb45e728c50ed" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:ea4fe6b4ead3bbbe27244ea224fcd1f53cb119afc38b71a2f3ce570149a03e30" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp313-cp313-musllinux_1_2_ppc64le.whl", hash = "sha256:742ce48cde825b8e52fb1a658253d6d1ff66d152081cbc76aa45e2986534858d" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp313-cp313-musllinux_1_2_riscv64.whl", hash = "sha256:e22bf6b54df994aff37ab52695d635f1ef73155e781eee1f5fa75bc08b58c8da" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:8db9034cde3bcdafc66980f0130813f5c5d19e74b3f2a19fb3cfbc25ad113121" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp313-cp313-win_amd64.whl", hash = "sha256:df65174c7cf6b05ea273ce955927d3270b3a6e27b0b12762b009ce6082b8d3fc" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp314-cp314-macosx_10_15_x86_64.whl", hash = "sha256:9ca24062cd9b2270e4d77576042e9cc2b1d543f09da5aba1f1a3d016cea28390" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:c749770da0947bc972e512f35366dd4950c0e34afad89e60b9787a37e97cb443" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp314-cp314-manylinux2014_ppc64le.manylinux_2_17_ppc64le.whl", hash = "sha256:03b7cd73fb8c45d272a34ae7249713e32492891492681e3cf11dff9531cf37e9" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:43b130e3b6edcb5ee856c7167ccb8561b473308c870ed83978ae478613764f1c" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp314-cp314-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:7c1feba5a8c617922321aef945865334e468337b8fc5c73074f5e63143013b5a" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp314-cp314-manylinux_2_38_riscv64.manylinux_2_39_riscv64.whl", hash = "sha256:cabb2a554d9a0a6bf84037d86ca91782f087dfff2a61298d0b00c19c0bc43f6d" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp314-cp314-musllinux_1_2_aarch64.whl", hash = "sha256:74bc306c4b4df35b09bc8cecf806b271e1c5d708f7900145e4e54a2e5dedfed0" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp314-cp314-musllinux_1_2_ppc64le.whl", hash = "sha256:d79b0093f0fbf7a962d6a46ae292dc056c65d16a8ee9361f3cfbafd4c197ab14" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp314-cp314-musllinux_1_2_riscv64.whl", hash = "sha256:1586e220be05547c77afc326741dd41cc7fba38a81f9931f616ae98865439678" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:458696a5fa5dad5b6fb5d5862c22454434ce4fe1cf66ca6c0de5f904cbc1ae3e" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/psycopg-binary/psycopg_binary-3.3.2-cp314-cp314-win_amd64.whl", hash = "sha256:04bb2de4ba69d6f8395b446ede795e8884c040ec71d01dd07ac2b2d18d4153d1" },
 ]
 
 [[package]]
