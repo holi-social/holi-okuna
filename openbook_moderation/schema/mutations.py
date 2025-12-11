@@ -5,8 +5,10 @@ import strawberry
 from asgiref.sync import sync_to_async
 from graphql import GraphQLError
 
+from openbook.settings import MODERATION_REPORT_URL, ENVIRONMENT_ID
 from openbook_auth.utils import verify_authorized_user
 from openbook.graphql_errors import GraphQLErrorCodes
+from openbook_common.helpers import send_alert_to_channel
 from openbook_common.schema.types import Result
 from openbook_moderation.enums import ContentType
 
@@ -49,5 +51,9 @@ class Mutation:
                     f"Unknown ContentType {content_type.value}",
                     extensions={"code": GraphQLErrorCodes.FORBIDDEN},
                 )
+        send_alert_to_channel(
+            f"*{ENVIRONMENT_ID}* moderation report for {content_type.value} with ID {object_id} by user {current_user.username}",
+            MODERATION_REPORT_URL,
+        )
 
         return Result(success=True)
