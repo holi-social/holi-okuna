@@ -2,6 +2,7 @@ import uuid
 from typing import Optional, TYPE_CHECKING
 
 import strawberry
+import structlog
 from asgiref.sync import sync_to_async
 from graphql import GraphQLError
 
@@ -11,6 +12,8 @@ from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.helpers import send_alert_to_channel
 from openbook_common.schema.types import Result
 from openbook_moderation.enums import ContentType
+
+logger = structlog.get_logger(__name__)
 
 if TYPE_CHECKING:
     from openbook_auth.models import User
@@ -51,9 +54,12 @@ class Mutation:
                     f"Unknown ContentType {content_type.value}",
                     extensions={"code": GraphQLErrorCodes.FORBIDDEN},
                 )
-        send_alert_to_channel(
-            f"*{ENVIRONMENT_ID}* moderation report for {content_type.value} with ID {object_id} by user {current_user.username}",
-            MODERATION_REPORT_URL,
-        )
+        try:
+            send_alert_to_channel(
+                f"*{ENVIRONMENT_ID}* moderation report for {content_type.value} with ID {object_id} by user {current_user.username}",
+                MODERATION_REPORT_URL,
+            )
+        except Exception as e:
+            logger.error(f"Could not send slack alert for moderation to channel: {e}", exc_info=True)
 
         return Result(success=True)
