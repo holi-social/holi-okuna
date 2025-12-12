@@ -1,22 +1,22 @@
 variables:
   PIP_CACHE_DIR: '$CI_PROJECT_DIR/.cache/pip' # Change pip's cache directory to be inside the project directory since we can only cache local items.
   API_DOMAIN_PATH: '$CI_PROJECT_DIR/api_domain'
-  UV_INDEX_URL: "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/"
-  PIP_INDEX_URL: "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/"
-  PIP_TRUSTED_HOST: "europe-north1-python.pkg.dev"
+  UV_INDEX_URL: 'https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/'
+  PIP_INDEX_URL: 'https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/'
+  PIP_TRUSTED_HOST: 'europe-north1-python.pkg.dev'
 
 .uv_cache_rw:
   policy: pull-push
   key:
     files:
-      - "uv.lock"
+      - 'uv.lock'
   paths:
     - .uv-cache
 
 .uv_cache_ro:
   key:
     files:
-      - "uv.lock"
+      - 'uv.lock'
   policy: pull
   paths:
     - .uv-cache
@@ -39,7 +39,7 @@ default:
 
 validate:
   image: 'europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/holi-okuna-builder:latest'
-  cache: !reference [ .uv_cache_rw ]
+  cache: !reference [.uv_cache_rw]
   services:
     - name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/postgis/postgis:17-3.4'
       alias: postgres
@@ -72,7 +72,7 @@ alert_matching_on_migrations:
   stage: validate
   image:
     name: alpine/git:latest
-    entrypoint: [ "" ]
+    entrypoint: ['']
   before_script:
     - apk add --no-cache curl
   only:
@@ -82,7 +82,7 @@ alert_matching_on_migrations:
 
 build_docker:
   image: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:29'
-  cache: !reference [ .uv_cache_ro ]
+  cache: !reference [.uv_cache_ro]
   stage: 'build'
   services:
     - name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:29-dind'
@@ -104,7 +104,7 @@ build_docker:
   stage: 'deploy'
   image:
     name: 'europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/terraform-gcloud'
-    # default entrypoint is terraform command, but we want to run shell scripts
+    # the default entrypoint is the terraform command, but we want to run shell scripts
     # entrypoint: ["/bin/sh", "-c"]
   variables:
     ENVIRONMENT_ID: $CI_ENVIRONMENT_SLUG
@@ -157,7 +157,7 @@ review_smoketest:
 review_destroy:
   stage: destroy
   image:
-    name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/hashicorp/terraform:1.14.0'
+    name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/hashicorp/terraform:1.14.1'
     # default entrypoint is terraform command, but we want to run shell scripts
     entrypoint: ['/bin/sh', '-c']
   variables:

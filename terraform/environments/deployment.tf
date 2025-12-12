@@ -160,6 +160,15 @@ resource "google_cloud_run_v2_job" "okuna_migration" {
           value = local.environment_name == "production" ? "" : "_DEV_/"
         }
         env {
+          name = "MODERATION_REPORT_URL"
+          value_source {
+            secret_key_ref {
+              version = "latest"
+              secret  = "MODERATION_REPORT_URL"
+            }
+          }
+        }
+        env {
           name = "IMAGEKIT_PUBLIC_KEY"
           value_source {
             secret_key_ref {

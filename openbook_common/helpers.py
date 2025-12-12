@@ -74,12 +74,12 @@ def write_in_memory_file_to_disk(in_memory_file):
     return tmp_file
 
 
-def send_alert_to_channel(alert):
+def send_alert_to_channel(alert, url=ALERT_HOOK_URL):
     post = {"text": alert}
 
     json_data = dumps(post)
     response = requests.post(
-        ALERT_HOOK_URL,
+        url,
         data=json_data.encode("utf-8"),
         headers={"Content-Type": "application/json"},
     )
