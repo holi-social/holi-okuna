@@ -1306,7 +1306,7 @@ requires-dist = [
     { name = "text-unidecode", specifier = "==1.3" },
     { name = "tldextract", specifier = "==5.3.0" },
     { name = "typing-extensions", specifier = "==4.15.0" },
-    { name = "tzdata", specifier = "==2025.2" },
+    { name = "tzdata", specifier = "==2025.3" },
     { name = "unidecode", specifier = "==1.4.0" },
     { name = "uritools", specifier = "==5.0.0" },
     { name = "url-normalize", specifier = "==2.2.1" },
@@ -2398,11 +2398,11 @@ wheels = [
 
 [[package]]
 name = "tzdata"
-version = "2025.2"
+version = "2025.3"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/tzdata/tzdata-2025.2.tar.gz", hash = "sha256:b60a638fcc0daffadf82fe0f57e53d06bdec2f36c4df66280ae79bce6bd6f2b9" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/tzdata/tzdata-2025.3.tar.gz", hash = "sha256:de39c2ca5dc7b0344f2eba86f49d614019d29f060fc4ebc8a417896a620b56a7" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/tzdata/tzdata-2025.2-py2.py3-none-any.whl", hash = "sha256:1a403fada01ff9221ca8044d701868fa132215d84beb92242d9acd2147f667a8" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/tzdata/tzdata-2025.3-py2.py3-none-any.whl", hash = "sha256:06a47e5700f3081aab02b2e513160914ff0694bce9947d6b76ebd6bf57cfc5d1" },
 ]
 
 [[package]]
