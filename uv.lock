@@ -475,11 +475,11 @@ wheels = [
 
 [[package]]
 name = "django-admin-rangefilter"
-version = "0.13.3"
+version = "0.13.5"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/django-admin-rangefilter/django_admin_rangefilter-0.13.3.tar.gz", hash = "sha256:8151b840753ea2c4de9963b1904cbbe7e786b7bc04de5dbd64567c86d287bbe8" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/django-admin-rangefilter/django_admin_rangefilter-0.13.5.tar.gz", hash = "sha256:3134e9e877f59ccad5949cd25cd2db9bf20d170fd8070be584875fdca96d3a14" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/django-admin-rangefilter/django_admin_rangefilter-0.13.3-py2.py3-none-any.whl", hash = "sha256:a776b1de5c5c153ed167e11fe757f138380207b2295a44d29d939c6ded76463a" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/django-admin-rangefilter/django_admin_rangefilter-0.13.5-py2.py3-none-any.whl", hash = "sha256:7fdcd1ee9007e2b76a5bd35bc017e785bdc7b17a24b8a36aef4ce80741356c47" },
 ]
 
 [[package]]
@@ -1202,7 +1202,7 @@ requires-dist = [
     { name = "coverage", specifier = "==7.11.3" },
     { name = "deprecated", specifier = "==1.3.1" },
     { name = "django", specifier = "==5.2.8" },
-    { name = "django-admin-rangefilter", specifier = "==0.13.3" },
+    { name = "django-admin-rangefilter", specifier = "==0.13.5" },
     { name = "django-appconf", specifier = "==1.2.0" },
     { name = "django-cacheops", specifier = "==7.2" },
     { name = "django-cors-headers", specifier = "==4.9.0" },
