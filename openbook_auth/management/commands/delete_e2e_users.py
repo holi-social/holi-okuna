@@ -20,6 +20,8 @@ from openbook_auth.models import User
 
 EMAIL_SUFFIX = "@e2etest.com"
 
+emails = None
+
 
 class Command(BaseCommand):
     help = "Delete old e2e users on Ory and/or Okuna"
@@ -42,7 +44,14 @@ class Command(BaseCommand):
             return
         self.email = options["email"]
         if options["ory"]:
-            if self.email:
+            if emails:
+                for email in emails:
+                    self.email = email
+                    user = get_ory_user(self.email)
+                    if user:
+                        self._delete_ory_user(user)
+
+            elif self.email:
                 user = get_ory_user(self.email)
                 if user:
                     self._delete_ory_user(user)
@@ -51,7 +60,12 @@ class Command(BaseCommand):
                     for_every_ory_user(lambda user: executor.submit(self._delete_ory_user, user))
             print(f"Job completed, {self.users_deleted_count} users deleted in Ory ({self.users_failed_count} failed)")
         if options["okuna"]:
-            self._delete_okuna_e2e_users()
+            if emails:
+                for email in emails:
+                    self.email = email
+                    self._delete_okuna_e2e_users()
+            else:
+                self._delete_okuna_e2e_users()
 
     def _delete_ory_user(self, user: dict):
         creation_date = parser.isoparse(user["created_at"])
