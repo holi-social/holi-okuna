@@ -457,10 +457,10 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name = "MODERATION_REPORT_URL"
-          value_source {
+          value_from {
             secret_key_ref {
-              version = "latest"
-              secret  = "MODERATION_REPORT_URL"
+              name = "MODERATION_REPORT_URL"
+              key  = "latest"
             }
           }
         }
