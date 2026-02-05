@@ -50,7 +50,7 @@ dependencies = [
     "funcy==2.0",
     "google-api-core==2.28.1",
     "google-auth==2.43.0",
-    "google-cloud-pubsub==2.33.0",
+    "google-cloud-pubsub==2.35.0",
     "google-cloud-webrisk==1.19.0",
     "googleapis-common-protos==1.72.0",
     "graphql-core==3.2.7",
