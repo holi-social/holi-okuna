@@ -1236,7 +1236,7 @@ requires-dist = [
     { name = "grpcio-status", specifier = "==1.76.0" },
     { name = "h11", specifier = "==0.16.0" },
     { name = "hiredis", specifier = "==3.3.0" },
-    { name = "icalendar", specifier = "==6.3.2" },
+    { name = "icalendar", specifier = "==7.0.0" },
     { name = "idna", specifier = "==3.11" },
     { name = "imagekitio", specifier = "==2.2.8" },
     { name = "importlib-metadata", specifier = "==8.7.0" },
@@ -1327,15 +1327,15 @@ dev = [
 
 [[package]]
 name = "icalendar"
-version = "6.3.2"
+version = "7.0.0"
 source = { registry = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/simple/" }
 dependencies = [
     { name = "python-dateutil" },
     { name = "tzdata" },
 ]
-sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/icalendar/icalendar-6.3.2.tar.gz", hash = "sha256:e0c10ecbfcebe958d33af7d491f6e6b7580d11d475f2eeb29532d0424f9110a1" }
+sdist = { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/icalendar/icalendar-7.0.0.tar.gz", hash = "sha256:5c69cf317177668748793bdecbe93d0850ceca8d450bbf27c8fa1a14e2e71223" }
 wheels = [
-    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/icalendar/icalendar-6.3.2-py3-none-any.whl", hash = "sha256:d400e9c9bb8c025e5a3c77c236941bb690494be52528a0b43cc7e8b7c9505064" },
+    { url = "https://europe-north1-python.pkg.dev/holi-shared/pypi-remote/icalendar/icalendar-7.0.0-py3-none-any.whl", hash = "sha256:ed874334e620a73b2cbf408706574f3e83210ae79f3960678c453131e465c1c7" },
 ]
 
 [[package]]
